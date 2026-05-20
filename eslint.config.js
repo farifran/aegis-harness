@@ -1,5 +1,5 @@
 // =========================================================
-// AEGIS HARNESS — ESLINT EPISTEMIC CONFIG v3
+// AEGIS HARNESS — ESLINT EPISTEMIC CONFIG v4
 // =========================================================
 
 // This file provides mechanically enforceable structural containment.
@@ -25,11 +25,42 @@ import tseslint from "typescript-eslint";
 import boundaries from "eslint-plugin-boundaries";
 
 export default [
-  js.configs.recommended,
-  ...tseslint.configs.recommended,
+
+  // =======================================================
+  // GLOBAL IGNORE
+  // =======================================================
 
   {
+    ignores: [
+      "dist/**",
+      "coverage/**",
+      "node_modules/**"
+    ]
+  },
+
+  // =======================================================
+  // BASE JAVASCRIPT CONFIG
+  // =======================================================
+
+  js.configs.recommended,
+
+  // =======================================================
+  // TYPESCRIPT STRUCTURAL CONTAINMENT
+  // =======================================================
+
+  {
+    files: ["src/**/*.ts"],
+
+    languageOptions: {
+      parser: tseslint.parser,
+
+      parserOptions: {
+        project: "./tsconfig.json"
+      }
+    },
+
     plugins: {
+      "@typescript-eslint": tseslint.plugin,
       boundaries
     },
 
@@ -39,14 +70,17 @@ export default [
           type: "ui",
           pattern: "src/ui/**"
         },
+
         {
           type: "application",
           pattern: "src/application/**"
         },
+
         {
           type: "domain",
           pattern: "src/domain/**"
         },
+
         {
           type: "infrastructure",
           pattern: "src/infrastructure/**"
@@ -55,6 +89,7 @@ export default [
     },
 
     rules: {
+
       // ---------------------------------------------------
       // STRUCTURAL BOUNDARIES
       // ---------------------------------------------------
