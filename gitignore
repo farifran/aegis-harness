@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+dist/
+build/
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.*
+
+# Aider
+.aider*
+.aider.chat.history.md
+
+# TypeScript
+*.tsbuildinfo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary files
+tmp/
+temp/
+.cache/
+
+# Python
+__pycache__/
+*.pyc
