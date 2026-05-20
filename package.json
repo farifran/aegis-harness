@@ -1,0 +1,24 @@
+{
+  "name": "aegis-harness",
+  "version": "0.3.0",
+  "private": true,
+  "description": "Epistemology-first runtime for structurally bounded frontier-model engineering.",
+  "scripts": {
+    "aegis:typecheck": "tsc --noEmit",
+    "aegis:lint": "eslint .",
+    "aegis:enforce": "ast-grep scan -r .harness/enforcement/ast_grep_rules.yml",
+    "aegis:verify-structure": "npm run aegis:typecheck && npm run aegis:lint",
+    "aegis:falsify": "npm run aegis:enforce",
+    "aegis:validate-confidence": "npm run aegis:verify-structure && npm run aegis:falsify",
+    "aegis:test": "npm test",
+    "aegis:full": "npm run aegis:validate-confidence && npm run aegis:test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@ast-grep/cli": "^0.30.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-boundaries": "^4.0.0",
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.0.0"
+  }
+}

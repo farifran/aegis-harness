@@ -1,0 +1,145 @@
+{
+  "layers": {
+    "ui": {
+      "allowedDependencies": [
+        "application"
+      ],
+      "criticality": "moderate",
+      "mutationSensitivity": "moderate",
+      "optimizationPressure": "moderate",
+      "verificationSensitivity": "moderate",
+      "confidenceSensitivity": "moderate",
+      "falsificationSensitivity": "moderate",
+      "executionExposure": "moderate",
+      "redesignTolerance": "moderate",
+      "adversarialPriority": "moderate",
+      "operationalPosture": "balanced"
+    },
+    "application": {
+      "allowedDependencies": [
+        "domain"
+      ],
+      "criticality": "high",
+      "mutationSensitivity": "high",
+      "optimizationPressure": "moderate",
+      "verificationSensitivity": "high",
+      "confidenceSensitivity": "high",
+      "falsificationSensitivity": "high",
+      "executionExposure": "high",
+      "redesignTolerance": "low",
+      "adversarialPriority": "high",
+      "operationalPosture": "conservative"
+    },
+    "domain": {
+      "allowedDependencies": [],
+      "criticality": "critical",
+      "mutationSensitivity": "critical",
+      "optimizationPressure": "low",
+      "verificationSensitivity": "critical",
+      "confidenceSensitivity": "critical",
+      "falsificationSensitivity": "critical",
+      "executionExposure": "critical",
+      "redesignTolerance": "very_low",
+      "adversarialPriority": "critical",
+      "operationalPosture": "extremely_conservative"
+    },
+    "infrastructure": {
+      "allowedDependencies": [
+        "application",
+        "domain"
+      ],
+      "criticality": "high",
+      "mutationSensitivity": "high",
+      "optimizationPressure": "low",
+      "verificationSensitivity": "high",
+      "confidenceSensitivity": "high",
+      "falsificationSensitivity": "high",
+      "executionExposure": "critical",
+      "redesignTolerance": "low",
+      "adversarialPriority": "high",
+      "operationalPosture": "conservative"
+    }
+  },
+  "global": {
+    "implicitRedesignForbidden": true,
+    "optimizationMustRemainProportional": true,
+    "confidenceMustRemainEvidenceBound": true,
+    "repositoryWideMutationRequiresEscalation": true,
+    "crossLayerExpansionRequiresJustification": true,
+    "runtimeOrchestrationExternalized": true,
+    "modeCognitionMustRemainBounded": true,
+    "recursiveEpistemologicalInvocationForbidden": true,
+    "falsificationDoesNotEstablishCorrectness": true,
+    "validationDoesNotEstablishCertainty": true
+  },
+  "semantics": {
+    "purpose": "epistemic structural metadata",
+    "nonAuthoritative": true,
+    "informs": [
+      "mutation proportionality",
+      "optimization containment",
+      "falsification proportionality",
+      "validation proportionality",
+      "confidence sensitivity",
+      "structural criticality",
+      "proportional cognitive posture",
+      "adversarial pressure scaling",
+      "confidence degradation proportionality",
+      "optimization containment intensity",
+      "verification strictness scaling"
+    ],
+    "doesNotDefine": [
+      "runtime orchestration",
+      "mode cognition",
+      "constitutional governance",
+      "execution sequencing",
+      "runtime adaptation",
+      "heuristic orchestration",
+      "autonomous escalation authority",
+      "graph-driven execution flow"
+    ]
+  },
+  "proportionalCognition": {
+    "purpose": "modulate cognitive posture proportionally to structural exposure",
+    "runtimeRemainsDeterministic": true,
+    "modesAdjustPosture": true,
+    "doesNotAuthorize": [
+      "runtime intelligence",
+      "autonomous orchestration",
+      "heuristic planning",
+      "dynamic execution sequencing"
+    ],
+    "scales": [
+      "skepticism intensity",
+      "mutation caution",
+      "adversarial pressure",
+      "optimization aggressiveness",
+      "confidence degradation",
+      "verification strictness"
+    ]
+  },
+  "falsification": {
+    "purpose": "apply adversarial contradiction pressure against operational assumptions",
+    "isNot": [
+      "lint replay",
+      "passive inspection",
+      "stylistic criticism",
+      "correctness proof"
+    ],
+    "targets": [
+      "hidden coupling",
+      "execution ordering",
+      "retry semantics",
+      "partial invariants",
+      "cross-layer leakage",
+      "unresolved exposure",
+      "implicit orchestration assumptions"
+    ]
+  },
+  "confidenceDiscipline": {
+    "confidenceMustRemainEvidenceBound": true,
+    "absenceOfContradictionDoesNotEstablishCorrectness": true,
+    "validationImprovesConfidenceButDoesNotEstablishCertainty": true,
+    "residualUncertaintyMustRemainExplicit": true
+  }
+}
