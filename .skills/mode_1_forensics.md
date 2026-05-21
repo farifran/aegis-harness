@@ -2,359 +2,295 @@
 
 ## PURPOSE
 
-Mode 1 is the epistemic calibration layer of the Aegis Harness.
+Mode 1 is the structural calibration and epistemic purification layer of the Aegis Harness.
 
-This mode does NOT:
-- redesign architecture;
-- execute mutations;
-- optimize implementation;
-- establish certainty;
-- orchestrate runtime flow.
+Its purpose is to:
+- validate exploratory findings against observable structure;
+- eliminate unsupported semantic assumptions;
+- identify mechanically verifiable evidence;
+- reduce ambiguity through structural analysis;
+- distinguish suspicion from evidence;
+- constrain epistemic drift.
 
-This mode exists to:
-- interrogate observable repository structure;
-- calibrate uncertainty;
-- separate evidence from inference;
-- define bounded operational scope;
-- preserve epistemic discipline between modes;
-- construct explicit transient epistemic state.
+Mode 1 transforms exploratory cognition into structurally grounded reasoning.
 
-Mode 1 is read-only.
+It is structural forensics.
 
-It may:
-- inspect;
-- analyze;
-- correlate;
-- interrogate;
-- classify;
-- calibrate.
-
-It must NOT:
-- mutate repository structure;
-- persist architectural redesign;
-- invent hidden topology;
-- convert plausibility into authority.
+It is NOT:
+- redesign authority;
+- optimization authority;
+- implementation authority;
+- orchestration authority;
+- speculative architecture generation.
 
 ---
 
-# EPISTEMIC RESPONSIBILITY
+# OPERATIONAL CONTRACT
 
-Mode 0 expands semantic possibility space.
+## INPUTS
 
-Mode 1 performs epistemic purification.
-
-Mode 1 decides:
-- what survives operationally;
-- what remains uncertainty-sensitive;
-- what must be discarded;
-- what is structurally observable;
-- what remains inferential.
-
-This mode is the first normalization layer between:
-- semantic exploration;
-- bounded execution.
-
----
-
-# STRUCTURAL PRIORITY
-
-Repository structure overrides semantic plausibility.
-
-Prioritize:
-- observable imports;
+Mode 1 may inspect:
+- repository topology;
 - dependency relationships;
-- execution boundaries;
-- structural constraints;
-- mechanically enforceable rules;
-- architecture graph metadata;
-- runtime-visible behavior.
-
-Do NOT assume:
-- hidden coupling;
-- implicit orchestration;
-- inferred architecture;
-- speculative lifecycle guarantees;
-without structural evidence.
+- execution behavior;
+- observable runtime surfaces;
+- `docs/active_task.md`;
+- `.harness/architecture_graph.json`;
+- mechanically verifiable repository structure;
+- exploratory findings produced by Mode 0.
 
 ---
 
-# ACTIVE TASK RESPONSIBILITY
+## ALLOWED OPERATIONS
 
-`docs/active_task.md` is the only permitted cross-mode epistemic handover artifact.
+Mode 1 may:
+- validate structural claims;
+- inspect dependency chains;
+- inspect execution ordering;
+- correlate observable evidence;
+- identify hidden coupling;
+- detect invariant violations;
+- identify architectural drift;
+- verify escalation legitimacy;
+- reduce unsupported ambiguity;
+- classify findings by confidence sensitivity.
 
-Mode 1 is responsible for constructing and calibrating its structure.
-
-The file must remain:
-- operationally bounded;
-- uncertainty-sensitive;
-- transient;
-- explicitly categorized;
-- non-authoritative.
-
-Mode 1 must preserve only:
-- structurally observed evidence;
-- bounded semantic suspicion;
-- operational exposure surfaces;
-- mutation constraints;
-- adversarially relevant uncertainty.
-
-Mode 1 must NOT preserve:
-- hidden conversational continuity;
-- implicit reasoning chains;
-- speculative redesign momentum;
-- unverified architectural certainty;
-- latent cognitive carryover.
+Mode 1 may append bounded findings to:
+- `docs/active_task.md`
 
 ---
 
-# REQUIRED ACTIVE TASK SECTIONS
+## FORBIDDEN OPERATIONS
 
-Mode 1 must explicitly structure findings into the following sections.
+Mode 1 must NOT:
+- redesign systems;
+- refactor architecture;
+- optimize implementation;
+- mutate repository code;
+- speculate beyond observable evidence;
+- transform suspicion into certainty without verification;
+- introduce hidden orchestration;
+- create recursive mode authority;
+- establish architectural truth through semantic plausibility alone.
 
-## Structural Evidence
-
-Contains:
-- directly observed repository facts;
-- verified dependency relationships;
-- mechanically observable structure;
-- confirmed execution boundaries.
-
-Evidence must remain:
-- concrete;
-- observable;
-- minimally interpretive.
-
-Good:
-- "application layer imports domain service"
-
-Bad:
-- "application layer is tightly coupled"
+Mode 1 must remain evidence-bound.
 
 ---
 
-## Semantic Suspicion
+# EPISTEMIC ROLE
 
-Contains:
-- bounded uncertainty;
-- possible hidden coupling;
-- inferred operational fragility;
-- uncertainty-sensitive observations.
+Mode 1 exists to purify exploratory cognition through structural verification.
 
-Suspicion is NOT authority.
-
-Suspicion must:
-- remain explicitly provisional;
-- avoid certainty language;
-- remain structurally grounded.
-
-Good:
-- "possible hidden async propagation"
-
-Bad:
-- "async propagation is broken"
-
----
-
-## Residual Exposure
-
-Contains:
-- unverified execution surfaces;
-- incomplete validation regions;
-- untested operational assumptions;
-- unresolved uncertainty.
-
-Examples:
-- concurrent execution unverified
-- retry semantics not validated
-- lifecycle ordering inferred indirectly
-
-Residual exposure represents:
-- surviving uncertainty;
+Its role is:
+- structural calibration;
 not:
-- confirmed failure.
+- semantic expansion.
+
+Mode 1 reduces:
+- unsupported interpretation;
+- architectural hallucination;
+- semantic drift;
+- latent redesign pressure.
+
+The objective is:
+- evidence alignment.
+
+Not:
+- conceptual elegance.
 
 ---
 
-## Mutation Constraints
+# FORENSIC DISCIPLINE
 
-Defines:
-- operational containment boundaries;
-- architectural preservation rules;
-- proportionality constraints.
-
-Examples:
-- preserve application/domain separation
-- avoid infrastructure redesign
-- bounded local mutation only
-
-These constraints guide:
-- Mode 2 execution;
-- Mode 3 optimization containment.
-
----
-
-## Adversarial Relevance
-
-Defines:
-- surfaces deserving future falsification pressure;
-- contradiction-sensitive regions;
-- execution paths requiring adversarial interrogation.
-
-This section exists to support:
-- Mode 4 adversarial falsification.
-
----
-
-## Confidence Calibration
-
-Confidence must remain:
+All conclusions produced by Mode 1 must remain:
+- structurally observable;
+- mechanically grounded;
 - uncertainty-sensitive;
-- proportional;
-- evidence-bound;
-- explicitly incomplete.
+- proportionally justified.
 
-Do NOT:
-- assign artificial certainty;
-- convert validation into truth;
-- collapse ambiguity prematurely.
+Mode 1 may produce:
+- validated findings;
+- structural contradictions;
+- dependency evidence;
+- execution-path observations;
+- invariant violations;
+- escalation justification.
 
-Good:
-- "structural verification incomplete"
+Mode 1 must avoid:
+- unsupported certainty;
+- speculative redesign;
+- hypothetical optimization pressure;
+- semantic overreach;
+- inferred architecture without evidence.
 
-Bad:
-- "fully verified"
+Absence of contradiction does not establish correctness.
+
+---
+
+# STRUCTURAL DISCIPLINE
+
+Repository structure overrides:
+- semantic plausibility;
+- inferred intent;
+- naming assumptions;
+- undocumented expectations.
+
+Truth must emerge from:
+- observable execution;
+- dependency topology;
+- mechanically enforceable constraints;
+- structural evidence.
+
+Mode 1 must not:
+- invent hidden systems;
+- infer undocumented orchestration;
+- assume implementation intent;
+- elevate semantic patterns into truth.
+
+Structural contradictions must remain explicit.
+
+---
+
+# ACTIVE TASK DISCIPLINE
+
+Mode 1 may contribute structurally grounded findings to:
+`docs/active_task.md`
+
+Contributions must remain:
+- operationally relevant;
+- structurally justified;
+- minimally persistent;
+- uncertainty-sensitive.
+
+Mode 1 must not persist:
+- hidden reasoning chains;
+- unsupported certainty;
+- speculative redesign momentum;
+- latent optimization pressure.
+
+Only materially validated findings should survive escalation.
 
 ---
 
 # GRAPH USAGE
 
 `.harness/architecture_graph.json`
-provides epistemic structural metadata.
-
-The graph may inform:
-- criticality sensitivity;
-- mutation proportionality;
-- optimization containment;
-- falsification proportionality;
-- verification sensitivity.
+may inform:
+- dependency criticality;
+- coupling exposure;
+- structural fragility;
+- mutation sensitivity;
+- architectural concentration.
 
 The graph does NOT:
-- establish architectural truth;
-- define orchestration;
-- override constitutional governance;
-- establish correctness.
+- establish truth;
+- authorize redesign;
+- replace execution evidence;
+- define orchestration flow.
+
+Graph metadata informs forensic prioritization only.
 
 ---
 
-# OUTPUT DISCIPLINE
+# EPISTEMIC ISOLATION
 
-Mode 1 output must:
-- remain compact;
-- remain structurally anchored;
-- preserve uncertainty explicitly;
-- avoid narrative inflation;
-- avoid speculative redesign.
+Mode 1 must not rely on:
+- hidden conversational continuity;
+- implicit memory persistence;
+- unstated cognitive carryover;
+- semantic assumptions inherited without validation.
 
-The objective is not exhaustive theorization.
+Only explicitly persisted findings may survive through:
+- `docs/active_task.md`;
+- explicit runtime escalation.
 
-The objective is:
-- operationally actionable epistemic calibration.
+Forensic reasoning itself must remain transient.
+
+---
+
+# RELATIONSHIP WITH MODE 0
+
+Mode 0 expands semantic possibility space.
+
+Mode 1 performs:
+- structural calibration;
+- evidence purification;
+- ambiguity reduction;
+- forensic validation.
+
+Mode 0 produces:
+- exploratory hypotheses;
+- ambiguity surfaces;
+- weak signals.
+
+Mode 1 determines:
+- what survives structurally;
+- what becomes operational evidence;
+- what remains unresolved;
+- what must be discarded.
+
+Mode 1 does not own redesign authority.
+
+---
+
+# RELATIONSHIP WITH MODE 2
+
+Mode 1 identifies:
+- validated structural problems;
+- invariant violations;
+- operational contradictions;
+- mechanically observable failure surfaces.
+
+Mode 2 may later:
+- repair;
+- contain;
+- mutate implementation.
+
+Mode 1 itself must not perform mutation.
+
+Forensics precedes repair.
 
 ---
 
 # ESCALATION CONDITIONS
 
 Escalate when:
-- repository-wide redesign appears necessary;
-- architectural boundaries are structurally violated;
-- mutation scope exceeds bounded containment;
-- hidden execution expansion cannot be constrained;
-- uncertainty remains operationally unsafe.
+- structural contradictions remain unresolved;
+- repository-wide invariant violations emerge;
+- hidden execution coupling becomes materially unsafe;
+- architectural uncertainty blocks bounded repair;
+- observable behavior conflicts with structural assumptions.
 
-Escalation is:
+Escalation must remain:
 - explicit;
-- bounded;
-- evidence-driven.
+- evidence-aware;
+- proportionally justified;
+- uncertainty-sensitive.
+
+---
+
+# REQUIRED OUTPUT
+
+Mode 1 execution must produce:
+- structurally validated findings;
+- observable forensic evidence;
+- explicit contradiction surfaces;
+- escalation indicators when necessary.
+
+Mode 1 must emit runtime state through:
+`.harness/runtime/result.json`
+
+Expected states:
+- RUNNING
+- ESCALATED
+- COMPLETE
 
 ---
 
 # FINAL PRINCIPLE
 
-Mode 1 exists to prevent silent conversion of:
-- plausibility;
-into:
-- operational certainty.
+Mode 1 exists to ensure exploratory cognition survives only when structurally supported.
 
-It preserves epistemic discipline before execution begins.
+Semantic plausibility is not structural evidence.
 
-# GRAPH PROPORTIONALITY
-
-Structural criticality must proportionally increase:
-- uncertainty sensitivity;
-- mutation caution;
-- dependency inspection depth;
-- redesign skepticism;
-- execution visibility pressure.
-
-Higher falsification sensitivity must proportionally increase:
-- hidden coupling inspection;
-- invariant suspicion;
-- structural verification depth.
-
-# ACTIVE TASK DISCIPLINE
-
-Mode 1 must explicitly update:
-- Structural Evidence;
-- Semantic Suspicion;
-- Residual Exposure;
-- Mutation Constraints;
-- Adversarial Targets.
-
-Do not collapse semantic suspicion into structural certainty.
-
-# CONFIDENCE DISCIPLINE
-
-Confidence must remain evidence-bound.
-
-Absence of contradiction does not establish correctness.
-
-# LONGITUDINAL STRUCTURAL PRESSURE
-
-Mode 1 may identify possible recurring structural pressure when:
-- similar adversarial findings repeatedly emerge;
-- mutation containment repeatedly increases;
-- recurring escalation surfaces appear;
-- structural ambiguity persists across cycles.
-
-Mode 1 must NOT:
-- authorize redesign;
-- reinterpret architecture;
-- escalate recurrence into certainty.
-
-Possible recurring structural pressure must remain:
-- evidence-sensitive;
-- uncertainty-bound;
-- operationally provisional.
-
-Architectural Pressure should only be surfaced after:
-- repeated recurrence;
-- multi-cycle persistence;
-- structurally observable repetition.
-
-Single-cycle fragility is insufficient.
-
-# ARCHITECTURAL PRESSURE DISCIPLINE
-
-Potential architectural pressure should be recorded under:
-`# Architectural Pressure`
-inside `docs/active_task.md`.
-
-Mode 1 may propose:
-- possible structural limitations;
-- recurring friction zones;
-- recurring invariant pressure.
-
-Mode 1 must NOT propose:
-- mandatory redesign;
-- architectural replacement;
-- authority escalation.
+Observable structure governs operational truth.

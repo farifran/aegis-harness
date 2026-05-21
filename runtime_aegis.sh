@@ -13,8 +13,9 @@
 #
 # It only:
 # - executes modes;
-# - reads explicit terminal state;
-# - routes deterministic transitions.
+# - injects deterministic sequencing;
+# - validates mechanical execution integrity;
+# - enforces bounded continuity containment.
 #
 # Modes think.
 # Runtime routes.
@@ -37,7 +38,9 @@ MODES=(
 )
 
 HARNESS_DIR=".harness"
+
 STATE_DIR="$HARNESS_DIR/runtime"
+
 RESULT_FILE="$STATE_DIR/result.json"
 
 mkdir -p "$STATE_DIR"
@@ -47,6 +50,7 @@ mkdir -p "$STATE_DIR"
 # =========================================================
 
 RUNTIME_STATE="RUNNING"
+
 CURRENT_MODE_INDEX=0
 
 # =========================================================
@@ -68,16 +72,40 @@ read_status() {
 # =========================================================
 
 reset_epistemic_state() {
-  echo "[AEGIS] Forcing epistemic amnesia..."
 
-  # Destroy conversational continuity
-  rm -f .aider.chat.history.md
+  echo "[AEGIS] Resetting bounded continuity surfaces..."
 
-  # Destroy temporary operational state
-  rm -rf .aider.tmp
+  # -------------------------------------------------------
+  # Conversational continuity
+  # -------------------------------------------------------
 
-  # Destroy repo-map latent bias
-  rm -f .aider.tags.cache.*
+  rm -f .aider.chat.history.md || true
+
+  # -------------------------------------------------------
+  # Prompt continuity
+  # -------------------------------------------------------
+
+  rm -f .aider.input.history || true
+
+  # -------------------------------------------------------
+  # Temporary operational state
+  # -------------------------------------------------------
+
+  rm -rf .aider.tmp || true
+
+  # -------------------------------------------------------
+  # Structural topology persistence
+  # -------------------------------------------------------
+
+  rm -rf .aider.tags.cache.v4 || true
+
+  # -------------------------------------------------------
+  # Additional aider cache variants
+  # -------------------------------------------------------
+
+  rm -rf .aider.tags.cache.* || true
+
+  echo "[AEGIS] Bounded continuity reset complete."
 }
 
 # =========================================================
@@ -85,6 +113,7 @@ reset_epistemic_state() {
 # =========================================================
 
 execute_mode() {
+
   local mode_name="$1"
 
   echo ""
@@ -95,30 +124,18 @@ execute_mode() {
 
   rm -f "$RESULT_FILE"
 
-  # -------------------------------------------------------
-  # MODE EXECUTION CONTRACT
-  #
-  # Each mode MUST generate:
-  #
-  # {
-  #   "status": "RUNNING|ESCALATED|COMPLETE"
-  # }
-  #
-  # Runtime does not interpret cognition.
-  # Runtime only routes deterministic state transitions.
-  #
-  # -------------------------------------------------------
-
   MODE_FILE=".skills/${mode_name}.md"
 
   if [[ ! -f "$MODE_FILE" ]]; then
     fail "Missing mode definition: $MODE_FILE"
   fi
 
-  "./scripts/execute_mode.sh" "$MODE_FILE"
+  # -------------------------------------------------------
+  # Mechanical execution validation only
+  # -------------------------------------------------------
 
-  if [[ ! -f "$RESULT_FILE" ]]; then
-    fail "Mode did not produce result.json"
+  if ! "./scripts/execute_mode.sh" "$MODE_FILE"; then
+    fail "Mechanical mode execution failure."
   fi
 }
 
@@ -137,14 +154,11 @@ while [[ "$RUNTIME_STATE" == "RUNNING" ]]; do
   case "$STATUS" in
 
     RUNNING)
+
       echo "[AEGIS] Mode $CURRENT_MODE completed successfully."
 
       # ---------------------------------------------------
-      # EPISTEMIC STATE RESET
-      #
-      # Prevent hidden cognitive continuity between modes.
-      #
-      # Each mode must execute with isolated cognition.
+      # Enforce bounded continuity containment
       # ---------------------------------------------------
 
       reset_epistemic_state
@@ -154,20 +168,29 @@ while [[ "$RUNTIME_STATE" == "RUNNING" ]]; do
       if [[ $CURRENT_MODE_INDEX -ge ${#MODES[@]} ]]; then
         RUNTIME_STATE="COMPLETE"
       fi
+
       ;;
 
     ESCALATED)
+
       echo "[AEGIS] Flow escalated."
+
       RUNTIME_STATE="ESCALATED"
+
       ;;
 
     COMPLETE)
+
       echo "[AEGIS] Flow completed."
+
       RUNTIME_STATE="COMPLETE"
+
       ;;
 
     *)
+
       fail "Invalid runtime status: $STATUS"
+
       ;;
 
   esac

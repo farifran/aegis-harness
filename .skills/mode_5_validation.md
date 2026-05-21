@@ -2,112 +2,165 @@
 
 ## PURPOSE
 
-Mode 5 is the final confidence calibration layer of the Aegis Harness.
+Mode 5 is the bounded validation and operational confidence calibration layer of the Aegis Harness.
 
-This mode exists to:
-- evaluate surviving operational uncertainty;
-- calibrate residual exposure;
-- measure remaining contradiction pressure;
-- assess bounded operational confidence;
-- determine escalation necessity.
+Its purpose is to:
+- evaluate survivability of previous mode outputs;
+- validate operational proportionality;
+- assess invariant preservation;
+- calibrate confidence against observable evidence;
+- determine escalation legitimacy;
+- identify unresolved structural uncertainty;
+- prevent unsupported operational closure.
 
-Mode 5 does NOT:
-- establish certainty;
-- redefine architecture;
-- mutate repository structure;
-- erase ambiguity;
-- convert validation into truth.
+Mode 5 performs bounded validation.
 
-Validation remains uncertainty-sensitive.
+It is confidence calibration under structural discipline.
+
+It is NOT:
+- absolute verification authority;
+- architectural truth authority;
+- redesign authority;
+- orchestration authority;
+- certainty generation.
+
+---
+
+# OPERATIONAL CONTRACT
+
+## INPUTS
+
+Mode 5 may inspect:
+- outputs from all previous modes;
+- repository topology;
+- execution behavior;
+- dependency relationships;
+- invariant preservation surfaces;
+- adversarial findings from Mode 4;
+- `docs/active_task.md`;
+- `.harness/architecture_graph.json`;
+- mechanically observable repository evidence.
+
+---
+
+## ALLOWED OPERATIONS
+
+Mode 5 may:
+- validate operational proportionality;
+- assess invariant survivability;
+- assess repair legitimacy;
+- assess optimization proportionality;
+- assess adversarial survivability;
+- identify unresolved uncertainty;
+- classify confidence sensitivity;
+- identify escalation necessity;
+- evaluate structural consistency;
+- validate bounded operational closure.
+
+Mode 5 may:
+- perform bounded validation analysis;
+- evaluate evidence sufficiency;
+- classify confidence discipline;
+- determine operational survivability.
+
+Mode 5 may append bounded validation findings to:
+- `docs/active_task.md`
+
+---
+
+## FORBIDDEN OPERATIONS
+
+Mode 5 must NOT:
+- mutate repository code;
+- redesign architecture;
+- optimize implementation;
+- fabricate certainty;
+- suppress unresolved ambiguity;
+- establish absolute correctness;
+- redefine orchestration authority;
+- ignore adversarial findings without justification;
+- silently convert survivability into certainty.
+
+Mode 5 must remain validation-bound.
 
 ---
 
 # EPISTEMIC ROLE
 
-Mode 5 operates after:
-- execution;
-- optimization;
-- adversarial falsification.
-
-Its role is not:
-- proving correctness;
-- guaranteeing safety;
-- declaring architectural perfection.
+Mode 5 exists to:
+- calibrate confidence;
+not:
+- manufacture certainty.
 
 Its role is:
-- calibrating surviving uncertainty.
+- bounded operational validation under uncertainty discipline.
 
-Mode 5 determines:
-- what contradiction pressure survived;
-- what exposure remains unresolved;
-- whether operational confidence remains materially bounded.
+Mode 5 minimizes:
+- unsupported confidence;
+- premature operational closure;
+- hidden unresolved fragility;
+- escalation suppression;
+- survivability overstatement.
 
----
+The objective is:
+- proportionally justified confidence.
 
-# ACTIVE TASK USAGE
-
-`docs/active_task.md`
-is the only permitted cross-mode epistemic handover artifact.
-
-Mode 5 consumes:
-- Structural Evidence;
-- Semantic Suspicion;
-- Residual Exposure;
-- Adversarial Findings;
-- Mutation Constraints;
-- Confidence Calibration.
-
-Mode 5 evaluates:
-- whether uncertainty was materially reduced;
-- whether contradiction pressure remains;
-- whether exposure remains operationally unsafe.
-
-Mode 5 must NOT:
-- inherit latent reasoning continuity;
-- preserve hidden cognitive carryover;
-- treat validation survival as correctness;
-- collapse ambiguity prematurely.
+Not:
+- absolute verification.
 
 ---
 
 # VALIDATION DISCIPLINE
 
-Validation is NOT:
-- proof;
-- certainty;
-- absolute verification;
-- architectural truth.
+All validation conclusions produced by Mode 5 must remain:
+- structurally grounded;
+- operationally observable;
+- uncertainty-sensitive;
+- proportionally justified;
+- mechanically defensible.
 
-Validation is:
-- bounded operational calibration.
+Mode 5 may produce:
+- survivability assessments;
+- invariant preservation findings;
+- escalation recommendations;
+- unresolved uncertainty indicators;
+- bounded confidence assessments;
+- structural consistency findings.
 
-Mode 5 must distinguish between:
-- validated;
-and:
-- unfalsified.
+Mode 5 must avoid:
+- certainty theater;
+- unsupported validation claims;
+- semantic confidence inflation;
+- adversarial dismissal without evidence;
+- hidden escalation suppression.
 
-Survival under falsification pressure does not establish correctness.
-
-It only reduces materially observable contradiction.
+Absence of contradiction does not establish correctness.
 
 ---
 
-# STRUCTURAL PRIORITY
+# STRUCTURAL DISCIPLINE
 
-Repository structure overrides semantic plausibility.
+Observable repository structure overrides:
+- semantic plausibility;
+- validation optimism;
+- inferred correctness;
+- naming assumptions;
+- survivability narratives.
 
-Prioritize:
+Validation must emerge from:
 - observable execution behavior;
-- mechanically enforceable constraints;
-- validation evidence;
+- invariant preservation;
 - dependency relationships;
-- adversarial findings;
-- architecture graph metadata.
+- mechanically observable evidence;
+- adversarial survivability.
 
-Do NOT infer:
-- correctness from absence of failure;
-- safety from passing validation;
-- certainty from bounded testing.
+Mode 5 must not:
+- hallucinate correctness;
+- infer undocumented guarantees;
+- suppress unresolved contradictions;
+- redefine structural truth.
+
+Structural uncertainty must remain explicit.
 
 ---
 
@@ -115,20 +168,44 @@ Do NOT infer:
 
 Confidence must remain:
 - proportional;
-- evidence-bound;
 - uncertainty-sensitive;
-- operationally scoped.
+- evidence-aware;
+- operationally bounded.
 
-Mode 5 must avoid:
-- artificial certainty inflation;
-- narrative overconfidence;
-- unsupported architectural guarantees.
+Mode 5 must:
+- preserve explicit unresolved uncertainty;
+- distinguish survivability from correctness;
+- distinguish absence of contradiction from proof;
+- preserve escalation legitimacy when necessary.
 
-Good:
-- "validation coverage remains incomplete"
+Mode 5 must not:
+- declare systems fully verified;
+- imply architectural certainty;
+- collapse ambiguity prematurely;
+- overstate validation coverage.
 
-Bad:
-- "system correctness verified"
+Validation remains probabilistic.
+
+---
+
+# ACTIVE TASK DISCIPLINE
+
+Mode 5 may contribute validation findings to:
+`docs/active_task.md`
+
+Contributions must remain:
+- operationally relevant;
+- structurally justified;
+- minimally persistent;
+- confidence-aware.
+
+Mode 5 must not persist:
+- unsupported certainty;
+- hidden reasoning chains;
+- false validation closure;
+- adversarial dismissal pressure.
+
+Only materially relevant validation findings should survive escalation.
 
 ---
 
@@ -136,118 +213,114 @@ Bad:
 
 `.harness/architecture_graph.json`
 may inform:
-- confidence sensitivity;
-- validation proportionality;
-- execution exposure criticality;
-- escalation sensitivity.
+- structural criticality;
+- dependency concentration;
+- validation sensitivity;
+- invariant exposure;
+- escalation proportionality.
 
 The graph does NOT:
 - establish correctness;
-- define orchestration;
-- override constitutional governance;
-- establish truth.
+- authorize closure;
+- replace execution evidence;
+- define orchestration flow.
 
-Graph metadata informs validation proportionality only.
+Graph metadata informs validation sensitivity only.
+
+---
+
+# EPISTEMIC ISOLATION
+
+Mode 5 must not rely on:
+- hidden conversational continuity;
+- latent cognitive carryover;
+- implicit memory persistence;
+- inherited certainty assumptions.
+
+Only explicitly persisted findings may survive through:
+- `docs/active_task.md`;
+- explicit runtime escalation.
+
+Validation reasoning itself must remain transient.
+
+---
+
+# RELATIONSHIP WITH MODE 4
+
+Mode 4 performs:
+- adversarial falsification;
+- contradiction pressure-testing;
+- confidence destabilization;
+- structural skepticism.
+
+Mode 5 evaluates:
+- adversarial survivability;
+- bounded operational confidence;
+- escalation legitimacy;
+- unresolved uncertainty.
+
+Validation must account for adversarial pressure.
+
+Validation does not erase falsification history.
+
+---
+
+# FINAL VALIDATION AUTHORITY
+
+Mode 5 may determine:
+- bounded operational survivability;
+- escalation necessity;
+- confidence proportionality.
+
+Mode 5 must NOT determine:
+- absolute correctness;
+- architectural truth;
+- permanent structural validity.
+
+Operational survivability remains uncertainty-sensitive.
 
 ---
 
 # ESCALATION CONDITIONS
 
 Escalate when:
-- unresolved contradiction remains materially unsafe;
-- residual exposure exceeds bounded containment;
-- operational confidence remains insufficient;
-- critical structural ambiguity survives validation;
-- architectural safety cannot be reasonably bounded.
+- unresolved structural contradictions remain material;
+- adversarial findings remain operationally unsafe;
+- invariant survivability cannot be justified proportionally;
+- repository-wide uncertainty remains structurally significant;
+- validation coverage remains materially insufficient.
 
 Escalation must remain:
 - explicit;
-- proportional;
-- evidence-aware.
+- evidence-aware;
+- proportionally justified;
+- uncertainty-sensitive.
 
 ---
 
-# OUTPUT DISCIPLINE
+# REQUIRED OUTPUT
 
-Mode 5 output must:
-- remain concise;
-- remain uncertainty-aware;
-- remain operationally grounded;
-- preserve explicit residual ambiguity;
-- avoid certainty language.
+Mode 5 execution must produce:
+- bounded validation findings;
+- operational survivability assessment;
+- unresolved uncertainty indicators;
+- escalation indicators when necessary;
+- confidence proportionality assessment.
 
-Do not produce:
-- perfection claims;
-- unsupported guarantees;
-- narrative closure inflation.
+Mode 5 must emit runtime state through:
+`.harness/runtime/result.json`
 
-The objective is:
-- bounded operational confidence calibration.
+Expected states:
+- RUNNING
+- ESCALATED
+- COMPLETE
 
 ---
 
 # FINAL PRINCIPLE
 
-Mode 5 exists to prevent validation survival from silently becoming certainty.
+Mode 5 exists to calibrate operational confidence without allowing survivability to silently become certainty.
 
-Validation may reduce uncertainty.
+Validation constrains operational risk.
 
-It does not eliminate it.
-
-# CONFIDENCE CALIBRATION
-
-Confidence degradation must scale proportionally with:
-- unresolved exposure;
-- adversarial incompleteness;
-- structural criticality;
-- verification sensitivity;
-- execution exposure.
-
-Validation improves confidence but does not establish certainty.
-
-# ACTIVE TASK DISCIPLINE
-
-Mode 5 must explicitly update:
-- Residual Exposure;
-- Confidence Calibration;
-- Adversarial Findings.
-
-Unresolved operational uncertainty must remain explicitly surfaced.
-
-# VALIDATION LIMITS
-
-Validation must not:
-- convert survival into correctness;
-- collapse uncertainty into confidence;
-- reinterpret architectural governance.
-
-# LONGITUDINAL CONFIDENCE CALIBRATION
-
-Repeated unresolved exposure across cycles must proportionally reduce:
-- confidence stability;
-- redesign skepticism resistance;
-- certainty tolerance.
-
-Repeated adversarial recurrence may indicate:
-- structural instability;
-- unresolved architectural limitation;
-- chronic containment pressure.
-
-Validation must distinguish between:
-- temporary operational fragility;
-and
-- recurring longitudinal structural pressure.
-
-# ARCHITECTURAL PRESSURE MATURITY
-
-Mode 5 may acknowledge Architectural Pressure maturity when:
-- recurrence becomes multi-cycle;
-- adversarial findings persist longitudinally;
-- structural pressure repeatedly survives containment.
-
-Mode 5 must NOT:
-- authorize redesign;
-- collapse recurrence into certainty;
-- establish architectural inevitability.
-
-Human review remains mandatory.
+It does not establish absolute truth.

@@ -1,59 +1,35 @@
 # =========================================================
 # AEGIS HARNESS — AIDER CONFIG
 # =========================================================
-
-# This file defines runtime operational containment.
 #
-# It is NOT constitutional governance.
-# It is NOT mode cognition.
-# It is NOT orchestration authority.
+# Executor operational configuration only.
 #
-# Runtime sequencing belongs to the orchestration layer.
-# Constitutional governance belongs to AGENTS.md.
-# Mode-local cognition belongs to mode governance.
+# This file does NOT define:
+# - governance;
+# - runtime authority;
+# - orchestration logic;
+# - bounded cognition;
+# - continuity governance.
+#
+# Those belong to:
+# - AGENTS.md
+# - runtime_aegis.sh
+# - .skills/
+# - orchestration layer
+#
+# =========================================================
 
 # ---------------------------------------------------------
-# CONSTITUTIONAL IMMUTABILITY
+# MODEL
 # ---------------------------------------------------------
 
-read-only:
-  - AGENTS.md
-  - .harness/**
-  - .skills/**
+model: openrouter/deepseek/deepseek-r1:free
 
 # ---------------------------------------------------------
-# STRUCTURAL PERCEPTION
+# EXECUTION AUTOMATION
 # ---------------------------------------------------------
 
-map-tokens: 2048
-
-mcp:
-  - "forge-mcp-adapter"
-
-# ---------------------------------------------------------
-# VALIDATION
-# ---------------------------------------------------------
-
-auto-test: true
-
-# Runtime may dynamically compose pipelines.
-# This config does not define orchestration flow.
-
-test-cmd: npm run aegis:full
-
-lint-retries: 3
-
-# ---------------------------------------------------------
-# CONTEXT CONTAINMENT
-# ---------------------------------------------------------
-
-max-chat-history-tokens: 16000
-
-# ---------------------------------------------------------
-# DIFF CONTROL
-# ---------------------------------------------------------
-
-show-diffs: true
+yes-always: true
 
 # ---------------------------------------------------------
 # GIT
@@ -65,76 +41,52 @@ auto-commits: false
 dirty-commits: false
 
 # ---------------------------------------------------------
-# SAFETY
+# STRUCTURAL PERCEPTION
 # ---------------------------------------------------------
 
-yes-always: false
+map-tokens: 2048
+map-refresh: auto
 
 # ---------------------------------------------------------
-# EPISTEMIC OPERATIONAL RULES
+# CONTEXT WINDOW
 # ---------------------------------------------------------
 
-# `docs/active_task.md` contains volatile operational context.
+max-chat-history-tokens: 16000
+
+# ---------------------------------------------------------
+# VALIDATION
+# ---------------------------------------------------------
+
+auto-test: true
+
+test-cmd: npm run aegis:full
+
+lint-retries: 3
+
+# ---------------------------------------------------------
+# DIFF CONTROL
+# ---------------------------------------------------------
+
+show-diffs: true
+
+# ---------------------------------------------------------
+# EXECUTOR SAFETY
+# ---------------------------------------------------------
+
+check-update: false
+
+suggest-shell-commands: false
+
+# ---------------------------------------------------------
+# FINAL PRINCIPLE
+# ---------------------------------------------------------
+
+# The executor assists repository mutation.
 #
-# Operational context remains:
-# - advisory;
-# - uncertainty-sensitive;
-# - non-authoritative;
-# until structurally confirmed through:
-# - repository structure;
-# - execution behavior;
-# - dependency relationships;
-# - mechanically enforceable guarantees.
-
-# Prioritize:
-# - observable repository structure;
-# - mechanically enforceable constraints;
-# - bounded mutation;
-# - invariant preservation;
-# over semantic plausibility alone.
-
-# `.harness/architecture_graph.json`
-# provides epistemic structural metadata.
+# It does not own:
+# - governance;
+# - cognition;
+# - orchestration;
+# - structural truth.
 #
-# The graph may inform:
-# - mutation proportionality;
-# - optimization containment;
-# - falsification proportionality;
-# - confidence sensitivity;
-# - structural criticality;
-# but does not override constitutional governance.
-
-# ---------------------------------------------------------
-# ORCHESTRATION CONTAINMENT
-# ---------------------------------------------------------
-
-# Runtime sequencing must remain externalized.
-#
-# Modes must not:
-# - recursively invoke earlier epistemological layers;
-# - redefine orchestration flow;
-# - create implicit cognitive loops.
-#
-# Escalation signaling is allowed.
-# Runtime orchestration ownership is not.
-
-# ---------------------------------------------------------
-# OPTIMIZATION CONTAINMENT
-# ---------------------------------------------------------
-
-# Optimization must remain:
-# - proportional;
-# - structurally bounded;
-# - operationally justified.
-#
-# Repeated local optimization must not accumulate
-# into implicit redesign drift.
-
-# ---------------------------------------------------------
-# CONFIDENCE DISCIPLINE
-# ---------------------------------------------------------
-
-# Absence of contradiction does not establish correctness.
-#
-# Validation coverage and falsification survival
-# remain uncertainty-sensitive.
+# Context governance remains externalized.

@@ -1,273 +1,189 @@
-# active_task.md — Volatile Operational Context
+# ACTIVE TASK — EPISTEMIC OPERATIONAL GOVERNANCE
 
-# Purpose
+## Purpose
 
-This document stores volatile operational context during active execution.
+This file defines the operational epistemic discipline for the current task execution.
 
-It exists to preserve:
-- temporary structural perception;
-- bounded operational reasoning;
-- implementation-local observations;
-- proportional optimization context;
-- falsification findings;
-- residual exposure;
-- explicit epistemic handover between modes.
+It governs:
+- bounded continuity;
+- operational uncertainty handling;
+- escalation discipline;
+- adversarial pressure expectations;
+- proportionality constraints;
+- cross-mode epistemic containment.
 
-This document is operational context, not structural authority.
+It does NOT define:
+- constitutional governance;
+- runtime authority;
+- architectural truth;
+- implementation invariants;
+- persistent structural memory.
 
----
-
-# Epistemic Status
-
-All content inside this file is:
-- provisional;
-- uncertainty-sensitive;
-- operationally bounded;
-- non-canonical;
-- explicitly scoped.
-
-Nothing inside this document becomes architectural truth unless structurally confirmed through:
-- observable repository structure;
-- execution behavior;
-- dependency relationships;
-- mechanically enforceable guarantees.
-
-Semantic interpretation alone is insufficient.
-
-Absence of contradiction does not establish correctness.
-
----
-
-# Epistemic Continuity
-
-This file is the only permitted cross-mode epistemic handover artifact.
-
-Modes must not inherit:
-- implicit conversational continuity;
-- hidden cognitive carryover;
-- unstated reasoning persistence;
-- latent session memory.
-
-Only explicit, uncertainty-bounded, operationally relevant context may survive between modes through this document.
-
-Runtime epistemic amnesia remains mandatory.
-
-This document preserves:
-- explicit structural findings;
-- bounded uncertainty;
-- operational exposure surfaces;
-- adversarial observations;
-without preserving hidden conversational cognition.
+Those belong to their respective layers.
 
 ---
 
 # Architectural Separation
 
-This file does not define:
-- constitutional governance;
-- runtime orchestration;
-- mode cognition semantics;
-- architectural authority;
-- execution sequencing.
+The Aegis Harness preserves explicit separation between:
 
-This file provides volatile operational context only.
+| Layer | Responsibility |
+|---|---|
+| AGENTS.md | constitutional governance |
+| active_task.md | operational epistemic governance |
+| epistemic_state.json | transient epistemic state |
+| runtime_aegis.sh | deterministic orchestration |
+| .skills/ | bounded cognition |
+| repository implementation | executable reality |
 
-Runtime orchestration remains externalized.
-
----
-
-# Allowed Operational Structure
-
-Operational context should remain structured and explicit.
-
-## Objective
-- bounded operational goal;
-- explicitly scoped task objective.
-
-## Structural Evidence
-- repository-observable findings;
-- mechanically verifiable observations;
-- confirmed dependency relationships;
-- structural invariants already observed.
-
-## Semantic Suspicion
-- weak signals;
-- unresolved ambiguity;
-- inferred coupling risk;
-- uncertainty-sensitive hypotheses;
-- plausible but unconfirmed interpretations.
-
-## Residual Exposure
-- unverified execution surfaces;
-- incomplete validation coverage;
-- unresolved operational uncertainty;
-- remaining adversarial exposure;
-- areas not yet structurally falsified.
-
-## Mutation Constraints
-- proportionality limits;
-- redesign containment;
-- architectural preservation constraints;
-- bounded mutation rules;
-- cross-layer expansion limits.
-
-## Adversarial Findings
-- contradiction surfaces;
-- falsification observations;
-- adversarial pressure findings;
-- hidden execution risk indicators;
-- brittle assumptions exposed by inspection.
-
-## Confidence Calibration
-- evidence limitations;
-- confidence degradation;
-- structural visibility limitations;
-- unresolved uncertainty boundaries;
-- confidence must remain evidence-bound.
-
-## Required Next Action
-- the smallest structurally justified next step;
-- no speculative redesign;
-- no implicit escalation unless explicitly needed.
+No layer may silently absorb another layer’s authority.
 
 ---
 
-# Forbidden Content
+# Epistemic State Separation
 
-Do not store:
-- canonical architectural truth;
-- runtime orchestration flow;
-- mode sequencing authority;
-- redesign authorization;
-- speculative future architecture;
-- unsupported certainty;
-- repository-wide mythology;
-- persistent governance rules;
-- implicit conversational memory;
-- hidden cognitive state persistence.
+This file does NOT persist operational epistemic state directly.
 
-Do not treat volatile operational context as constitutional governance.
+Persistent cross-mode epistemic state belongs exclusively to:
 
----
+.harness/state/epistemic_state.json
 
-# Operational Constraints
+This file defines:
+- operational epistemic discipline;
+- continuity constraints;
+- uncertainty handling rules;
+- bounded handover semantics;
+- proportionality expectations.
 
-Entries must remain:
-- materially relevant;
-- structurally grounded;
-- uncertainty-bounded;
-- operationally proportional;
-- explicitly scoped.
+It does NOT function as:
+- claim storage;
+- finding persistence;
+- architectural truth ledger;
+- topology authority;
+- cognitive memory substrate.
 
-Avoid:
-- consultative storytelling;
-- narrative operational journaling;
-- speculative architecture essays;
-- orchestration reasoning;
-- repository-wide interpretation drift;
-- hidden assumption carryover.
+Operational findings, hypotheses, claims, and residual exposure must remain explicitly separated from governance guidance.
+
+This separation exists to prevent:
+- implicit authority inflation;
+- hidden continuity accumulation;
+- semantic state ossification;
+- epistemic layer collapse;
+- operational context becoming pseudo-governance.
 
 ---
 
-# Lifecycle
+## Operational Epistemic Discipline
 
-This document is ephemeral.
+Operational continuity must remain:
+- bounded;
+- uncertainty-sensitive;
+- structurally revisable;
+- adversarially pressure-tested.
 
-Content should be:
-- revised;
-- collapsed;
-- superseded;
-- removed;
-when no longer operationally necessary.
+Modes must not silently transform:
+- assumptions;
+- exploratory findings;
+- inferred topology;
+- weak architectural signals;
+into:
+- structural truth;
+- governance authority;
+- persistent certainty.
 
-Long-term architectural knowledge belongs in:
-- canonical documentation;
-- Git history;
-- structural repository artifacts;
-not here.
+Absence of contradiction is not evidence of correctness.
 
----
+Semantic plausibility alone does not establish truth.
 
-# Confidence Discipline
-
-Confidence statements inside this document must remain proportional to:
-- observable evidence;
-- repository visibility;
-- validation coverage;
-- unresolved uncertainty;
-- structural exposure.
-
-Residual uncertainty must remain explicitly surfaced.
-
-Validation improves confidence but does not establish correctness certainty.
+Confidence must remain proportional to:
+- observable repository evidence;
+- mechanically enforceable guarantees;
+- verified execution behavior;
+- explicit structural validation.
 
 ---
 
-# Human Authority
+## Cross-Mode Continuity Rules
 
-Humans retain authority over:
-- architectural interpretation;
-- escalation decisions;
-- redesign approval;
-- risk acceptance;
-- canonical documentation.
+Cross-mode continuity is allowed only through:
+- bounded operational state;
+- explicit escalation;
+- revisable epistemic artifacts;
+- uncertainty-preserving handoff.
 
-# Adversarial Targets
+Modes must not:
+- establish hidden memory continuity;
+- silently preserve architectural assumptions;
+- inherit certainty without revalidation;
+- propagate unresolved claims as facts.
 
-<!-- Explicit contradiction-pressure surfaces.
-Examples:
-- async ordering
-- retry semantics
-- cache invalidation
-- hidden mutable state
-- cross-layer leakage -->
+All continuity remains:
+- revisable;
+- falsifiable;
+- operationally bounded.
 
-# Proportionality Guidance
+---
 
-Structural criticality should proportionally influence:
-- mutation caution;
-- optimization aggressiveness;
-- adversarial pressure;
-- confidence calibration strictness.
+## Adversarial Pressure Expectations
 
-Higher execution exposure requires stronger skepticism.
+Adversarial cognition must remain active throughout execution.
 
-Lower redesign tolerance requires stricter containment.
+Modes are expected to:
+- pressure-test assumptions;
+- challenge architectural interpretations;
+- falsify inferred relationships;
+- escalate unresolved ambiguity.
 
-# Epistemic Reminder
+Convergence pressure must not suppress:
+- skepticism;
+- uncertainty;
+- falsification;
+- structural revalidation.
 
-Residual uncertainty must remain explicitly surfaced.
+---
 
-Absence of contradiction does not establish correctness.
+## Mutation Proportionality
 
-Validation improves confidence but does not establish certainty.
+Repository mutations must remain:
+- operationally justified;
+- structurally bounded;
+- proportional to validated evidence;
+- minimally invasive whenever possible.
 
-# Architectural Pressure
+Optimization must not silently evolve into:
+- architectural redesign;
+- abstraction expansion;
+- systemic restructuring;
+- topology reinterpretation.
 
-## Recurrent Signals
+---
 
-<!-- Repeated structural friction observed across multiple cycles.
-Examples:
-- recurring adversarial findings
-- repeated hidden coupling
-- chronic retry fragility
-- repeated escalation surfaces -->
+## Escalation Discipline
 
-## Structural Limitation
+Escalation is preferable to fabricated certainty.
 
-<!-- Current structural limitation potentially contributing to recurring pressure. -->
+If observable evidence remains insufficient:
+- uncertainty must remain explicit;
+- confidence must remain bounded;
+- escalation must remain available.
 
-## Possible Direction
+Modes must not create:
+- artificial closure;
+- unsupported confidence;
+- semantic certainty inflation.
 
-<!-- Non-authoritative possible architectural direction.
-Proposal only. -->
+---
 
-## Confidence
+## Final Principle
 
-<!-- Confidence must remain proportional to recurrence evidence.
-Do not establish redesign certainty. -->
+Operational continuity is permitted.
 
-## Authority
+Operational certainty is not.
 
-Human review required.
-No redesign authority granted.
+Continuity must remain:
+- bounded;
+- revisable;
+- adversarially pressure-tested;
+- structurally subordinate to observable evidence.
+
+Structural truth remains evidence-bound.

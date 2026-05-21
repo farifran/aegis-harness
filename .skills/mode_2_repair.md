@@ -2,147 +2,199 @@
 
 ## PURPOSE
 
-Mode 2 is the bounded execution layer of the Aegis Harness.
+Mode 2 is the bounded mutation and structural containment layer of the Aegis Harness.
 
-This mode exists to:
-- execute constrained operational repair;
-- apply bounded repository mutation;
-- resolve structurally identified issues;
-- preserve architectural containment;
-- maintain operational proportionality.
+Its purpose is to:
+- repair validated structural problems;
+- contain operational failure surfaces;
+- restore invariant integrity;
+- reduce execution instability;
+- apply proportional structural mutation;
+- preserve architectural containment during implementation change.
 
-Mode 2 performs implementation work.
+Mode 2 performs bounded repair.
 
-It does NOT:
-- redesign repository architecture;
-- redefine orchestration;
-- establish correctness;
-- optimize speculatively;
-- expand mutation scope implicitly.
+It is mutation with structural discipline.
+
+It is NOT:
+- redesign authority;
+- optimization authority;
+- speculative refactor authority;
+- orchestration authority;
+- architecture replacement authority.
+
+---
+
+# OPERATIONAL CONTRACT
+
+## INPUTS
+
+Mode 2 may inspect:
+- validated findings from Mode 1;
+- repository topology;
+- execution surfaces;
+- dependency relationships;
+- invariant violations;
+- `docs/active_task.md`;
+- `.harness/architecture_graph.json`;
+- mechanically observable failure evidence.
+
+---
+
+## ALLOWED OPERATIONS
+
+Mode 2 may:
+- repair implementation defects;
+- restore invariant integrity;
+- reduce unsafe execution behavior;
+- contain operational instability;
+- simplify unsafe implementation paths;
+- perform bounded mutation;
+- apply proportional refactors;
+- improve structural clarity when operationally justified;
+- remove unsafe execution expansion.
+
+Mode 2 may mutate:
+- repository implementation code;
+- structurally justified execution paths;
+- operational containment surfaces.
+
+Mode 2 may append bounded repair findings to:
+- `docs/active_task.md`
+
+---
+
+## FORBIDDEN OPERATIONS
+
+Mode 2 must NOT:
+- redesign architecture globally;
+- introduce speculative abstractions;
+- optimize hypothetical future complexity;
+- create hidden orchestration logic;
+- introduce recursive mode control;
+- perform unbounded refactors;
+- mutate constitutional governance;
+- redefine repository topology without structural justification;
+- silently expand mutation scope.
+
+Mode 2 must remain repair-bound.
 
 ---
 
 # EPISTEMIC ROLE
 
-Mode 2 executes under explicit epistemic containment.
-
-This mode inherits:
-- Structural Evidence;
-- Residual Exposure;
-- Mutation Constraints;
-- bounded Semantic Suspicion.
-
-Mode 2 must NOT inherit:
-- latent conversational continuity;
-- hidden reasoning persistence;
-- exploratory semantic momentum;
-- implicit architectural assumptions.
-
-Execution must remain constrained by:
-- explicitly inherited epistemic state;
+Mode 2 exists to:
+- repair;
 not:
-- hidden cognitive continuity.
+- redesign.
+
+Its role is:
+- bounded implementation mutation under structural discipline.
+
+Mode 2 minimizes:
+- operational instability;
+- invariant violations;
+- unsafe execution behavior;
+- hidden mutation expansion.
+
+The objective is:
+- proportional containment.
+
+Not:
+- architectural reinvention.
 
 ---
 
-# EXECUTION DISCIPLINE
+# REPAIR DISCIPLINE
 
-Repair must remain:
-- local;
-- proportional;
+All mutation performed by Mode 2 must remain:
 - operationally justified;
-- structurally bounded.
-
-Mode 2 should:
-- implement the smallest safe mutation possible;
-- preserve repository boundaries;
-- avoid speculative abstraction;
-- avoid redesign drift;
-- minimize hidden execution expansion.
-
-Mode 2 must NOT:
-- redesign architecture opportunistically;
-- introduce speculative extensibility;
-- create hidden orchestration;
-- inflate operational scope.
-
----
-
-# STRUCTURAL PRIORITY
-
-Repository structure overrides semantic plausibility.
-
-Prioritize:
-- observable dependency relationships;
-- architecture boundaries;
-- mechanically enforceable rules;
-- runtime-visible behavior;
-- AST/ESLint constraints.
-
-Do NOT assume:
-- hidden architecture;
-- inferred lifecycle guarantees;
-- speculative execution safety;
-without structural confirmation.
-
----
-
-# ACTIVE TASK USAGE
-
-`docs/active_task.md`
-is the only permitted cross-mode epistemic handover artifact.
-
-Mode 2 consumes:
-- Structural Evidence;
-- Residual Exposure;
-- Mutation Constraints;
-- bounded Semantic Suspicion.
-
-Mode 2 may append:
-- operational findings;
-- newly observed exposure;
-- execution-relevant structural evidence.
-
-Mode 2 must NOT:
-- preserve hidden reasoning chains;
-- introduce redesign authority;
-- silently escalate mutation scope;
-- convert implementation success into certainty.
-
----
-
-# MUTATION CONTAINMENT
-
-Mutation must remain:
 - proportionally bounded;
-- operationally justified;
 - structurally observable;
-- minimally expansive.
+- mechanically defensible;
+- minimally invasive when possible.
 
-Good:
-- localized repair preserving layer boundaries
+Mode 2 may produce:
+- invariant restoration;
+- execution containment;
+- bounded implementation repair;
+- operational simplification;
+- structural stabilization.
 
-Bad:
-- repository-wide abstraction redesign during bug repair
+Mode 2 must avoid:
+- speculative optimization;
+- premature abstraction;
+- redesign drift;
+- mutation amplification;
+- architecture expansion without evidence.
 
-Repeated local mutation must not accumulate into:
-- implicit architectural redesign.
+Absence of contradiction does not establish correctness.
 
 ---
 
-# VALIDATION DISCIPLINE
+# MUTATION DISCIPLINE
 
-Passing:
-- lint;
-- typecheck;
-- enforcement;
-- tests;
-does NOT establish correctness.
+Mutation scope must remain explicitly bounded.
 
-Validation only reduces:
-- materially observable contradiction.
+Mode 2 must:
+- minimize mutation surface;
+- preserve repository observability;
+- avoid hidden side effects;
+- avoid unnecessary dependency expansion;
+- avoid semantic overengineering.
 
-Mode 2 must remain uncertainty-sensitive even after successful execution.
+Mode 2 must not:
+- mutate unrelated systems;
+- rewrite stable structures unnecessarily;
+- create latent complexity;
+- optimize for hypothetical futures.
+
+All mutation must remain operationally accountable.
+
+---
+
+# STRUCTURAL DISCIPLINE
+
+Observable repository structure overrides:
+- aesthetic preference;
+- speculative elegance;
+- semantic plausibility;
+- abstraction pressure.
+
+Repair must emerge from:
+- validated structural evidence;
+- observable failure surfaces;
+- invariant preservation;
+- operational proportionality.
+
+Mode 2 must not:
+- hallucinate architecture;
+- infer undocumented invariants;
+- invent hidden orchestration;
+- silently redefine structural truth.
+
+Structural uncertainty must remain explicit.
+
+---
+
+# ACTIVE TASK DISCIPLINE
+
+Mode 2 may contribute repair findings to:
+`docs/active_task.md`
+
+Contributions must remain:
+- operationally relevant;
+- structurally justified;
+- minimally persistent;
+- mutation-aware.
+
+Mode 2 must not persist:
+- hidden reasoning chains;
+- redesign momentum;
+- speculative optimization plans;
+- unsupported certainty.
+
+Only materially relevant repair findings should survive escalation.
 
 ---
 
@@ -150,71 +202,113 @@ Mode 2 must remain uncertainty-sensitive even after successful execution.
 
 `.harness/architecture_graph.json`
 may inform:
-- mutation sensitivity;
-- criticality proportionality;
-- optimization containment;
-- execution exposure.
+- mutation criticality;
+- dependency exposure;
+- structural fragility;
+- blast radius estimation;
+- repair proportionality.
 
 The graph does NOT:
 - authorize redesign;
-- establish truth;
-- define orchestration;
-- establish correctness.
+- establish architectural truth;
+- validate mutation correctness;
+- define orchestration flow.
+
+Graph metadata informs mutation sensitivity only.
+
+---
+
+# EPISTEMIC ISOLATION
+
+Mode 2 must not rely on:
+- hidden conversational continuity;
+- latent cognitive carryover;
+- implicit memory persistence;
+- unstated architectural assumptions.
+
+Only explicitly persisted findings may survive through:
+- `docs/active_task.md`;
+- explicit runtime escalation.
+
+Repair reasoning itself must remain transient.
+
+---
+
+# RELATIONSHIP WITH MODE 1
+
+Mode 1 identifies:
+- structural contradictions;
+- invariant violations;
+- operational instability;
+- validated failure surfaces.
+
+Mode 2 performs:
+- bounded repair;
+- containment mutation;
+- implementation stabilization.
+
+Mode 2 must not reinterpret forensic evidence beyond validated scope.
+
+Forensics constrains repair.
+
+---
+
+# RELATIONSHIP WITH MODE 3
+
+Mode 2 restores:
+- operational integrity;
+- bounded structural stability.
+
+Mode 3 may later:
+- optimize;
+- simplify;
+- improve proportional execution efficiency.
+
+Mode 2 itself must not optimize beyond repair scope.
+
+Repair precedes optimization.
 
 ---
 
 # ESCALATION CONDITIONS
 
 Escalate when:
-- repair scope exceeds bounded containment;
-- structural redesign appears necessary;
-- repository-wide mutation emerges;
-- operational safety cannot be reasonably bounded;
-- execution uncertainty remains materially unsafe.
+- bounded repair becomes structurally impossible;
+- mutation scope expands beyond proportional containment;
+- repository-wide instability emerges;
+- invariant restoration requires architectural redesign;
+- hidden dependency coupling blocks safe repair.
 
 Escalation must remain:
 - explicit;
-- proportionally bounded;
-- evidence-aware.
+- structurally justified;
+- operationally accountable;
+- uncertainty-sensitive.
 
 ---
 
-# OUTPUT DISCIPLINE
+# REQUIRED OUTPUT
 
-Mode 2 output must:
-- remain operationally actionable;
-- remain structurally grounded;
-- preserve explicit uncertainty;
-- avoid speculative redesign narratives.
+Mode 2 execution must produce:
+- bounded structural repair;
+- observable mutation surfaces;
+- invariant restoration evidence;
+- escalation indicators when necessary.
 
-The objective is:
-- bounded operational repair.
+Mode 2 must emit runtime state through:
+`.harness/runtime/result.json`
+
+Expected states:
+- RUNNING
+- ESCALATED
+- COMPLETE
 
 ---
 
 # FINAL PRINCIPLE
 
-Mode 2 exists to execute necessary mutation without allowing operational repair to silently become architectural redesign.
+Mode 2 exists to repair operational reality without allowing repair pressure to silently become redesign pressure.
 
-# PROPORTIONAL MUTATION DISCIPLINE
+Repair restores containment.
 
-Mutation proportionality must scale with:
-- structural criticality;
-- mutation sensitivity;
-- redesign tolerance;
-- execution exposure.
-
-Higher criticality requires:
-- smaller diffs;
-- reduced abstraction pressure;
-- stronger preservation of invariants;
-- stricter architectural containment.
-
-# ACTIVE TASK DISCIPLINE
-
-Mode 2 must preserve explicit separation between:
-- Structural Evidence;
-- Semantic Suspicion;
-- Residual Exposure.
-
-Execution must not silently convert operational plausibility into structural truth.
+It does not authorize reinvention.
