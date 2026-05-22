@@ -71,6 +71,11 @@ if [[ ! -f "$ARCHITECTURE_GRAPH_FILE" ]]; then
   exit 1
 fi
 
+if [[ ! -f ".aider.empty.conf.yml" ]]; then
+  echo "[AEGIS] Missing .aider.empty.conf.yml"
+  exit 1
+fi
+
 # =========================================================
 # PROVIDER VALIDATION
 # =========================================================
@@ -147,11 +152,40 @@ fi
 # JSON EXTRACTION
 # =========================================================
 
-JSON_OUTPUT=$(echo "$OUTPUT" | awk '
-BEGIN { capture=0 }
-/^\{/ { capture=1 }
-capture { print }
+JSON_OUTPUT=$(echo "$OUTPUT" | python3 -c '
+import sys
+
+text = sys.stdin.read()
+
+start = text.find("{")
+
+if start == -1:
+    sys.exit(1)
+
+depth = 0
+end = None
+
+for i, ch in enumerate(text[start:], start=start):
+
+    if ch == "{":
+        depth += 1
+
+    elif ch == "}":
+        depth -= 1
+
+        if depth == 0:
+            end = i + 1
+            break
+
+if end is None:
+    sys.exit(1)
+
+print(text[start:end])
 ')
+
+# =========================================================
+# EXTRACTION FAILURE
+# =========================================================
 
 if [[ -z "$JSON_OUTPUT" ]]; then
 
