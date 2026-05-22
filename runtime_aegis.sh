@@ -1,141 +1,85 @@
 #!/usr/bin/env bash
 
 # =========================================================
-# AEGIS RUNTIME — DETERMINISTIC SANDBOX CONTROLLER
-# =========================================================
-#
-# Responsibilities:
-# - create isolated disposable execution sandboxes;
-# - execute bounded cognition modes;
-# - validate runtime artifacts mechanically;
-# - enforce deterministic execution lifecycle.
-#
-# This runtime:
-# - does NOT interpret cognition;
-# - does NOT validate semantic correctness;
-# - does NOT orchestrate epistemology;
-# - does NOT redesign execution flow.
-#
-# Modes think.
-# Runtime routes.
-#
+# AEGIS RUNTIME — DETERMINISTIC CONTROLLER
 # =========================================================
 
 set -euo pipefail
 
 # =========================================================
-# CONFIG
+# MODES
 # =========================================================
 
 MODES=(
   "mode_0_discovery"
 )
 
-RESULT_FILE=".harness/runtime/result.json"
-
 # =========================================================
 # HELPERS
 # =========================================================
 
 fail() {
-
-  echo ""
   echo "[AEGIS RUNTIME] ERROR: $1"
-  echo ""
-
   exit 1
 }
 
 read_status() {
 
-  jq -r '.status' "$RESULT_FILE"
-}
+  local result_file=".harness/runtime/result.json"
 
-cleanup_sandbox() {
-
-  if [[ -n "${SANDBOX_DIR:-}" && -d "${SANDBOX_DIR:-}" ]]; then
-
-    cd /workspaces/aegis-harness || true
-
-    git worktree remove "$SANDBOX_DIR" --force >/dev/null 2>&1 || true
-  fi
+  jq -r '.status' "$result_file"
 }
 
 # =========================================================
-# CLEANUP TRAP
+# SANDBOX
 # =========================================================
 
-trap cleanup_sandbox EXIT
+create_sandbox() {
+
+  SANDBOX_PATH="/tmp/aegis-$$"
+
+  git worktree add --detach "$SANDBOX_PATH" >/dev/null
+}
+
+destroy_sandbox() {
+
+  git worktree remove "$SANDBOX_PATH" \
+    --force >/dev/null 2>&1 || true
+}
 
 # =========================================================
-# PROVIDER VALIDATION
+# MODE EXECUTION
 # =========================================================
 
-if [[ -z "${OPENAI_API_KEY:-}" ]]; then
-  fail "Missing OPENAI_API_KEY"
-fi
+execute_mode() {
 
-if [[ -z "${OPENAI_API_BASE:-}" ]]; then
-  fail "Missing OPENAI_API_BASE"
-fi
-
-# =========================================================
-# MODE LOOP
-# =========================================================
-
-for MODE_NAME in "${MODES[@]}"; do
+  local mode_name="$1"
 
   echo ""
   echo "================================================="
-  echo "[AEGIS] Executing: $MODE_NAME"
+  echo "[AEGIS] Executing: $mode_name"
   echo "================================================="
   echo ""
 
-  # -------------------------------------------------------
-  # Disposable sandbox identity
-  # -------------------------------------------------------
+  create_sandbox
 
-  SANDBOX_ID="sandbox-$(date +%s%N)"
+  pushd "$SANDBOX_PATH" >/dev/null
 
-  SANDBOX_DIR="/tmp/$SANDBOX_ID"
+  if ! "./scripts/execute_mode.sh" \
+    ".skills/${mode_name}.md"; then
 
-  # -------------------------------------------------------
-  # Create isolated worktree
-  # -------------------------------------------------------
+    popd >/dev/null
 
-  git worktree add --detach "$SANDBOX_DIR" >/dev/null 2>&1 \
-    || fail "Failed to create sandbox worktree"
+    destroy_sandbox
 
-  cd "$SANDBOX_DIR" \
-    || fail "Failed to enter sandbox"
-
-  # -------------------------------------------------------
-  # Execute bounded cognition mode
-  # -------------------------------------------------------
-
-  MODE_FILE=".skills/${MODE_NAME}.md"
-
-  if [[ ! -f "$MODE_FILE" ]]; then
-    fail "Missing mode definition: $MODE_FILE"
-  fi
-
-  if ! ./scripts/execute_mode.sh "$MODE_FILE"; then
     fail "Mechanical mode execution failure"
   fi
 
-  # -------------------------------------------------------
-  # Runtime artifact validation
-  # -------------------------------------------------------
-
-  if [[ ! -f "$RESULT_FILE" ]]; then
-    fail "Missing runtime result artifact"
-  fi
-
-  if ! jq empty "$RESULT_FILE" >/dev/null 2>&1; then
-    fail "Invalid runtime artifact JSON"
-  fi
-
   STATUS="$(read_status)"
+
+  popd >/dev/null
+
+  destroy_sandbox
 
   case "$STATUS" in
 
@@ -149,11 +93,7 @@ for MODE_NAME in "${MODES[@]}"; do
 
     ESCALATED)
 
-      echo ""
-      echo "[AEGIS] Runtime escalated."
-      echo ""
-
-      exit 1
+      fail "Flow escalated"
 
       ;;
 
@@ -164,21 +104,18 @@ for MODE_NAME in "${MODES[@]}"; do
       ;;
 
   esac
+}
 
-  # -------------------------------------------------------
-  # Destroy sandbox after execution
-  # -------------------------------------------------------
+# =========================================================
+# MAIN
+# =========================================================
 
-  cd /workspaces/aegis-harness \
-    || fail "Failed to return to repository root"
-
-  git worktree remove "$SANDBOX_DIR" --force >/dev/null 2>&1 \
-    || fail "Failed to destroy sandbox"
-
+for MODE in "${MODES[@]}"; do
+  execute_mode "$MODE"
 done
 
 # =========================================================
-# FINAL STATE
+# COMPLETE
 # =========================================================
 
 echo ""

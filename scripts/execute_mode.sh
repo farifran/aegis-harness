@@ -12,18 +12,18 @@ set -euo pipefail
 
 MODE_FILE="${1:-}"
 
-if [[ -z "$MODE_FILE" ]]; then
+[[ -n "$MODE_FILE" ]] || {
   echo "[AEGIS] Missing mode file argument."
   exit 1
-fi
+}
 
-if [[ ! -f "$MODE_FILE" ]]; then
+[[ -f "$MODE_FILE" ]] || {
   echo "[AEGIS] Mode file not found: $MODE_FILE"
   exit 1
-fi
+}
 
 # =========================================================
-# GOVERNED CONTEXT
+# FILES
 # =========================================================
 
 AGENTS_FILE="AGENTS.md"
@@ -34,6 +34,8 @@ ARCHITECTURE_GRAPH_FILE=".harness/architecture_graph.json"
 
 RESULT_FILE=".harness/runtime/result.json"
 
+EMPTY_CONFIG_FILE=".aider.empty.conf.yml"
+
 # =========================================================
 # MODEL
 # =========================================================
@@ -41,7 +43,7 @@ RESULT_FILE=".harness/runtime/result.json"
 MODEL_NAME="openai/qwen/qwen3-next-80b-a3b-instruct"
 
 # =========================================================
-# REQUIRED CONTEXT VALIDATION
+# VALIDATION
 # =========================================================
 
 [[ -f "$AGENTS_FILE" ]] || {
@@ -59,14 +61,10 @@ MODEL_NAME="openai/qwen/qwen3-next-80b-a3b-instruct"
   exit 1
 }
 
-[[ -f ".aider.empty.conf.yml" ]] || {
+[[ -f "$EMPTY_CONFIG_FILE" ]] || {
   echo "[AEGIS] Missing .aider.empty.conf.yml"
   exit 1
 }
-
-# =========================================================
-# PROVIDER VALIDATION
-# =========================================================
 
 [[ -n "${OPENAI_API_KEY:-}" ]] || {
   echo "[AEGIS] Missing OPENAI_API_KEY"
@@ -79,7 +77,7 @@ MODEL_NAME="openai/qwen/qwen3-next-80b-a3b-instruct"
 }
 
 # =========================================================
-# CLEAN PREVIOUS RESULT
+# PREPARE
 # =========================================================
 
 mkdir -p ".harness/runtime"
@@ -99,7 +97,7 @@ echo ""
 set +e
 
 OUTPUT=$(timeout 120s aider \
-  --config .aider.empty.conf.yml \
+  --config "$EMPTY_CONFIG_FILE" \
   --model "$MODEL_NAME" \
   --yes-always \
   --dry-run \
@@ -122,7 +120,7 @@ EXIT_CODE=$?
 set -e
 
 # =========================================================
-# TIMEOUT FAILURE
+# TIMEOUT
 # =========================================================
 
 if [[ $EXIT_CODE -eq 124 ]]; then
@@ -135,7 +133,7 @@ if [[ $EXIT_CODE -eq 124 ]]; then
 fi
 
 # =========================================================
-# PROVIDER FAILURE DETECTION
+# PROVIDER FAILURES
 # =========================================================
 
 if echo "$OUTPUT" | grep -qi "InternalServerError"; then
@@ -194,11 +192,7 @@ JSON_OUTPUT=$(echo "$OUTPUT" | sed -n '
 /===AEGIS_RESULT_START===/,/===AEGIS_RESULT_END===/p
 ')
 
-# =========================================================
-# SENTINEL VALIDATION
-# =========================================================
-
-if [[ -z "$JSON_OUTPUT" ]]; then
+[[ -n "$JSON_OUTPUT" ]] || {
 
   echo ""
   echo "[AEGIS] Missing sentinel-framed artifact."
@@ -207,7 +201,7 @@ if [[ -z "$JSON_OUTPUT" ]]; then
   echo "$OUTPUT"
 
   exit 1
-fi
+}
 
 # =========================================================
 # REMOVE SENTINELS
@@ -215,21 +209,17 @@ fi
 
 JSON_OUTPUT=$(echo "$JSON_OUTPUT" | sed '1d;$d')
 
-# =========================================================
-# EMPTY JSON VALIDATION
-# =========================================================
-
-if [[ -z "$JSON_OUTPUT" ]]; then
+[[ -n "$JSON_OUTPUT" ]] || {
 
   echo ""
   echo "[AEGIS] Empty JSON artifact."
   echo ""
 
   exit 1
-fi
+}
 
 # =========================================================
-# ARTIFACT CAPTURE
+# PERSIST
 # =========================================================
 
 echo "$JSON_OUTPUT" > "$RESULT_FILE"
@@ -238,7 +228,7 @@ echo "$JSON_OUTPUT" > "$RESULT_FILE"
 # JSON VALIDATION
 # =========================================================
 
-if ! jq . "$RESULT_FILE" > /dev/null 2>&1; then
+if ! jq . "$RESULT_FILE" >/dev/null 2>&1; then
 
   echo ""
   echo "[AEGIS] Invalid JSON runtime artifact."
@@ -250,7 +240,7 @@ if ! jq . "$RESULT_FILE" > /dev/null 2>&1; then
 fi
 
 # =========================================================
-# REQUIRED FIELD VALIDATION
+# REQUIRED FIELDS
 # =========================================================
 
 REQUIRED_FIELDS=(
@@ -265,7 +255,8 @@ REQUIRED_FIELDS=(
 
 for FIELD in "${REQUIRED_FIELDS[@]}"; do
 
-  if ! jq -e "has(\"${FIELD}\")" "$RESULT_FILE" >/dev/null 2>&1; then
+  if ! jq -e "has(\"${FIELD}\")" \
+    "$RESULT_FILE" >/dev/null 2>&1; then
 
     echo ""
     echo "[AEGIS] Missing required field: $FIELD"
