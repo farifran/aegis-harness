@@ -341,7 +341,7 @@ REQUIRED_FIELDS=(
 
 for FIELD in "${REQUIRED_FIELDS[@]}"; do
 
-  if ! jq -e ".${FIELD}" "$RESULT_FILE" >/dev/null 2>&1; then
+  if ! jq -e "has(\"${FIELD}\")" "$RESULT_FILE" >/dev/null 2>&1; then
 
     echo ""
     echo "[AEGIS] Missing required field: $FIELD"
