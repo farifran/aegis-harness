@@ -85,6 +85,12 @@ mkdir -p ".harness/runtime"
 rm -f "$RESULT_FILE"
 
 # =========================================================
+# TERMINAL STABILITY
+# =========================================================
+
+export COLUMNS=1000
+
+# =========================================================
 # EXECUTION
 # =========================================================
 
@@ -108,6 +114,7 @@ OUTPUT=$(timeout 120s aider \
   --map-refresh manual \
   --no-show-model-warnings \
   --no-stream \
+  --no-pretty \
   --exit \
   --read "$AGENTS_FILE" \
   --read "$ACTIVE_TASK_FILE" \
