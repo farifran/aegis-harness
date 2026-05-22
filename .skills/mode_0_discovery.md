@@ -181,11 +181,37 @@ Confidence must remain proportional to observable evidence.
 
 Array of structurally observable findings.
 
+Each claim object must contain:
+- statement
+- confidence
+- revisable
+
+Example:
+
+{
+  "statement": "Repository structure contains defined architectural layers",
+  "confidence": "high",
+  "revisable": true
+}
+
 ---
 
 ## hypotheses
 
 Array of exploratory hypotheses.
+
+Each hypothesis object must contain:
+- statement
+- confidence
+- revisable
+
+Example:
+
+{
+  "statement": "The runtime may enforce execution isolation through disposable worktrees",
+  "confidence": "medium",
+  "revisable": true
+}
 
 ---
 
@@ -208,7 +234,13 @@ String or null.
   "mode": "mode_0_discovery",
   "status": "RUNNING",
   "confidence": "low",
-  "claims": [],
+  "claims": [
+    {
+      "statement": "Repository structure contains defined architectural layers",
+      "confidence": "high",
+      "revisable": true
+    }
+  ],
   "hypotheses": [
     {
       "statement": "Possible cross-layer dependency detected",
