@@ -98,7 +98,7 @@ echo ""
 
 set +e
 
-OUTPUT=$(aider \
+OUTPUT=$(timeout 120s aider \
   --config .aider.empty.conf.yml \
   --model "$MODEL_NAME" \
   --yes-always \
@@ -120,6 +120,56 @@ OUTPUT=$(aider \
 EXIT_CODE=$?
 
 set -e
+
+# =========================================================
+# TIMEOUT FAILURE
+# =========================================================
+
+if [[ $EXIT_CODE -eq 124 ]]; then
+
+  echo ""
+  echo "[AEGIS] Provider execution timeout."
+  echo ""
+
+  exit 1
+fi
+
+# =========================================================
+# PROVIDER FAILURE DETECTION
+# =========================================================
+
+if echo "$OUTPUT" | grep -qi "InternalServerError"; then
+
+  echo ""
+  echo "[AEGIS] Provider execution failure."
+  echo ""
+
+  echo "$OUTPUT"
+
+  exit 1
+fi
+
+if echo "$OUTPUT" | grep -qi "AuthenticationError"; then
+
+  echo ""
+  echo "[AEGIS] Provider authentication failure."
+  echo ""
+
+  echo "$OUTPUT"
+
+  exit 1
+fi
+
+if echo "$OUTPUT" | grep -qi "Connection error"; then
+
+  echo ""
+  echo "[AEGIS] Provider connection failure."
+  echo ""
+
+  echo "$OUTPUT"
+
+  exit 1
+fi
 
 # =========================================================
 # EXECUTION FAILURE
