@@ -1,41 +1,80 @@
-# Dependencies
+# =========================================================
+# DEPENDENCIES
+# =========================================================
+
 node_modules/
 
-# Build artifacts
+# =========================================================
+# BUILD ARTIFACTS
+# =========================================================
+
 dist/
 build/
 coverage/
 
-# Logs
+# =========================================================
+# TEMPORARY FILES
+# =========================================================
+
+tmp/
+temp/
+*.tmp
+
+# =========================================================
+# LOGS
+# =========================================================
+
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# Environment
+# =========================================================
+# ENVIRONMENT
+# =========================================================
+
 .env
 .env.*
+!.env.example
 
-# Aider
-.aider*
-.aider.chat.history.md
+# =========================================================
+# OPERATING SYSTEM
+# =========================================================
 
-# TypeScript
-*.tsbuildinfo
-
-# OS files
 .DS_Store
 Thumbs.db
 
-# IDE
+# =========================================================
+# IDE / EDITOR
+# =========================================================
+
 .vscode/
 .idea/
 
-# Temporary files
-tmp/
-temp/
-.cache/
+# =========================================================
+# PYTHON
+# =========================================================
 
-# Python
 __pycache__/
 *.pyc
+
+# =========================================================
+# AEGIS RUNTIME ARTIFACTS
+# =========================================================
+
+.harness/runtime/result.json
+
+# =========================================================
+# AIDER — TRANSIENT EXECUTOR SURFACES
+# =========================================================
+
+.aider*
+
+# Explicitly allowed deterministic isolation config
+!.aider.empty.conf.yml
+
+# Explicitly ignored transient cognition surfaces
+.aider.chat.history.md
+.aider.input.history
+.aider.tags.cache.*
