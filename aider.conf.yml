@@ -19,7 +19,7 @@
 # MODEL
 # ---------------------------------------------------------
 
-model: openai/deepseek-ai/deepseek-v4-pro
+model: openai/qwen/qwen3-next-80b-a3b-instruct
 
 # ---------------------------------------------------------
 # EXECUTION

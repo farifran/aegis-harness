@@ -50,7 +50,7 @@ RESULT_FILE=".harness/runtime/result.json"
 # MODEL
 # =========================================================
 
-MODEL_NAME="openai/deepseek-ai/deepseek-v4-pro"
+MODEL_NAME="openai/qwen/qwen3-next-80b-a3b-instruct"
 
 # =========================================================
 # REQUIRED CONTEXT VALIDATION
