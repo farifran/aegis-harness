@@ -152,7 +152,7 @@ fi
 # JSON EXTRACTION
 # =========================================================
 
-JSON_OUTPUT=$(echo "$OUTPUT" | python3 -c '
+RAW_JSON=$(echo "$OUTPUT" | python3 -c '
 import sys
 
 text = sys.stdin.read()
@@ -187,7 +187,7 @@ print(text[start:end])
 # EXTRACTION FAILURE
 # =========================================================
 
-if [[ -z "$JSON_OUTPUT" ]]; then
+if [[ -z "$RAW_JSON" ]]; then
 
   echo ""
   echo "[AEGIS] Failed to extract JSON artifact."
@@ -199,22 +199,67 @@ if [[ -z "$JSON_OUTPUT" ]]; then
 fi
 
 # =========================================================
+# JSON CANONICALIZATION
+# =========================================================
+
+CANONICAL_JSON=$(echo "$RAW_JSON" | python3 -c '
+import json
+import sys
+
+try:
+    obj = json.loads(sys.stdin.read())
+    print(json.dumps(obj, ensure_ascii=False))
+except Exception as e:
+    print(f"[AEGIS] JSON canonicalization failure: {e}", file=sys.stderr)
+    sys.exit(1)
+')
+
+# =========================================================
+# CANONICALIZATION FAILURE
+# =========================================================
+
+if [[ -z "$CANONICAL_JSON" ]]; then
+
+  echo ""
+  echo "[AEGIS] Failed to canonicalize JSON artifact."
+  echo ""
+
+  echo "$RAW_JSON"
+
+  exit 1
+fi
+
+# =========================================================
 # ARTIFACT CAPTURE
 # =========================================================
 
-echo "$JSON_OUTPUT" > "$RESULT_FILE"
+echo "$CANONICAL_JSON" \
+  | tr -d '\r' \
+  | sed '/^[[:space:]]*$/d' \
+  > "$RESULT_FILE"
 
 # =========================================================
 # JSON VALIDATION
 # =========================================================
 
-if ! jq empty "$RESULT_FILE" >/dev/null 2>&1; then
+if ! jq . "$RESULT_FILE" > /dev/null 2>&1; then
 
   echo ""
   echo "[AEGIS] Invalid JSON runtime artifact."
   echo ""
 
+  echo "[AEGIS DEBUG] RAW RESULT:"
   cat "$RESULT_FILE"
+
+  echo ""
+  echo "[AEGIS DEBUG] RAW BYTES:"
+  python3 -c '
+import pathlib
+
+data = pathlib.Path(".harness/runtime/result.json").read_bytes()
+
+print(repr(data[:1000]))
+'
 
   exit 1
 fi
