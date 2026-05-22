@@ -1,84 +1,89 @@
 #!/usr/bin/env bash
 
 # =========================================================
-# AEGIS HARNESS — RUNTIME
+# AEGIS RUNTIME — DETERMINISTIC SANDBOX CONTROLLER
 # =========================================================
 #
 # Responsibilities:
-# - deterministic mode execution;
-# - execution isolation;
-# - governed context injection;
-# - structured artifact validation;
-# - bounded lifecycle governance.
+# - create isolated disposable execution sandboxes;
+# - execute bounded cognition modes;
+# - validate runtime artifacts mechanically;
+# - enforce deterministic execution lifecycle.
 #
-# Runtime remains semantically blind.
+# This runtime:
+# - does NOT interpret cognition;
+# - does NOT validate semantic correctness;
+# - does NOT orchestrate epistemology;
+# - does NOT redesign execution flow.
+#
+# Modes think.
+# Runtime routes.
 #
 # =========================================================
 
 set -euo pipefail
 
 # =========================================================
-# CONFIGURATION
+# CONFIG
 # =========================================================
 
 MODES=(
-  ".skills/mode_0_discovery.md"
+  "mode_0_discovery"
 )
 
-MODEL_NAME="openai/deepseek-ai/deepseek-v4-pro"
+RESULT_FILE=".harness/runtime/result.json"
 
-ROOT_DIR="$(pwd)"
+# =========================================================
+# HELPERS
+# =========================================================
 
-RUNTIME_DIR=".harness/runtime"
+fail() {
 
-RESULT_FILE="$RUNTIME_DIR/result.json"
+  echo ""
+  echo "[AEGIS RUNTIME] ERROR: $1"
+  echo ""
+
+  exit 1
+}
+
+read_status() {
+
+  jq -r '.status' "$RESULT_FILE"
+}
+
+cleanup_sandbox() {
+
+  if [[ -n "${SANDBOX_DIR:-}" && -d "${SANDBOX_DIR:-}" ]]; then
+
+    cd /workspaces/aegis-harness || true
+
+    git worktree remove "$SANDBOX_DIR" --force >/dev/null 2>&1 || true
+  fi
+}
+
+# =========================================================
+# CLEANUP TRAP
+# =========================================================
+
+trap cleanup_sandbox EXIT
 
 # =========================================================
 # PROVIDER VALIDATION
 # =========================================================
 
 if [[ -z "${OPENAI_API_KEY:-}" ]]; then
-  echo "[AEGIS] Missing OPENAI_API_KEY"
-  exit 1
+  fail "Missing OPENAI_API_KEY"
 fi
 
 if [[ -z "${OPENAI_API_BASE:-}" ]]; then
-  echo "[AEGIS] Missing OPENAI_API_BASE"
-  exit 1
+  fail "Missing OPENAI_API_BASE"
 fi
 
 # =========================================================
-# REQUIRED FILES
+# MODE LOOP
 # =========================================================
 
-REQUIRED_FILES=(
-  "AGENTS.md"
-  "docs/active_task.md"
-  ".harness/architecture_graph.json"
-  "scripts/execute_mode.sh"
-)
-
-for FILE in "${REQUIRED_FILES[@]}"; do
-
-  if [[ ! -f "$FILE" ]]; then
-    echo "[AEGIS] Missing required file: $FILE"
-    exit 1
-  fi
-done
-
-# =========================================================
-# RUNTIME DIRECTORY
-# =========================================================
-
-mkdir -p "$RUNTIME_DIR"
-
-# =========================================================
-# EXECUTION LOOP
-# =========================================================
-
-for MODE_FILE in "${MODES[@]}"; do
-
-  MODE_NAME=$(basename "$MODE_FILE" .md)
+for MODE_NAME in "${MODES[@]}"; do
 
   echo ""
   echo "================================================="
@@ -86,142 +91,94 @@ for MODE_FILE in "${MODES[@]}"; do
   echo "================================================="
   echo ""
 
-  # =======================================================
-  # SANDBOX SETUP
-  # =======================================================
+  # -------------------------------------------------------
+  # Disposable sandbox identity
+  # -------------------------------------------------------
 
-  SESSION_ID=$(uuidgen)
+  SANDBOX_ID="sandbox-$(date +%s%N)"
 
-  SANDBOX_DIR="/tmp/aegis-$SESSION_ID"
+  SANDBOX_DIR="/tmp/$SANDBOX_ID"
 
-  git worktree add --detach "$SANDBOX_DIR" >/dev/null 2>&1
+  # -------------------------------------------------------
+  # Create isolated worktree
+  # -------------------------------------------------------
 
-  cleanup() {
+  git worktree add --detach "$SANDBOX_DIR" >/dev/null 2>&1 \
+    || fail "Failed to create sandbox worktree"
 
-    cd "$ROOT_DIR" >/dev/null 2>&1 || true
+  cd "$SANDBOX_DIR" \
+    || fail "Failed to enter sandbox"
 
-    git worktree remove "$SANDBOX_DIR" \
-      --force >/dev/null 2>&1 || true
-  }
+  # -------------------------------------------------------
+  # Execute bounded cognition mode
+  # -------------------------------------------------------
 
-  trap cleanup EXIT
+  MODE_FILE=".skills/${MODE_NAME}.md"
 
-  # =======================================================
-  # ENTER SANDBOX
-  # =======================================================
-
-  cd "$SANDBOX_DIR"
-
-  # =======================================================
-  # REMOVE EXECUTOR CONTINUITY
-  # =======================================================
-
-  rm -rf .aider*
-
-  # =======================================================
-  # CLEAN PREVIOUS RESULT
-  # =======================================================
-
-  rm -f "$RESULT_FILE"
-
-  # =======================================================
-  # EXECUTE MODE
-  # =======================================================
-
-  if ! bash "scripts/execute_mode.sh" "$MODE_FILE"; then
-
-    echo ""
-    echo "[AEGIS RUNTIME] ERROR: Mechanical mode execution failure."
-    echo ""
-
-    exit 1
+  if [[ ! -f "$MODE_FILE" ]]; then
+    fail "Missing mode definition: $MODE_FILE"
   fi
 
-  # =======================================================
-  # RESULT VALIDATION
-  # =======================================================
+  if ! ./scripts/execute_mode.sh "$MODE_FILE"; then
+    fail "Mechanical mode execution failure"
+  fi
+
+  # -------------------------------------------------------
+  # Runtime artifact validation
+  # -------------------------------------------------------
 
   if [[ ! -f "$RESULT_FILE" ]]; then
-
-    echo ""
-    echo "[AEGIS] Missing runtime result artifact."
-    echo ""
-
-    exit 1
+    fail "Missing runtime result artifact"
   fi
 
   if ! jq empty "$RESULT_FILE" >/dev/null 2>&1; then
-
-    echo ""
-    echo "[AEGIS] Invalid JSON runtime artifact."
-    echo ""
-
-    cat "$RESULT_FILE"
-
-    exit 1
+    fail "Invalid runtime artifact JSON"
   fi
 
-  # =======================================================
-  # REQUIRED FIELD VALIDATION
-  # =======================================================
+  STATUS="$(read_status)"
 
-  REQUIRED_FIELDS=(
-    "mode"
-    "status"
-    "confidence"
-    "claims"
-    "hypotheses"
-    "escalation_required"
-    "escalation_reason"
-  )
+  case "$STATUS" in
 
-  for FIELD in "${REQUIRED_FIELDS[@]}"; do
-
-    if ! jq -e ".${FIELD}" "$RESULT_FILE" >/dev/null 2>&1; then
+    RUNNING|COMPLETE)
 
       echo ""
-      echo "[AEGIS] Missing required field: $FIELD"
+      echo "[AEGIS] Mode completed successfully."
       echo ""
 
-      cat "$RESULT_FILE"
+      ;;
+
+    ESCALATED)
+
+      echo ""
+      echo "[AEGIS] Runtime escalated."
+      echo ""
 
       exit 1
-    fi
-  done
 
-  # =======================================================
-  # COPY RESULT BACK TO ROOT REPO
-  # =======================================================
+      ;;
 
-  mkdir -p "$ROOT_DIR/$RUNTIME_DIR"
+    *)
 
-  cp "$RESULT_FILE" \
-    "$ROOT_DIR/$RESULT_FILE"
+      fail "Invalid runtime status: $STATUS"
 
-  # =======================================================
-  # SUCCESS
-  # =======================================================
+      ;;
 
-  echo ""
-  echo "[AEGIS] Mechanical execution integrity verified."
-  echo "[AEGIS] Structured runtime artifact persisted."
-  echo ""
+  esac
 
-  # =======================================================
-  # EXIT SANDBOX
-  # =======================================================
+  # -------------------------------------------------------
+  # Destroy sandbox after execution
+  # -------------------------------------------------------
 
-  cd "$ROOT_DIR"
+  cd /workspaces/aegis-harness \
+    || fail "Failed to return to repository root"
 
-  git worktree remove "$SANDBOX_DIR" \
-    --force >/dev/null 2>&1
-
-  trap - EXIT
+  git worktree remove "$SANDBOX_DIR" --force >/dev/null 2>&1 \
+    || fail "Failed to destroy sandbox"
 
 done
 
 # =========================================================
-# COMPLETE
+# FINAL STATE
 # =========================================================
 
 echo ""
