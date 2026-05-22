@@ -106,7 +106,7 @@ echo ""
 set +e
 
 OUTPUT=$(aider \
-  --config /dev/null \
+  --config .aider.empty.conf.yml \
   --model "$MODEL_NAME" \
   --yes-always \
   --dry-run \
@@ -149,8 +149,8 @@ fi
 
 JSON_OUTPUT=$(echo "$OUTPUT" | awk '
 BEGIN { capture=0 }
- /^\{/ { capture=1 }
- capture { print }
+/^\{/ { capture=1 }
+capture { print }
 ')
 
 if [[ -z "$JSON_OUTPUT" ]]; then
