@@ -3,18 +3,6 @@
 # =========================================================
 # AEGIS HARNESS — MODE EXECUTOR
 # =========================================================
-#
-# Responsibilities:
-# - execute a single cognition mode;
-# - capture structured runtime artifacts;
-# - validate mechanical execution integrity.
-#
-# This layer remains semantically blind.
-#
-# Sandbox lifecycle belongs to:
-# - runtime_aegis.sh
-#
-# =========================================================
 
 set -euo pipefail
 
@@ -56,39 +44,39 @@ MODEL_NAME="openai/qwen/qwen3-next-80b-a3b-instruct"
 # REQUIRED CONTEXT VALIDATION
 # =========================================================
 
-if [[ ! -f "$AGENTS_FILE" ]]; then
+[[ -f "$AGENTS_FILE" ]] || {
   echo "[AEGIS] Missing AGENTS.md"
   exit 1
-fi
+}
 
-if [[ ! -f "$ACTIVE_TASK_FILE" ]]; then
+[[ -f "$ACTIVE_TASK_FILE" ]] || {
   echo "[AEGIS] Missing docs/active_task.md"
   exit 1
-fi
+}
 
-if [[ ! -f "$ARCHITECTURE_GRAPH_FILE" ]]; then
+[[ -f "$ARCHITECTURE_GRAPH_FILE" ]] || {
   echo "[AEGIS] Missing architecture_graph.json"
   exit 1
-fi
+}
 
-if [[ ! -f ".aider.empty.conf.yml" ]]; then
+[[ -f ".aider.empty.conf.yml" ]] || {
   echo "[AEGIS] Missing .aider.empty.conf.yml"
   exit 1
-fi
+}
 
 # =========================================================
 # PROVIDER VALIDATION
 # =========================================================
 
-if [[ -z "${OPENAI_API_KEY:-}" ]]; then
+[[ -n "${OPENAI_API_KEY:-}" ]] || {
   echo "[AEGIS] Missing OPENAI_API_KEY"
   exit 1
-fi
+}
 
-if [[ -z "${OPENAI_API_BASE:-}" ]]; then
+[[ -n "${OPENAI_API_BASE:-}" ]] || {
   echo "[AEGIS] Missing OPENAI_API_BASE"
   exit 1
-fi
+}
 
 # =========================================================
 # CLEAN PREVIOUS RESULT
@@ -149,48 +137,21 @@ if [[ $EXIT_CODE -ne 0 ]]; then
 fi
 
 # =========================================================
-# JSON EXTRACTION
+# SENTINEL EXTRACTION
 # =========================================================
 
-RAW_JSON=$(echo "$OUTPUT" | python3 -c '
-import sys
-
-text = sys.stdin.read()
-
-start = text.find("{")
-
-if start == -1:
-    sys.exit(1)
-
-depth = 0
-end = None
-
-for i, ch in enumerate(text[start:], start=start):
-
-    if ch == "{":
-        depth += 1
-
-    elif ch == "}":
-        depth -= 1
-
-        if depth == 0:
-            end = i + 1
-            break
-
-if end is None:
-    sys.exit(1)
-
-print(text[start:end])
+JSON_OUTPUT=$(echo "$OUTPUT" | sed -n '
+/===AEGIS_RESULT_START===/,/===AEGIS_RESULT_END===/p
 ')
 
 # =========================================================
-# EXTRACTION FAILURE
+# SENTINEL VALIDATION
 # =========================================================
 
-if [[ -z "$RAW_JSON" ]]; then
+if [[ -z "$JSON_OUTPUT" ]]; then
 
   echo ""
-  echo "[AEGIS] Failed to extract JSON artifact."
+  echo "[AEGIS] Missing sentinel-framed artifact."
   echo ""
 
   echo "$OUTPUT"
@@ -199,93 +160,20 @@ if [[ -z "$RAW_JSON" ]]; then
 fi
 
 # =========================================================
-# JSON CANONICALIZATION
+# REMOVE SENTINELS
 # =========================================================
 
-CANONICAL_JSON=$(echo "$RAW_JSON" | python3 -c '
-import json
-import re
-import sys
-
-try:
-
-    raw = sys.stdin.read()
-
-    # -----------------------------------------------------
-    # Remove illegal control characters
-    # -----------------------------------------------------
-
-    sanitized = re.sub(
-        r"[\x00-\x08\x0B\x0C\x0E-\x1F]",
-        " ",
-        raw
-    )
-
-    # -----------------------------------------------------
-    # Normalize illegal multiline JSON strings
-    # -----------------------------------------------------
-
-    result = []
-
-    in_string = False
-
-    escape = False
-
-    for ch in sanitized:
-
-        if escape:
-            result.append(ch)
-            escape = False
-            continue
-
-        if ch == "\\":
-            result.append(ch)
-            escape = True
-            continue
-
-        if ch == "\"":
-            in_string = not in_string
-            result.append(ch)
-            continue
-
-        if in_string and ch in "\n\r":
-            result.append(" ")
-            continue
-
-        result.append(ch)
-
-    normalized = "".join(result)
-
-    obj = json.loads(normalized)
-
-    print(
-        json.dumps(
-            obj,
-            ensure_ascii=False
-        )
-    )
-
-except Exception as e:
-
-    print(
-        f"[AEGIS] JSON canonicalization failure: {e}",
-        file=sys.stderr
-    )
-
-    sys.exit(1)
-')
+JSON_OUTPUT=$(echo "$JSON_OUTPUT" | sed '1d;$d')
 
 # =========================================================
-# CANONICALIZATION FAILURE
+# EMPTY JSON VALIDATION
 # =========================================================
 
-if [[ -z "$CANONICAL_JSON" ]]; then
+if [[ -z "$JSON_OUTPUT" ]]; then
 
   echo ""
-  echo "[AEGIS] Failed to canonicalize JSON artifact."
+  echo "[AEGIS] Empty JSON artifact."
   echo ""
-
-  echo "$RAW_JSON"
 
   exit 1
 fi
@@ -294,10 +182,7 @@ fi
 # ARTIFACT CAPTURE
 # =========================================================
 
-echo "$CANONICAL_JSON" \
-  | tr -d '\r' \
-  | sed '/^[[:space:]]*$/d' \
-  > "$RESULT_FILE"
+echo "$JSON_OUTPUT" > "$RESULT_FILE"
 
 # =========================================================
 # JSON VALIDATION
@@ -309,18 +194,7 @@ if ! jq . "$RESULT_FILE" > /dev/null 2>&1; then
   echo "[AEGIS] Invalid JSON runtime artifact."
   echo ""
 
-  echo "[AEGIS DEBUG] RAW RESULT:"
   cat "$RESULT_FILE"
-
-  echo ""
-  echo "[AEGIS DEBUG] RAW BYTES:"
-  python3 -c '
-import pathlib
-
-data = pathlib.Path(".harness/runtime/result.json").read_bytes()
-
-print(repr(data[:1000]))
-'
 
   exit 1
 fi
