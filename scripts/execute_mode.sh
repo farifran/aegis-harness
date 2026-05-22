@@ -212,7 +212,7 @@ try:
     raw = sys.stdin.read()
 
     # -----------------------------------------------------
-    # Remove invalid control characters
+    # Remove illegal control characters
     # -----------------------------------------------------
 
     sanitized = re.sub(
@@ -221,7 +221,42 @@ try:
         raw
     )
 
-    obj = json.loads(sanitized)
+    # -----------------------------------------------------
+    # Normalize illegal multiline JSON strings
+    # -----------------------------------------------------
+
+    result = []
+
+    in_string = False
+
+    escape = False
+
+    for ch in sanitized:
+
+        if escape:
+            result.append(ch)
+            escape = False
+            continue
+
+        if ch == "\\":
+            result.append(ch)
+            escape = True
+            continue
+
+        if ch == "\"":
+            in_string = not in_string
+            result.append(ch)
+            continue
+
+        if in_string and ch in "\n\r":
+            result.append(" ")
+            continue
+
+        result.append(ch)
+
+    normalized = "".join(result)
+
+    obj = json.loads(normalized)
 
     print(
         json.dumps(
