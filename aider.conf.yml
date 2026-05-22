@@ -1,21 +1,17 @@
 # =========================================================
-# AEGIS HARNESS — AIDER CONFIG
+# AEGIS HARNESS — EXECUTOR CONFIGURATION
 # =========================================================
 #
-# Executor operational configuration only.
+# Executor operational behavior only.
 #
-# This file does NOT define:
-# - governance;
-# - runtime authority;
-# - orchestration logic;
-# - bounded cognition;
-# - continuity governance.
-#
-# Those belong to:
+# Governance belongs to:
 # - AGENTS.md
+#
+# Runtime orchestration belongs to:
 # - runtime_aegis.sh
+#
+# Cognition contracts belong to:
 # - .skills/
-# - orchestration layer
 #
 # =========================================================
 
@@ -23,70 +19,64 @@
 # MODEL
 # ---------------------------------------------------------
 
-model: openrouter/deepseek/deepseek-r1:free
+model: openai/deepseek-ai/deepseek-v4-pro
 
 # ---------------------------------------------------------
-# EXECUTION AUTOMATION
+# EXECUTION
 # ---------------------------------------------------------
 
 yes-always: true
 
-# ---------------------------------------------------------
-# GIT
-# ---------------------------------------------------------
-
-git: true
+dry-run: true
 
 auto-commits: false
-dirty-commits: false
 
 # ---------------------------------------------------------
-# STRUCTURAL PERCEPTION
+# EXECUTOR CONTAINMENT
 # ---------------------------------------------------------
 
-map-tokens: 2048
-map-refresh: auto
+git: false
+
+restore-chat-history: false
+
+map-tokens: 0
+
+map-refresh: manual
 
 # ---------------------------------------------------------
-# CONTEXT WINDOW
+# OUTPUT STABILITY
 # ---------------------------------------------------------
 
-max-chat-history-tokens: 16000
+stream: false
+
+pretty: false
+
+show-model-warnings: false
 
 # ---------------------------------------------------------
-# VALIDATION
+# INTERACTION MINIMIZATION
 # ---------------------------------------------------------
-
-auto-test: true
-
-test-cmd: npm run aegis:full
-
-lint-retries: 3
-
-# ---------------------------------------------------------
-# DIFF CONTROL
-# ---------------------------------------------------------
-
-show-diffs: true
-
-# ---------------------------------------------------------
-# EXECUTOR SAFETY
-# ---------------------------------------------------------
-
-check-update: false
 
 suggest-shell-commands: false
 
+detect-urls: false
+
+notifications: false
+
+fancy-input: false
+
+multiline: false
+
 # ---------------------------------------------------------
-# FINAL PRINCIPLE
+# EDIT BEHAVIOR
 # ---------------------------------------------------------
 
-# The executor assists repository mutation.
-#
-# It does not own:
-# - governance;
-# - cognition;
-# - orchestration;
-# - structural truth.
-#
-# Context governance remains externalized.
+edit-format: whole
+
+# ---------------------------------------------------------
+# ENCODING
+# ---------------------------------------------------------
+
+encoding: utf-8
+
+line-endings: lf

@@ -1,209 +1,232 @@
 #!/usr/bin/env bash
 
 # =========================================================
-# AEGIS RUNTIME — MINIMAL DETERMINISTIC CONTROLLER
+# AEGIS HARNESS — RUNTIME
 # =========================================================
 #
-# This runtime:
-# - does NOT think;
-# - does NOT interpret epistemology;
-# - does NOT validate confidence;
-# - does NOT orchestrate cognition;
-# - does NOT redesign execution flow.
+# Responsibilities:
+# - deterministic mode execution;
+# - execution isolation;
+# - governed context injection;
+# - structured artifact validation;
+# - bounded lifecycle governance.
 #
-# It only:
-# - executes modes;
-# - injects deterministic sequencing;
-# - validates mechanical execution integrity;
-# - enforces bounded continuity containment.
-#
-# Modes think.
-# Runtime routes.
+# Runtime remains semantically blind.
 #
 # =========================================================
 
 set -euo pipefail
 
 # =========================================================
-# CONFIG
+# CONFIGURATION
 # =========================================================
 
 MODES=(
-  "mode_0_discovery"
-  "mode_1_forensics"
-  "mode_2_repair"
-  "mode_3_optimize"
-  "mode_4_adversarial"
-  "mode_5_validation"
+  ".skills/mode_0_discovery.md"
 )
 
-HARNESS_DIR=".harness"
+MODEL_NAME="openai/deepseek-ai/deepseek-v4-pro"
 
-STATE_DIR="$HARNESS_DIR/runtime"
+ROOT_DIR="$(pwd)"
 
-RESULT_FILE="$STATE_DIR/result.json"
+RUNTIME_DIR=".harness/runtime"
 
-mkdir -p "$STATE_DIR"
-
-# =========================================================
-# STATE
-# =========================================================
-
-RUNTIME_STATE="RUNNING"
-
-CURRENT_MODE_INDEX=0
+RESULT_FILE="$RUNTIME_DIR/result.json"
 
 # =========================================================
-# HELPERS
+# PROVIDER VALIDATION
 # =========================================================
 
-fail() {
-  echo "[AEGIS RUNTIME] ERROR: $1"
+if [[ -z "${OPENAI_API_KEY:-}" ]]; then
+  echo "[AEGIS] Missing OPENAI_API_KEY"
   exit 1
-}
+fi
 
-read_status() {
-  grep -o '"status":[[:space:]]*"[^"]*"' "$RESULT_FILE" \
-    | cut -d '"' -f4
-}
-
-# =========================================================
-# EPISTEMIC ISOLATION
-# =========================================================
-
-reset_epistemic_state() {
-
-  echo "[AEGIS] Resetting bounded continuity surfaces..."
-
-  # -------------------------------------------------------
-  # Conversational continuity
-  # -------------------------------------------------------
-
-  rm -f .aider.chat.history.md || true
-
-  # -------------------------------------------------------
-  # Prompt continuity
-  # -------------------------------------------------------
-
-  rm -f .aider.input.history || true
-
-  # -------------------------------------------------------
-  # Temporary operational state
-  # -------------------------------------------------------
-
-  rm -rf .aider.tmp || true
-
-  # -------------------------------------------------------
-  # Structural topology persistence
-  # -------------------------------------------------------
-
-  rm -rf .aider.tags.cache.v4 || true
-
-  # -------------------------------------------------------
-  # Additional aider cache variants
-  # -------------------------------------------------------
-
-  rm -rf .aider.tags.cache.* || true
-
-  echo "[AEGIS] Bounded continuity reset complete."
-}
+if [[ -z "${OPENAI_API_BASE:-}" ]]; then
+  echo "[AEGIS] Missing OPENAI_API_BASE"
+  exit 1
+fi
 
 # =========================================================
-# MODE EXECUTION
+# REQUIRED FILES
 # =========================================================
 
-execute_mode() {
+REQUIRED_FILES=(
+  "AGENTS.md"
+  "docs/active_task.md"
+  ".harness/architecture_graph.json"
+  "scripts/execute_mode.sh"
+)
 
-  local mode_name="$1"
+for FILE in "${REQUIRED_FILES[@]}"; do
+
+  if [[ ! -f "$FILE" ]]; then
+    echo "[AEGIS] Missing required file: $FILE"
+    exit 1
+  fi
+done
+
+# =========================================================
+# RUNTIME DIRECTORY
+# =========================================================
+
+mkdir -p "$RUNTIME_DIR"
+
+# =========================================================
+# EXECUTION LOOP
+# =========================================================
+
+for MODE_FILE in "${MODES[@]}"; do
+
+  MODE_NAME=$(basename "$MODE_FILE" .md)
 
   echo ""
   echo "================================================="
-  echo "[AEGIS] Executing: $mode_name"
+  echo "[AEGIS] Executing: $MODE_NAME"
   echo "================================================="
   echo ""
+
+  # =======================================================
+  # SANDBOX SETUP
+  # =======================================================
+
+  SESSION_ID=$(uuidgen)
+
+  SANDBOX_DIR="/tmp/aegis-$SESSION_ID"
+
+  git worktree add --detach "$SANDBOX_DIR" >/dev/null 2>&1
+
+  cleanup() {
+
+    cd "$ROOT_DIR" >/dev/null 2>&1 || true
+
+    git worktree remove "$SANDBOX_DIR" \
+      --force >/dev/null 2>&1 || true
+  }
+
+  trap cleanup EXIT
+
+  # =======================================================
+  # ENTER SANDBOX
+  # =======================================================
+
+  cd "$SANDBOX_DIR"
+
+  # =======================================================
+  # REMOVE EXECUTOR CONTINUITY
+  # =======================================================
+
+  rm -rf .aider*
+
+  # =======================================================
+  # CLEAN PREVIOUS RESULT
+  # =======================================================
 
   rm -f "$RESULT_FILE"
 
-  MODE_FILE=".skills/${mode_name}.md"
+  # =======================================================
+  # EXECUTE MODE
+  # =======================================================
 
-  if [[ ! -f "$MODE_FILE" ]]; then
-    fail "Missing mode definition: $MODE_FILE"
+  if ! bash "scripts/execute_mode.sh" "$MODE_FILE"; then
+
+    echo ""
+    echo "[AEGIS RUNTIME] ERROR: Mechanical mode execution failure."
+    echo ""
+
+    exit 1
   fi
 
-  # -------------------------------------------------------
-  # Mechanical execution validation only
-  # -------------------------------------------------------
+  # =======================================================
+  # RESULT VALIDATION
+  # =======================================================
 
-  if ! "./scripts/execute_mode.sh" "$MODE_FILE"; then
-    fail "Mechanical mode execution failure."
+  if [[ ! -f "$RESULT_FILE" ]]; then
+
+    echo ""
+    echo "[AEGIS] Missing runtime result artifact."
+    echo ""
+
+    exit 1
   fi
-}
 
-# =========================================================
-# MAIN LOOP
-# =========================================================
+  if ! jq empty "$RESULT_FILE" >/dev/null 2>&1; then
 
-while [[ "$RUNTIME_STATE" == "RUNNING" ]]; do
+    echo ""
+    echo "[AEGIS] Invalid JSON runtime artifact."
+    echo ""
 
-  CURRENT_MODE="${MODES[$CURRENT_MODE_INDEX]}"
+    cat "$RESULT_FILE"
 
-  execute_mode "$CURRENT_MODE"
+    exit 1
+  fi
 
-  STATUS="$(read_status)"
+  # =======================================================
+  # REQUIRED FIELD VALIDATION
+  # =======================================================
 
-  case "$STATUS" in
+  REQUIRED_FIELDS=(
+    "mode"
+    "status"
+    "confidence"
+    "claims"
+    "hypotheses"
+    "escalation_required"
+    "escalation_reason"
+  )
 
-    RUNNING)
+  for FIELD in "${REQUIRED_FIELDS[@]}"; do
 
-      echo "[AEGIS] Mode $CURRENT_MODE completed successfully."
+    if ! jq -e ".${FIELD}" "$RESULT_FILE" >/dev/null 2>&1; then
 
-      # ---------------------------------------------------
-      # Enforce bounded continuity containment
-      # ---------------------------------------------------
+      echo ""
+      echo "[AEGIS] Missing required field: $FIELD"
+      echo ""
 
-      reset_epistemic_state
+      cat "$RESULT_FILE"
 
-      CURRENT_MODE_INDEX=$((CURRENT_MODE_INDEX + 1))
+      exit 1
+    fi
+  done
 
-      if [[ $CURRENT_MODE_INDEX -ge ${#MODES[@]} ]]; then
-        RUNTIME_STATE="COMPLETE"
-      fi
+  # =======================================================
+  # COPY RESULT BACK TO ROOT REPO
+  # =======================================================
 
-      ;;
+  mkdir -p "$ROOT_DIR/$RUNTIME_DIR"
 
-    ESCALATED)
+  cp "$RESULT_FILE" \
+    "$ROOT_DIR/$RESULT_FILE"
 
-      echo "[AEGIS] Flow escalated."
+  # =======================================================
+  # SUCCESS
+  # =======================================================
 
-      RUNTIME_STATE="ESCALATED"
+  echo ""
+  echo "[AEGIS] Mechanical execution integrity verified."
+  echo "[AEGIS] Structured runtime artifact persisted."
+  echo ""
 
-      ;;
+  # =======================================================
+  # EXIT SANDBOX
+  # =======================================================
 
-    COMPLETE)
+  cd "$ROOT_DIR"
 
-      echo "[AEGIS] Flow completed."
+  git worktree remove "$SANDBOX_DIR" \
+    --force >/dev/null 2>&1
 
-      RUNTIME_STATE="COMPLETE"
-
-      ;;
-
-    *)
-
-      fail "Invalid runtime status: $STATUS"
-
-      ;;
-
-  esac
+  trap - EXIT
 
 done
 
 # =========================================================
-# FINAL STATE
+# COMPLETE
 # =========================================================
 
 echo ""
 echo "================================================="
-echo "[AEGIS] FINAL STATE: $RUNTIME_STATE"
+echo "[AEGIS] Runtime execution completed."
 echo "================================================="
 echo ""
 

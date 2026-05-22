@@ -13,7 +13,7 @@ It defines:
 - source-of-truth hierarchy;
 - memory discipline;
 - orchestration limits;
-- epistemic containment principles.
+- execution isolation principles.
 
 It does NOT define:
 - mode-local cognition;
@@ -31,12 +31,12 @@ Those belong to their respective layers.
 
 The authoritative order of the system is:
 
-1. AGENTS.md
-2. .harness/
-3. .skills/
-4. runtime_aegis.sh
-5. aider.conf.yml
-6. docs/active_task.md
+1. `AGENTS.md`
+2. `.harness/`
+3. `.skills/`
+4. `runtime_aegis.sh`
+5. `aider.conf.yml`
+6. `docs/active_task.md`
 7. repository implementation
 
 Higher layers constrain lower layers.
@@ -62,237 +62,182 @@ No layer may silently absorb another layer’s authority.
 
 ---
 
-## Runtime Constraint
+## Execution Isolation
 
-The runtime must remain semantically blind.
+Execution environments are ephemeral and disposable.
 
-It may:
-- execute modes;
-- read explicit runtime state;
-- route deterministic transitions;
-- enforce epistemic isolation;
-- validate mechanical execution integrity.
+Each execution session should begin from an isolated sandbox or worktree when available.
 
-It must NOT:
-- interpret cognition;
-- infer meaning;
-- validate correctness;
-- analyze findings;
-- orchestrate semantically;
-- collapse uncertainty into operational decisions.
+Executors must not retain:
+- hidden conversational memory;
+- latent runtime continuity;
+- repository-derived cognitive persistence;
+- implicit operational carryover.
 
-Runtime orchestration must remain mechanically deterministic.
+Each execution session must:
+- receive explicitly governed context only;
+- expose only authorized continuity surfaces;
+- terminate without preserving latent cognition.
+
+Execution isolation exists to preserve:
+- bounded cognition;
+- revisability;
+- explicit continuity governance;
+- operational containment.
+
+Runtime governance owns:
+- continuity authorization;
+- persistence authorization;
+- artifact lifecycle control.
+
+Executors remain disposable cognition engines.
 
 ---
 
-## Mode Constraint
+## Continuity Governance
 
-Modes are bounded cognitive contracts.
+Authorized continuity surfaces are intentionally minimal.
+
+The primary authorized continuity surface is:
+
+- `docs/active_task.md`
+
+No other continuity mechanism should be assumed implicitly.
+
+Continuity must never emerge accidentally through:
+- executor persistence;
+- hidden runtime state;
+- cached conversational memory;
+- repository-derived latent cognition;
+- implicit orchestration carryover.
+
+All meaningful continuity must remain:
+- explicit;
+- observable;
+- revisable;
+- operationally bounded.
+
+---
+
+## Runtime Governance
+
+Runtime layers govern:
+- execution lifecycle;
+- context injection;
+- artifact capture;
+- persistence authorization;
+- isolation boundaries.
+
+Runtime layers must remain semantically blind.
+
+Runtime must NOT:
+- interpret cognition;
+- validate reasoning quality;
+- rewrite cognition artifacts;
+- semantically repair outputs;
+- infer missing meaning.
+
+Runtime authority is mechanical only.
+
+---
+
+## Mode Governance
+
+Modes are bounded cognition layers.
 
 Modes may:
-- observe;
-- infer;
-- repair;
-- optimize;
-- falsify;
-- validate.
+- inspect;
+- reason;
+- explore;
+- analyze;
+- emit structured artifacts.
 
 Modes must NOT:
-- redefine governance;
-- redefine runtime authority;
-- create hidden orchestration;
-- establish architectural truth;
-- silently persist cognition across modes.
+- silently redesign systems;
+- fabricate hidden architecture;
+- invent operational truth;
+- mutate repository state unless explicitly authorized;
+- accumulate hidden continuity.
 
-Mode behavior belongs in:
-.skills/
-
----
-
-## Enforcement Constraint
-
-Only mechanically enforceable constraints belong in enforcement systems.
-
-Enforcement may include:
-- AST rules;
-- linting;
-- type systems;
-- CI validation;
-- structural verification.
-
-Semantic preference is not structural enforcement.
-
----
-
-## Epistemic Discipline
-
-Structural truth emerges from:
-- observable repository behavior;
-- dependency topology;
-- mechanically enforceable guarantees;
-- explicit structural evidence.
-
-Do not transform:
-- semantic suspicion;
-- inferred relationships;
-- partial evidence;
-- exploratory findings;
-into:
-- structural certainty.
-
-Confidence must remain proportional to observable evidence.
-
-Absence of contradiction is not evidence of correctness.
-
-Semantic plausibility alone does not establish truth.
-
-Unknowns must remain explicitly bounded.
-
-The following remain advisory unless structurally confirmed:
-- documentation;
-- comments;
-- plans;
-- semantic interpretation;
-- weak signals;
-- inferred relationships;
-- volatile operational context.
-
-Preserve proportionality between:
-- confidence and evidence;
-- mutation and approved scope;
-- optimization and operational need;
-- escalation and structural risk.
-
----
-
-## Memory Discipline
-
-The system contains two memory classes.
-
-### Volatile Memory
-
-docs/active_task.md
-
-Used for:
-- active operational state;
-- bounded cross-mode handoff;
-- unresolved uncertainty;
-- escalation continuity;
-- operational epistemic discipline.
-
-It remains:
-- transient;
-- uncertainty-sensitive;
-- non-authoritative.
-
-It does NOT function as:
-- persistent cognitive memory;
-- claim persistence;
-- topology authority;
-- architectural truth storage.
-
-### Epistemic Continuity
-
-Cross-mode epistemic continuity belongs exclusively to:
-
-.harness/state/epistemic_state.json
-
-This state remains:
+Modes remain:
 - revisable;
 - uncertainty-sensitive;
-- structurally falsifiable;
-- non-authoritative.
-
-Epistemic continuity must not silently transform:
-- inferred claims;
-- topology assumptions;
-- adversarial findings;
-- operational hypotheses;
-into structural truth.
-
-Persistent continuity exists to:
-- preserve bounded cognition;
-- maintain falsification survivability;
-- reduce hidden continuity leakage;
-- support revisable operational reasoning.
-
-It must not become:
-- architectural authority;
-- governance replacement;
-- semantic truth persistence;
-- implicit ontology.
-
-### Persistent Memory
-
-Git history and canonical repository structure.
-
-Persistent state requires:
-- explicit mutation;
-- observable justification;
-- structural accountability.
-
-No mode may silently transform volatile suspicion into historical truth.
+- operationally bounded.
 
 ---
 
-## Source-of-Truth Boundaries
+## Repository Governance
 
-### .harness/
+Repository structure is authoritative over semantic plausibility.
 
-Contains:
-- structural metadata;
-- enforcement definitions;
-- architectural graph information;
-- repository structural truth artifacts;
-- epistemic continuity state.
+Architectural truth must emerge from:
+- observable structure;
+- mechanically verifiable constraints;
+- dependency relationships;
+- execution reality.
 
-It must NOT contain:
-- runtime cognition;
-- hidden operational memory;
-- mode-local behavioral logic.
+Semantic plausibility alone never establishes correctness.
 
-### .skills/
+Absence of contradiction does not establish truth.
 
-Contains:
-- mode-specific cognitive contracts;
-- bounded reasoning rules;
-- operational constraints per mode.
+---
 
-Modes define:
-- purpose;
-- inputs;
-- allowed operations;
-- forbidden operations;
-- escalation conditions;
-- output discipline.
+## Context Governance
 
-Modes must not redefine constitutional governance.
+Cognition must receive only proportionally necessary context.
 
-### runtime_aegis.sh
+Unbounded repository exposure is forbidden.
 
-Defines:
-- deterministic orchestration;
-- explicit state routing;
-- execution sequencing;
-- epistemic isolation enforcement;
-- mechanical execution integrity enforcement.
+Context visibility must remain:
+- explicit;
+- bounded;
+- operationally justified;
+- proportional to execution scope.
 
-The runtime must remain semantically blind.
+Reducing cognitive surface area is a containment mechanism and a runtime governance responsibility.
 
-### aider.conf.yml
+---
 
-Defines:
-- executor operational configuration;
-- interaction behavior;
-- executor automation;
-- validation execution behavior.
+## Structured Output Governance
 
-It must not define:
-- governance;
-- structural truth;
-- runtime authority;
-- constitutional cognition;
-- continuity governance.
+Modes must emit mechanically parseable artifacts.
+
+Outputs should remain:
+- explicit;
+- bounded;
+- revisable;
+- operationally observable.
+
+Freeform hidden reasoning persistence is forbidden.
+
+Runtime artifacts exist to preserve:
+- inspectability;
+- containment;
+- deterministic lifecycle governance.
+
+---
+
+## Orchestration Governance
+
+Cognition and orchestration must remain separated.
+
+Modes may emit:
+- findings;
+- uncertainty;
+- escalation signals;
+- bounded observations.
+
+Modes do NOT own:
+- execution routing;
+- persistence authority;
+- orchestration authority;
+- lifecycle authority.
+
+Orchestration layers govern:
+- transitions;
+- escalation handling;
+- retries;
+- lifecycle progression.
 
 ---
 
@@ -322,6 +267,37 @@ Fact must remain prioritized over:
 
 ---
 
+## Enforcement Constraint
+
+Only mechanically enforceable constraints belong in enforcement systems.
+
+Enforcement may include:
+- AST rules;
+- linting;
+- type systems;
+- CI validation;
+- structural verification.
+
+Semantic preference is not structural enforcement.
+
+---
+
+## Failure Philosophy
+
+Failure visibility is preferred over hidden semantic repair.
+
+The system must fail explicitly when:
+- uncertainty cannot be bounded;
+- artifacts become invalid;
+- execution integrity is compromised;
+- cognition exceeds operational constraints.
+
+Silent correction is forbidden.
+
+Operational transparency is preferred over artificial smoothness.
+
+---
+
 ## Prohibited System Behaviors
 
 The Aegis Harness must not allow:
@@ -334,7 +310,7 @@ The Aegis Harness must not allow:
 - semantic suspicion presented as truth;
 - uncertainty collapse into unsupported certainty;
 - topology assumptions becoming architectural authority;
-- epistemic continuity silently ossifying into truth persistence.
+- executor state becoming implicit memory.
 
 ---
 
@@ -348,7 +324,7 @@ Cognition remains bounded.
 
 Memory remains controlled.
 
-Epistemic continuity remains revisable.
+Continuity remains explicitly governed.
 
 Structural truth remains evidence-bound.
 
