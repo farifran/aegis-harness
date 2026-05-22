@@ -204,13 +204,39 @@ fi
 
 CANONICAL_JSON=$(echo "$RAW_JSON" | python3 -c '
 import json
+import re
 import sys
 
 try:
-    obj = json.loads(sys.stdin.read())
-    print(json.dumps(obj, ensure_ascii=False))
+
+    raw = sys.stdin.read()
+
+    # -----------------------------------------------------
+    # Remove invalid control characters
+    # -----------------------------------------------------
+
+    sanitized = re.sub(
+        r"[\x00-\x08\x0B\x0C\x0E-\x1F]",
+        " ",
+        raw
+    )
+
+    obj = json.loads(sanitized)
+
+    print(
+        json.dumps(
+            obj,
+            ensure_ascii=False
+        )
+    )
+
 except Exception as e:
-    print(f"[AEGIS] JSON canonicalization failure: {e}", file=sys.stderr)
+
+    print(
+        f"[AEGIS] JSON canonicalization failure: {e}",
+        file=sys.stderr
+    )
+
     sys.exit(1)
 ')
 
