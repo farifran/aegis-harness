@@ -13,7 +13,7 @@ to:
 
 ## Current Operational State
 
-The runtime now:
+The runtime:
 - governs execution lifecycle;
 - governs sandbox isolation;
 - governs context injection;
@@ -47,27 +47,9 @@ The runtime remains:
 
 ---
 
-## Active Uncertainty
-
-The primary unresolved issue is deterministic JSON artifact extraction from aider output.
-
-Current risk areas:
-- assistant banner noise;
-- provider warnings;
-- non-JSON output contamination;
-- helper text leakage.
-
-The runtime currently validates JSON mechanically through:
-- `jq`
-- required field checks
-
-but artifact purity is not fully guaranteed yet.
-
----
-
 ## Current Containment Strategy
 
-Execution containment currently includes:
+Execution containment includes:
 - isolated git worktrees;
 - disposable execution sessions;
 - disabled repo cognition;
@@ -76,30 +58,6 @@ Execution containment currently includes:
 - runtime-owned persistence.
 
 Executor continuity must remain non-persistent.
-
----
-
-## Escalation Status
-
-No structural escalation currently active.
-
-Current focus remains:
-- execution containment;
-- deterministic artifact generation;
-- runtime stabilization.
-
----
-
-## Relevant Findings
-
-Validated experimentally:
-- aider operates inside isolated worktrees;
-- environment propagation survives sandboxing;
-- disposable execution sessions are viable;
-- runtime-governed containment is operationally feasible.
-
-Observed remaining weakness:
-- deterministic JSON extraction remains unresolved.
 
 ---
 
@@ -116,4 +74,30 @@ Modes must not:
 - establish architectural truth;
 - generate implementation pressure unless explicitly authorized.
 
-Continuity remains explicitly governed through this file only.
+Continuity remains explicitly governed through the session state only.
+
+---
+
+## Persistent Doctrine
+
+Validated operational principles:
+
+- isolated sandbox execution is viable;
+- disposable execution sessions are operationally feasible;
+- runtime-governed containment is structurally viable;
+- environment propagation survives sandbox isolation;
+- explicit continuity is preferable to hidden persistence;
+- fail-fast mechanical validation is preferred over semantic repair;
+- runtime simplicity is preferred over orchestration intelligence.
+
+---
+
+## Session Bootstrap
+
+A fresh execution session must:
+- initialize from this doctrine;
+- establish explicit operational continuity;
+- remain execution-scoped;
+- avoid hidden persistence across runs.
+
+No active execution session initialized yet.
