@@ -2,85 +2,149 @@
 
 set -euo pipefail
 
-MODE_FILE="${1:-}"
+# =========================================================
+# EXECUTE MODE
+# =========================================================
+
+MODE_FILE="${1:?missing mode file}"
+
+EXPECTED_MODE="${2:?missing mode name}"
+
+ACTIVE_TASK_PATH="${3:?missing active task path}"
+
+ROOT_DIR="$(
+  cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd
+)"
+
+MODE_PATH="$ROOT_DIR/$MODE_FILE"
+
+EXECUTION_TIMEOUT=300
+
+# =========================================================
+# FAILURE
+# =========================================================
+
+fail() {
+  echo
+  echo "[AEGIS] $1" >&2
+  echo
+  exit 1
+}
 
 # =========================================================
 # VALIDATION
 # =========================================================
 
-if [[ -z "$MODE_FILE" ]]
-then
-  echo "[AEGIS] Missing mode file."
-  exit 1
-fi
+[[ -f "$MODE_PATH" ]] \
+  || fail "Mode file not found."
 
-if [[ ! -f "$MODE_FILE" ]]
-then
-  echo "[AEGIS] Mode file not found: $MODE_FILE"
-  exit 1
-fi
-
-if [[ ! -f "docs/active_task.md" ]]
-then
-  echo "[AEGIS] Missing session active_task.md"
-  exit 1
-fi
-
-if [[ ! -f "AGENTS.md" ]]
-then
-  echo "[AEGIS] Missing AGENTS.md"
-  exit 1
-fi
-
-if [[ ! -f ".harness/architecture_graph.json" ]]
-then
-  echo "[AEGIS] Missing architecture_graph.json"
-  exit 1
-fi
+[[ -f "$ACTIVE_TASK_PATH" ]] \
+  || fail "Missing runtime active task."
 
 # =========================================================
-# EXECUTION HEADER
+# MODE CAPABILITY MODEL
 # =========================================================
 
-echo
-echo "================================================="
-echo "[AEGIS] Executing mode file: $MODE_FILE"
-echo "================================================="
-echo
+is_hard_containment_mode() {
+
+  case "$EXPECTED_MODE" in
+    discovery|\
+    forensics|\
+    validation|\
+    adversarial)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+# =========================================================
+# BUILD AIDER FLAGS
+# =========================================================
+
+AIDER_FLAGS=(
+  --config "$ROOT_DIR/.aider.empty.conf.yml"
+  --model openai/qwen/qwen3-next-80b-a3b-instruct
+  --no-stream
+  --no-git
+  --map-tokens 0
+  --map-refresh manual
+  --yes-always
+  --exit
+)
+
+# ---------------------------------------------------------
+# HARD CONTAINMENT MODES
+# ---------------------------------------------------------
+
+if is_hard_containment_mode
+then
+  AIDER_FLAGS+=(--ask)
+fi
 
 # =========================================================
 # EXECUTE AIDER
 # =========================================================
 
+set +e
+
 OUTPUT="$(
-aider \
-  --config .aider.empty.conf.yml \
-  --model openai/qwen/qwen3-next-80b-a3b-instruct \
-  --no-stream \
-  --no-git \
-  --map-tokens 0 \
-  --map-refresh manual \
-  --no-show-model-warnings \
-  --yes-always \
-  --exit \
-  --message-file "$MODE_FILE" \
-  docs/active_task.md \
-  AGENTS.md \
-  .harness/architecture_graph.json \
-  2>&1
+  timeout "$EXECUTION_TIMEOUT" \
+    aider \
+      "${AIDER_FLAGS[@]}" \
+      "$ACTIVE_TASK_PATH" \
+      "$MODE_FILE" \
+      --message-file "$MODE_PATH" \
+      2>&1
 )"
+
+EXIT_CODE=$?
+
+set -e
+
+# =========================================================
+# TIMEOUT DETECTION
+# =========================================================
+
+if [[ "$EXIT_CODE" -eq 124 ]]
+then
+  fail "Provider execution timeout."
+fi
 
 # =========================================================
 # PROVIDER FAILURE DETECTION
 # =========================================================
 
-if echo "$OUTPUT" | grep -qiE \
-  "InternalServerError|APIConnectionError|RateLimitError|timeout|Connection error"
+if echo "$OUTPUT" | grep -qi \
+  "InternalServerError"
 then
-  echo "[AEGIS] Provider execution failure."
-  echo
-  echo "$OUTPUT"
-  exit 1
+  fail "Provider internal server failure."
+fi
+
+if echo "$OUTPUT" | grep -qi \
+  "RateLimit"
+then
+  fail "Provider rate limit failure."
+fi
+
+if echo "$OUTPUT" | grep -qi \
+  "AuthenticationError"
+then
+  fail "Provider authentication failure."
+fi
+
+if echo "$OUTPUT" | grep -qi \
+  "Connection error"
+then
+  fail "Provider connection failure."
+fi
+
+if echo "$OUTPUT" | grep -qi \
+  "API key"
+then
+  fail "Provider API key failure."
 fi
 
 # =========================================================
@@ -88,78 +152,66 @@ fi
 # =========================================================
 
 ARTIFACT="$(
-printf '%s\n' "$OUTPUT" | awk '
-/AEGIS_ARTIFACT_BEGIN/ { capture=1; next }
-/AEGIS_ARTIFACT_END/   { capture=0 }
-capture
-'
+  echo "$OUTPUT" | awk '
+    /AEGIS_ARTIFACT_BEGIN/ {
+      capture=1
+      next
+    }
+
+    /AEGIS_ARTIFACT_END/ {
+      capture=0
+    }
+
+    capture
+  '
 )"
 
-if [[ -z "$ARTIFACT" ]]
-then
-  echo "[AEGIS] Missing sentinel-framed artifact."
-  echo
-  echo "$OUTPUT"
-  exit 1
-fi
-
 # =========================================================
-# JSON VALIDATION
+# ARTIFACT VALIDATION
 # =========================================================
 
-if ! echo "$ARTIFACT" | jq empty >/dev/null 2>&1
-then
-  echo "[AEGIS] Invalid JSON runtime artifact."
-  echo
-  echo "$ARTIFACT"
-  exit 1
-fi
+[[ -n "$ARTIFACT" ]] \
+  || fail "Missing sentinel-framed artifact."
+
+echo "$ARTIFACT" | jq empty \
+  >/dev/null 2>&1 \
+  || fail "Invalid JSON runtime artifact."
 
 # =========================================================
 # REQUIRED FIELD VALIDATION
 # =========================================================
 
 REQUIRED_FIELDS=(
-  "mode"
-  "status"
-  "confidence"
-  "claims"
-  "hypotheses"
-  "escalation_required"
-  "escalation_reason"
+  mode
+  status
+  confidence
 )
 
 for FIELD in "${REQUIRED_FIELDS[@]}"
 do
-  if ! echo "$ARTIFACT" | jq -e ".${FIELD}" >/dev/null 2>&1
-  then
-    echo "[AEGIS] Missing required field: $FIELD"
-    echo
-    echo "$ARTIFACT"
-    exit 1
-  fi
+  VALUE="$(
+    echo "$ARTIFACT" | jq -r \
+      ".$FIELD // empty"
+  )"
+
+  [[ -n "$VALUE" ]] \
+    || fail "Missing required field: $FIELD"
+
 done
 
 # =========================================================
-# PERSIST SESSION FINDINGS
+# MODE VALIDATION
 # =========================================================
 
-{
-  echo
-  echo "---"
-  echo
-  echo "## Session Findings"
-  echo
-  echo '```json'
-  echo "$ARTIFACT"
-  echo '```'
-} >> docs/active_task.md
+ARTIFACT_MODE="$(
+  echo "$ARTIFACT" | jq -r '.mode'
+)"
+
+[[ "$ARTIFACT_MODE" == "$EXPECTED_MODE" ]] \
+  || fail "Mode/artifact mismatch detected."
 
 # =========================================================
 # SUCCESS
 # =========================================================
 
-echo
-echo "[AEGIS] Mechanical execution integrity verified."
-echo "[AEGIS] Structured runtime artifact persisted."
-echo
+echo "$ARTIFACT"

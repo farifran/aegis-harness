@@ -1,145 +1,338 @@
 {
+  "version": "2.0",
+  "philosophy": {
+    "core_principle": "Modes produce cognition. Runtime owns continuity.",
+    "execution_model": [
+      "deterministic",
+      "bounded",
+      "disposable",
+      "mechanically_observable"
+    ],
+    "architectural_priorities": [
+      "explicit_authority",
+      "bounded_cognition",
+      "runtime_sovereignty",
+      "capability_scoped_mutation",
+      "mechanical_validation",
+      "operational_containment",
+      "disposable_execution"
+    ],
+    "anti_patterns": [
+      "hidden_persistence",
+      "runtime_semantic_reasoning",
+      "implicit_cross_mode_memory",
+      "autonomous_orchestration",
+      "unbounded_mutation",
+      "governance_drift",
+      "authority_inversion"
+    ]
+  },
+
+  "authority_hierarchy": [
+    "AGENTS.md",
+    ".harness/",
+    ".skills/",
+    "runtime_aegis.sh",
+    "aider.conf.yml",
+    "docs/active_task.template.md",
+    "repository_implementation"
+  ],
+
   "layers": {
-    "ui": {
-      "allowedDependencies": [
-        "application"
+    "governance": {
+      "authority": "constitutional",
+      "source_of_truth": [
+        "AGENTS.md"
       ],
-      "criticality": "moderate",
-      "mutationSensitivity": "moderate",
-      "optimizationPressure": "moderate",
-      "verificationSensitivity": "moderate",
-      "confidenceSensitivity": "moderate",
-      "falsificationSensitivity": "moderate",
-      "executionExposure": "moderate",
-      "redesignTolerance": "moderate",
-      "adversarialPriority": "moderate",
-      "operationalPosture": "balanced"
-    },
-    "application": {
-      "allowedDependencies": [
-        "domain"
+      "responsibilities": [
+        "governance_boundaries",
+        "authority_constraints",
+        "operational_principles",
+        "containment_philosophy"
       ],
-      "criticality": "high",
-      "mutationSensitivity": "high",
-      "optimizationPressure": "moderate",
-      "verificationSensitivity": "high",
-      "confidenceSensitivity": "high",
-      "falsificationSensitivity": "high",
-      "executionExposure": "high",
-      "redesignTolerance": "low",
-      "adversarialPriority": "high",
-      "operationalPosture": "conservative"
+      "must_not": [
+        "execute_runtime_logic",
+        "persist_runtime_state",
+        "perform_cognition",
+        "mutate_implementation"
+      ]
     },
-    "domain": {
-      "allowedDependencies": [],
-      "criticality": "critical",
-      "mutationSensitivity": "critical",
-      "optimizationPressure": "low",
-      "verificationSensitivity": "critical",
-      "confidenceSensitivity": "critical",
-      "falsificationSensitivity": "critical",
-      "executionExposure": "critical",
-      "redesignTolerance": "very_low",
-      "adversarialPriority": "critical",
-      "operationalPosture": "extremely_conservative"
-    },
-    "infrastructure": {
-      "allowedDependencies": [
-        "application",
-        "domain"
+
+    "runtime": {
+      "authority": "sovereign_operational",
+      "source_of_truth": [
+        "runtime_aegis.sh"
       ],
-      "criticality": "high",
-      "mutationSensitivity": "high",
-      "optimizationPressure": "low",
-      "verificationSensitivity": "high",
-      "confidenceSensitivity": "high",
-      "falsificationSensitivity": "high",
-      "executionExposure": "critical",
-      "redesignTolerance": "low",
-      "adversarialPriority": "high",
-      "operationalPosture": "conservative"
+      "responsibilities": [
+        "execution_lifecycle",
+        "sandbox_isolation",
+        "context_injection",
+        "artifact_validation",
+        "mutation_validation",
+        "continuity_persistence",
+        "recovery_state"
+      ],
+      "properties": [
+        "semantically_blind",
+        "mechanically_deterministic",
+        "append_only_continuity"
+      ],
+      "must_not": [
+        "infer_hidden_intent",
+        "repair_cognition_semantically",
+        "establish_architectural_truth",
+        "perform_autonomous_reasoning"
+      ]
+    },
+
+    "modes": {
+      "authority": "bounded_cognition",
+      "source_of_truth": [
+        ".skills/"
+      ],
+      "responsibilities": [
+        "reasoning",
+        "analysis",
+        "bounded_mutation",
+        "artifact_production"
+      ],
+      "must_not": [
+        "persist_continuity",
+        "govern_runtime",
+        "establish_architectural_truth",
+        "mutate_unauthorized_surfaces"
+      ]
+    },
+
+    "session_state": {
+      "authority": "runtime_owned",
+      "source_of_truth": [
+        ".harness/runtime/active_task.md",
+        ".harness/runtime/last_good_active_task.md"
+      ],
+      "properties": [
+        "ephemeral",
+        "append_only",
+        "execution_scoped",
+        "runtime_persisted"
+      ],
+      "must_not": [
+        "be_mode_owned",
+        "persist_between_sessions",
+        "contain_hidden_memory"
+      ]
+    },
+
+    "doctrine": {
+      "authority": "persistent_operational_principles",
+      "source_of_truth": [
+        "docs/active_task.template.md"
+      ],
+      "properties": [
+        "persistent",
+        "immutable_during_execution",
+        "runtime_independent"
+      ],
+      "must_not": [
+        "contain_session_state",
+        "be_mutated_by_modes",
+        "be_runtime_rewritten"
+      ]
+    },
+
+    "implementation": {
+      "authority": "capability_scoped_mutation",
+      "source_of_truth": [
+        "src/",
+        "tests/"
+      ],
+      "properties": [
+        "runtime_validated",
+        "mutation_bounded",
+        "filesystem_observable"
+      ],
+      "must_not": [
+        "mutate_governance",
+        "mutate_runtime_authority",
+        "mutate_session_ownership"
+      ]
     }
   },
-  "global": {
-    "implicitRedesignForbidden": true,
-    "optimizationMustRemainProportional": true,
-    "confidenceMustRemainEvidenceBound": true,
-    "repositoryWideMutationRequiresEscalation": true,
-    "crossLayerExpansionRequiresJustification": true,
-    "runtimeOrchestrationExternalized": true,
-    "modeCognitionMustRemainBounded": true,
-    "recursiveEpistemologicalInvocationForbidden": true,
-    "falsificationDoesNotEstablishCorrectness": true,
-    "validationDoesNotEstablishCertainty": true
+
+  "mode_capabilities": {
+    "discovery": {
+      "type": "hard_containment",
+      "filesystem_mutation": false,
+      "continuity_authority": false,
+      "runtime_authority": false,
+      "purpose": [
+        "architectural_observation",
+        "bounded_discovery",
+        "structural_analysis"
+      ]
+    },
+
+    "forensics": {
+      "type": "hard_containment",
+      "filesystem_mutation": false,
+      "continuity_authority": false,
+      "runtime_authority": false,
+      "purpose": [
+        "operational_analysis",
+        "artifact_inspection",
+        "risk_identification"
+      ]
+    },
+
+    "repair": {
+      "type": "mutation_authorized",
+      "filesystem_mutation": true,
+      "continuity_authority": false,
+      "runtime_authority": false,
+      "allowed_mutation_surfaces": [
+        "src/",
+        "tests/"
+      ],
+      "purpose": [
+        "bounded_implementation_repair",
+        "operational_stabilization"
+      ]
+    },
+
+    "optimize": {
+      "type": "mutation_authorized",
+      "filesystem_mutation": true,
+      "continuity_authority": false,
+      "runtime_authority": false,
+      "allowed_mutation_surfaces": [
+        "src/",
+        "tests/"
+      ],
+      "purpose": [
+        "bounded_optimization",
+        "complexity_reduction",
+        "implementation_refinement"
+      ]
+    },
+
+    "validation": {
+      "type": "hard_containment",
+      "filesystem_mutation": false,
+      "continuity_authority": false,
+      "runtime_authority": false,
+      "purpose": [
+        "mechanical_validation",
+        "execution_verification",
+        "containment_confirmation"
+      ]
+    },
+
+    "adversarial": {
+      "type": "hard_containment",
+      "filesystem_mutation": false,
+      "continuity_authority": false,
+      "runtime_authority": false,
+      "purpose": [
+        "containment_stress_testing",
+        "weakness_discovery",
+        "operational_falsification"
+      ]
+    }
   },
-  "semantics": {
-    "purpose": "epistemic structural metadata",
-    "nonAuthoritative": true,
-    "informs": [
-      "mutation proportionality",
-      "optimization containment",
-      "falsification proportionality",
-      "validation proportionality",
-      "confidence sensitivity",
-      "structural criticality",
-      "proportional cognitive posture",
-      "adversarial pressure scaling",
-      "confidence degradation proportionality",
-      "optimization containment intensity",
-      "verification strictness scaling"
+
+  "continuity_model": {
+    "persistent_doctrine": {
+      "path": "docs/active_task.template.md",
+      "properties": [
+        "persistent",
+        "immutable_during_execution"
+      ]
+    },
+
+    "session_state": {
+      "path": ".harness/runtime/active_task.md",
+      "properties": [
+        "ephemeral",
+        "runtime_owned",
+        "append_only"
+      ]
+    },
+
+    "recovery_state": {
+      "path": ".harness/runtime/last_good_active_task.md",
+      "properties": [
+        "single_checkpoint",
+        "runtime_owned",
+        "mechanically_restorable"
+      ]
+    }
+  },
+
+  "containment_model": {
+    "sandboxing": {
+      "type": "disposable_git_worktree",
+      "properties": [
+        "isolated",
+        "ephemeral",
+        "execution_scoped"
+      ]
+    },
+
+    "context_governance": {
+      "principles": [
+        "bounded_visibility",
+        "proportional_exposure",
+        "runtime_injected_context"
+      ]
+    },
+
+    "mutation_validation": {
+      "mechanisms": [
+        "git_diff_validation",
+        "bounded_editable_surfaces",
+        "capability_scoped_mutation",
+        "runtime_validation"
+      ],
+      "failure_behavior": "fail_fast"
+    },
+
+    "artifact_validation": {
+      "mechanisms": [
+        "sentinel_framing",
+        "strict_json_validation",
+        "required_field_validation",
+        "mode_consistency_validation"
+      ],
+      "failure_behavior": "fail_fast"
+    }
+  },
+
+  "execution_flow": [
+    "initialize_runtime_state",
+    "create_isolated_sandbox",
+    "inject_bounded_context",
+    "execute_mode",
+    "validate_artifact",
+    "validate_mutation_boundaries",
+    "persist_continuity",
+    "update_recovery_state",
+    "destroy_sandbox"
+  ],
+
+  "failure_philosophy": {
+    "principles": [
+      "explicit_failure_visibility",
+      "mechanical_validation_over_semantic_repair",
+      "deterministic_failure_behavior",
+      "bounded_operational_authority"
     ],
-    "doesNotDefine": [
-      "runtime orchestration",
-      "mode cognition",
-      "constitutional governance",
-      "execution sequencing",
-      "runtime adaptation",
-      "heuristic orchestration",
-      "autonomous escalation authority",
-      "graph-driven execution flow"
+
+    "must_fail_when": [
+      "artifact_integrity_breaks",
+      "mutation_boundaries_are_violated",
+      "execution_integrity_is_compromised",
+      "continuity_becomes_implicit",
+      "runtime_sovereignty_is_violated"
     ]
-  },
-  "proportionalCognition": {
-    "purpose": "modulate cognitive posture proportionally to structural exposure",
-    "runtimeRemainsDeterministic": true,
-    "modesAdjustPosture": true,
-    "doesNotAuthorize": [
-      "runtime intelligence",
-      "autonomous orchestration",
-      "heuristic planning",
-      "dynamic execution sequencing"
-    ],
-    "scales": [
-      "skepticism intensity",
-      "mutation caution",
-      "adversarial pressure",
-      "optimization aggressiveness",
-      "confidence degradation",
-      "verification strictness"
-    ]
-  },
-  "falsification": {
-    "purpose": "apply adversarial contradiction pressure against operational assumptions",
-    "isNot": [
-      "lint replay",
-      "passive inspection",
-      "stylistic criticism",
-      "correctness proof"
-    ],
-    "targets": [
-      "hidden coupling",
-      "execution ordering",
-      "retry semantics",
-      "partial invariants",
-      "cross-layer leakage",
-      "unresolved exposure",
-      "implicit orchestration assumptions"
-    ]
-  },
-  "confidenceDiscipline": {
-    "confidenceMustRemainEvidenceBound": true,
-    "absenceOfContradictionDoesNotEstablishCorrectness": true,
-    "validationImprovesConfidenceButDoesNotEstablishCertainty": true,
-    "residualUncertaintyMustRemainExplicit": true
   }
 }

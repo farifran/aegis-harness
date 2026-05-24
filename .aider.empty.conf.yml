@@ -1,1 +1,63 @@
-{}
+# =========================================================
+# AEGIS AIDER EXECUTION PROFILE
+# =========================================================
+
+# ---------------------------------------------------------
+# EXECUTION MODEL
+# ---------------------------------------------------------
+
+model: openai/qwen/qwen3-next-80b-a3b-instruct
+
+# ---------------------------------------------------------
+# DISPOSABLE EXECUTION
+# ---------------------------------------------------------
+
+restore-chat-history: false
+
+# ---------------------------------------------------------
+# REPOSITORY COGNITION CONTAINMENT
+# ---------------------------------------------------------
+
+map-tokens: 0
+map-refresh: manual
+
+# ---------------------------------------------------------
+# GIT CONTAINMENT
+# ---------------------------------------------------------
+
+git: false
+auto-commits: false
+dirty-commits: false
+
+# ---------------------------------------------------------
+# OUTPUT CONTROL
+# ---------------------------------------------------------
+
+stream: false
+
+# ---------------------------------------------------------
+# INTERACTION CONTROL
+# ---------------------------------------------------------
+
+yes-always: true
+
+# ---------------------------------------------------------
+# EXECUTION PHILOSOPHY
+# ---------------------------------------------------------
+
+# This configuration intentionally prioritizes:
+#
+# - disposable cognition
+# - bounded execution
+# - deterministic orchestration
+# - explicit continuity
+# - runtime sovereignty
+#
+# The executor must not:
+#
+# - retain hidden conversational memory
+# - establish implicit repository cognition
+# - persist latent operational continuity
+# - autonomously govern execution lifecycle
+#
+# Runtime authority remains external and sovereign.

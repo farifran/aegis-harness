@@ -1,26 +1,26 @@
 # =========================================================
-# AEGIS HARNESS — EXECUTOR CONFIGURATION
+# AEGIS HARNESS — HUMAN INTERACTIVE PROFILE
 # =========================================================
 
 model: openai/qwen/qwen3-next-80b-a3b-instruct
 
+# ---------------------------------------------------------
+# HUMAN INTERACTION
+# ---------------------------------------------------------
+
 yes-always: true
-
-dry-run: true
-
-auto-commits: false
-
-git: false
-
-restore-chat-history: false
-
-map-tokens: 0
-
-map-refresh: manual
 
 stream: false
 
 pretty: false
+
+multiline: false
+
+fancy-input: false
+
+# ---------------------------------------------------------
+# OUTPUT CONTROL
+# ---------------------------------------------------------
 
 show-model-warnings: false
 
@@ -30,12 +30,28 @@ detect-urls: false
 
 notifications: false
 
-fancy-input: false
-
-multiline: false
+# ---------------------------------------------------------
+# EDITING
+# ---------------------------------------------------------
 
 edit-format: whole
 
 encoding: utf-8
 
 line-endings: lf
+
+# ---------------------------------------------------------
+# HUMAN DEVELOPMENT PROFILE
+# ---------------------------------------------------------
+
+# This configuration is intended for:
+#
+# - manual development
+# - interactive debugging
+# - local experimentation
+# - human-supervised execution
+#
+# Runtime containment and disposable execution
+# are governed separately through:
+#
+# .aider.empty.conf.yml

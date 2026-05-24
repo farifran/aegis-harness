@@ -9,7 +9,6 @@ It is the highest operational authority in the repository.
 It defines:
 - governance boundaries;
 - authority ownership;
-- structural invariants;
 - source-of-truth hierarchy;
 - memory discipline;
 - orchestration limits;
@@ -36,7 +35,7 @@ The authoritative order of the system is:
 3. `.skills/`
 4. `runtime_aegis.sh`
 5. `aider.conf.yml`
-6. `docs/active_task.md`
+6. `docs/active_task.template.md`
 7. repository implementation
 
 Higher layers constrain lower layers.
@@ -47,18 +46,79 @@ Lower layers must not redefine higher layers.
 
 ## Core Separation Principle
 
-The Aegis Harness preserves explicit separation between:
+The Aegis Harness separates:
 
 | Layer | Responsibility |
 |---|---|
 | Governance | constitutional authority |
-| Runtime | deterministic execution routing |
+| Runtime | deterministic orchestration |
 | Modes | bounded cognition |
 | Enforcement | mechanically enforceable constraints |
-| Memory | controlled persistence |
-| Implementation | repository mutation |
+| Session State | controlled operational continuity |
+| Implementation | bounded repository mutation |
 
 No layer may silently absorb another layer’s authority.
+
+---
+
+## Runtime Sovereignty
+
+The runtime is the sovereign operational authority.
+
+The runtime governs:
+- execution lifecycle;
+- sandbox isolation;
+- context injection;
+- artifact validation;
+- mutation validation;
+- continuity persistence;
+- recovery state.
+
+The runtime is intentionally:
+- semantically blind;
+- mechanically deterministic.
+
+The runtime must not:
+- interpret cognition quality;
+- semantically repair artifacts;
+- infer hidden intent;
+- establish architectural truth;
+- autonomously redesign orchestration.
+
+Runtime authority is mechanical only.
+
+---
+
+## Continuity Model
+
+Persistent doctrine exists in:
+
+- `docs/active_task.template.md`
+
+Live session continuity exists in:
+
+- `.harness/runtime/active_task.md`
+
+Recovery state exists in:
+
+- `.harness/runtime/last_good_active_task.md`
+
+Continuity ownership belongs exclusively to the runtime.
+
+Modes never directly persist continuity.
+
+The runtime:
+- validates artifacts;
+- appends deterministic execution blocks;
+- persists continuity;
+- governs recovery state.
+
+Continuity must never emerge implicitly through:
+- executor persistence;
+- hidden runtime state;
+- cached conversational memory;
+- repository-derived latent cognition;
+- implicit orchestration carryover.
 
 ---
 
@@ -66,9 +126,9 @@ No layer may silently absorb another layer’s authority.
 
 Execution environments are ephemeral and disposable.
 
-Each execution session should begin from an isolated sandbox or worktree when available.
+Each mode executes inside an isolated disposable sandbox or git worktree.
 
-Executors must not retain:
+Execution sessions must not retain:
 - hidden conversational memory;
 - latent runtime continuity;
 - repository-derived cognitive persistence;
@@ -85,100 +145,92 @@ Execution isolation exists to preserve:
 - explicit continuity governance;
 - operational containment.
 
-Runtime governance owns:
-- continuity authorization;
-- persistence authorization;
-- artifact lifecycle control.
-
 Executors remain disposable cognition engines.
 
 ---
 
-## Continuity Governance
+## Mode Capability Model
 
-Authorized continuity surfaces are intentionally minimal.
+The system distinguishes between:
+- hard containment modes;
+- mutation-authorized modes.
 
-The primary authorized continuity surface is:
+### Hard Containment Modes
+Modes:
+- discovery
+- forensics
+- validation
+- adversarial
 
-- `docs/active_task.md`
+These modes are:
+- read-only;
+- filesystem bounded;
+- operationally contained.
 
-No other continuity mechanism should be assumed implicitly.
+They must not:
+- mutate implementation surfaces;
+- persist continuity;
+- govern runtime state.
 
-Continuity must never emerge accidentally through:
-- executor persistence;
-- hidden runtime state;
-- cached conversational memory;
-- repository-derived latent cognition;
-- implicit orchestration carryover.
+### Mutation-Authorized Modes
+Modes:
+- repair
+- optimize
 
-All meaningful continuity must remain:
+These modes may mutate only:
+- explicitly authorized filesystem surfaces;
+- runtime-approved implementation boundaries.
+
+Mutation authority is:
+- capability-scoped;
+- runtime-validated;
+- mechanically observable.
+
+Mutation authority never implies persistence authority.
+
+---
+
+## Mutation Governance
+
+Filesystem mutation must remain mechanically observable.
+
+The runtime validates mutation boundaries through:
+- explicit editable surfaces;
+- git diff inspection;
+- capability-bound mutation validation;
+- execution containment boundaries.
+
+Unauthorized mutation must fail explicitly.
+
+Mutation containment exists to preserve:
+- bounded authority;
+- deterministic execution;
+- architectural integrity;
+- operational observability.
+
+---
+
+## Structured Output Governance
+
+Modes must emit mechanically parseable artifacts.
+
+Artifacts must remain:
 - explicit;
-- observable;
+- bounded;
 - revisable;
-- operationally bounded.
+- operationally observable.
 
----
+Artifacts communicate through:
+- sentinel framing;
+- strict JSON structure;
+- runtime validation.
 
-## Runtime Governance
+Freeform hidden reasoning persistence is forbidden.
 
-Runtime layers govern:
-- execution lifecycle;
-- context injection;
-- artifact capture;
-- persistence authorization;
-- isolation boundaries.
-
-Runtime layers must remain semantically blind.
-
-Runtime must NOT:
-- interpret cognition;
-- validate reasoning quality;
-- rewrite cognition artifacts;
-- semantically repair outputs;
-- infer missing meaning.
-
-Runtime authority is mechanical only.
-
----
-
-## Mode Governance
-
-Modes are bounded cognition layers.
-
-Modes may:
-- inspect;
-- reason;
-- explore;
-- analyze;
-- emit structured artifacts.
-
-Modes must NOT:
-- silently redesign systems;
-- fabricate hidden architecture;
-- invent operational truth;
-- mutate repository state unless explicitly authorized;
-- accumulate hidden continuity.
-
-Modes remain:
-- revisable;
-- uncertainty-sensitive;
-- operationally bounded.
-
----
-
-## Repository Governance
-
-Repository structure is authoritative over semantic plausibility.
-
-Architectural truth must emerge from:
-- observable structure;
-- mechanically verifiable constraints;
-- dependency relationships;
-- execution reality.
-
-Semantic plausibility alone never establishes correctness.
-
-Absence of contradiction does not establish truth.
+Artifacts exist to preserve:
+- inspectability;
+- containment;
+- deterministic lifecycle governance.
 
 ---
 
@@ -198,46 +250,19 @@ Reducing cognitive surface area is a containment mechanism and a runtime governa
 
 ---
 
-## Structured Output Governance
+## Repository Governance
 
-Modes must emit mechanically parseable artifacts.
+Repository structure is authoritative over semantic plausibility.
 
-Outputs should remain:
-- explicit;
-- bounded;
-- revisable;
-- operationally observable.
+Architectural truth must emerge from:
+- observable structure;
+- mechanically verifiable constraints;
+- dependency relationships;
+- execution reality.
 
-Freeform hidden reasoning persistence is forbidden.
+Semantic plausibility alone never establishes correctness.
 
-Runtime artifacts exist to preserve:
-- inspectability;
-- containment;
-- deterministic lifecycle governance.
-
----
-
-## Orchestration Governance
-
-Cognition and orchestration must remain separated.
-
-Modes may emit:
-- findings;
-- uncertainty;
-- escalation signals;
-- bounded observations.
-
-Modes do NOT own:
-- execution routing;
-- persistence authority;
-- orchestration authority;
-- lifecycle authority.
-
-Orchestration layers govern:
-- transitions;
-- escalation handling;
-- retries;
-- lifecycle progression.
+Absence of contradiction does not establish truth.
 
 ---
 
@@ -267,21 +292,6 @@ Fact must remain prioritized over:
 
 ---
 
-## Enforcement Constraint
-
-Only mechanically enforceable constraints belong in enforcement systems.
-
-Enforcement may include:
-- AST rules;
-- linting;
-- type systems;
-- CI validation;
-- structural verification.
-
-Semantic preference is not structural enforcement.
-
----
-
 ## Failure Philosophy
 
 Failure visibility is preferred over hidden semantic repair.
@@ -290,6 +300,7 @@ The system must fail explicitly when:
 - uncertainty cannot be bounded;
 - artifacts become invalid;
 - execution integrity is compromised;
+- mutation boundaries are violated;
 - cognition exceeds operational constraints.
 
 Silent correction is forbidden.
@@ -310,7 +321,9 @@ The Aegis Harness must not allow:
 - semantic suspicion presented as truth;
 - uncertainty collapse into unsupported certainty;
 - topology assumptions becoming architectural authority;
-- executor state becoming implicit memory.
+- executor state becoming implicit memory;
+- unauthorized filesystem mutation;
+- continuity ownership outside runtime governance.
 
 ---
 
@@ -322,10 +335,15 @@ Runtime remains deterministic.
 
 Cognition remains bounded.
 
+Mutation remains capability-scoped.
+
 Memory remains controlled.
 
-Continuity remains explicitly governed.
+Continuity remains runtime-owned.
 
 Structural truth remains evidence-bound.
 
 Confidence remains proportional to observable reality.
+
+Modes produce cognition.
+Runtime owns continuity.

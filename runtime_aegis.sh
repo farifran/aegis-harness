@@ -6,79 +6,277 @@ set -euo pipefail
 # AEGIS RUNTIME
 # =========================================================
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(
+  cd "$(dirname "${BASH_SOURCE[0]}")" && pwd
+)"
 
 RUNTIME_DIR="$ROOT_DIR/.harness/runtime"
-SESSION_TASK="$RUNTIME_DIR/active_task.md"
-LAST_GOOD_STATE="$RUNTIME_DIR/last_good_active_task.md"
-ACTIVE_TASK_TEMPLATE="$ROOT_DIR/docs/active_task.template.md"
 
-MODES=(
-  "mode_0_discovery"
-)
+SESSION_ACTIVE_TASK="$RUNTIME_DIR/active_task.md"
+
+LAST_GOOD_STATE="$RUNTIME_DIR/last_good_active_task.md"
+
+ACTIVE_TASK_TEMPLATE="$ROOT_DIR/docs/active_task.template.md"
 
 CURRENT_WORKTREE=""
 
-cleanup() {
-  if [[ -n "$CURRENT_WORKTREE" ]] && [[ -d "$CURRENT_WORKTREE" ]]; then
-    cd "$ROOT_DIR" >/dev/null 2>&1 || true
-    git worktree remove "$CURRENT_WORKTREE" --force >/dev/null 2>&1 || true
-  fi
-}
-trap cleanup EXIT
+MODES=(
+  "discovery"
+  "forensics"
+  "repair"
+  "optimize"
+  "validation"
+  "adversarial"
+)
+
+# =========================================================
+# FAILURE
+# =========================================================
 
 fail() {
+  echo
   echo "[AEGIS RUNTIME] ERROR: $1"
+  echo
   exit 1
 }
 
-init_session_state() {
-  [[ -f "$ACTIVE_TASK_TEMPLATE" ]] || fail "Missing active_task.template.md"
+# =========================================================
+# CLEANUP
+# =========================================================
 
-  mkdir -p "$RUNTIME_DIR"
-  cp "$ACTIVE_TASK_TEMPLATE" "$SESSION_TASK"
-  cp "$SESSION_TASK" "$LAST_GOOD_STATE"
-}
+cleanup() {
 
-prepare_worktree() {
-  local mode_name="$1"
-  CURRENT_WORKTREE="/tmp/aegis-${mode_name}"
+  if [[ -n "${CURRENT_WORKTREE:-}" ]] &&
+     [[ -d "$CURRENT_WORKTREE" ]]
+  then
+    cd "$ROOT_DIR" >/dev/null 2>&1 || true
 
-  git worktree add --detach "$CURRENT_WORKTREE" >/dev/null
-  mkdir -p "$CURRENT_WORKTREE/docs"
-  cp "$SESSION_TASK" "$CURRENT_WORKTREE/docs/active_task.md"
-}
-
-sync_back_session_state() {
-  local mode_worktree="$1"
-
-  if [[ -f "$mode_worktree/docs/active_task.md" ]]; then
-    cp "$mode_worktree/docs/active_task.md" "$SESSION_TASK"
-    cp "$SESSION_TASK" "$LAST_GOOD_STATE"
+    git worktree remove \
+      "$CURRENT_WORKTREE" \
+      --force \
+      >/dev/null 2>&1 || true
   fi
 }
 
-run_mode() {
-  local mode_name="$1"
+trap cleanup EXIT
 
-  echo
-  echo "================================================="
-  echo "[AEGIS] Executing: $mode_name"
-  echo "================================================="
-  echo
+# =========================================================
+# MODE CAPABILITY MODEL
+# =========================================================
 
-  prepare_worktree "$mode_name"
+is_mutation_mode() {
 
-  (
+  local mode="$1"
+
+  case "$mode" in
+    repair|optimize)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+# =========================================================
+# INITIALIZE RUNTIME STATE
+# =========================================================
+
+initialize_runtime_state() {
+
+  rm -rf /tmp/aegis-*
+  rm -rf "$RUNTIME_DIR"
+
+  mkdir -p "$RUNTIME_DIR"
+
+  for FILE in \
+    active_task.md \
+    last_good_active_task.md
+  do
+    cp "$ACTIVE_TASK_TEMPLATE" \
+       "$RUNTIME_DIR/$FILE"
+  done
+}
+
+# =========================================================
+# CREATE SANDBOX
+# =========================================================
+
+create_sandbox() {
+
+  local mode="$1"
+
+  CURRENT_WORKTREE="/tmp/aegis-$mode"
+
+  git worktree add \
+    --detach \
+    "$CURRENT_WORKTREE" \
+    >/dev/null
+
+  mkdir -p \
+    "$CURRENT_WORKTREE/.harness/runtime"
+
+  cp "$SESSION_ACTIVE_TASK" \
+     "$CURRENT_WORKTREE/.harness/runtime/active_task.md"
+}
+
+# =========================================================
+# ALLOWED MUTATION SURFACES
+# =========================================================
+
+build_allowed_mutations() {
+
+  local mode="$1"
+
+  if is_mutation_mode "$mode"
+  then
+    cat <<EOF
+src/
+tests/
+EOF
+  fi
+}
+
+# =========================================================
+# GIT DIFF VALIDATION
+# =========================================================
+
+validate_mutations() {
+
+  local mode="$1"
+
+  local changed_files
+
+  changed_files="$(
     cd "$CURRENT_WORKTREE"
-    bash "$ROOT_DIR/scripts/execute_mode.sh" ".skills/${mode_name}.md"
-  ) || {
-    fail "Mechanical mode execution failure"
-  }
+    git diff --name-only
+  )"
 
-  sync_back_session_state "$CURRENT_WORKTREE"
+  # -------------------------------------------------------
+  # HARD CONTAINMENT MODES
+  # -------------------------------------------------------
 
-  git worktree remove "$CURRENT_WORKTREE" --force >/dev/null
+  if ! is_mutation_mode "$mode"
+  then
+
+    if [[ -n "$changed_files" ]]
+    then
+      echo
+      echo "[AEGIS] Unauthorized mutation surface detected."
+      echo
+      echo "$changed_files"
+      echo
+
+      fail "Hard containment violation"
+    fi
+
+    return
+  fi
+
+  # -------------------------------------------------------
+  # MUTATION-AUTHORIZED MODES
+  # -------------------------------------------------------
+
+  local allowed
+
+  allowed="$(build_allowed_mutations "$mode")"
+
+  while read -r file
+  do
+    [[ -z "$file" ]] && continue
+
+    local authorized=false
+
+    while read -r allowed_path
+    do
+      [[ -z "$allowed_path" ]] && continue
+
+      if [[ "$file" == "$allowed_path"* ]]
+      then
+        authorized=true
+        break
+      fi
+
+    done <<< "$allowed"
+
+    if [[ "$authorized" == false ]]
+    then
+      echo
+      echo "[AEGIS] Unauthorized mutation surface detected."
+      echo
+      echo "Unauthorized file:"
+      echo "$file"
+      echo
+
+      fail "Mutation boundary violation"
+    fi
+
+  done <<< "$changed_files"
+}
+
+# =========================================================
+# PERSIST CONTINUITY
+# =========================================================
+
+persist_continuity() {
+
+  local mode="$1"
+
+  local artifact="$2"
+
+  {
+    echo
+    echo "---"
+    echo
+    echo "## Mode Execution — $mode"
+    echo
+    echo '```json'
+    echo "$artifact"
+    echo '```'
+  } >> "$SESSION_ACTIVE_TASK"
+
+  cp "$SESSION_ACTIVE_TASK" \
+     "$LAST_GOOD_STATE"
+}
+
+# =========================================================
+# EXECUTE MODE
+# =========================================================
+
+execute_mode() {
+
+  local mode="$1"
+
+  echo
+  echo "================================================="
+  echo "[AEGIS] Executing: $mode"
+  echo "================================================="
+  echo
+
+  create_sandbox "$mode"
+
+  local artifact
+
+  artifact="$(
+    cd "$CURRENT_WORKTREE"
+
+    bash "$ROOT_DIR/scripts/execute_mode.sh" \
+      ".skills/${mode}.md" \
+      "$mode" \
+      ".harness/runtime/active_task.md"
+  )"
+
+  validate_mutations "$mode"
+
+  persist_continuity \
+    "$mode" \
+    "$artifact"
+
+  git worktree remove \
+    "$CURRENT_WORKTREE" \
+    --force \
+    >/dev/null
+
   CURRENT_WORKTREE=""
 
   echo
@@ -86,13 +284,20 @@ run_mode() {
   echo
 }
 
-main() {
-  rm -rf /tmp/aegis-*
-  rm -rf "$RUNTIME_DIR"
-  init_session_state
+# =========================================================
+# MAIN
+# =========================================================
 
-  for MODE in "${MODES[@]}"; do
-    run_mode "$MODE"
+main() {
+
+  [[ -f "$ACTIVE_TASK_TEMPLATE" ]] \
+    || fail "Missing active_task.template.md"
+
+  initialize_runtime_state
+
+  for MODE in "${MODES[@]}"
+  do
+    execute_mode "$MODE"
   done
 
   echo
