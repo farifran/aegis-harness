@@ -26,9 +26,11 @@ EXECUTION_TIMEOUT=300
 # =========================================================
 
 fail() {
+
   echo
   echo "[AEGIS] $1" >&2
   echo
+
   exit 1
 }
 
@@ -45,7 +47,9 @@ debug_output() {
   echo "[AEGIS DEBUG] $title"
   echo "================================================="
   echo
+
   echo "$OUTPUT"
+
   echo
   echo "================================================="
   echo
@@ -94,6 +98,14 @@ is_mutation_mode() {
   || fail "Missing OPENAI_API_BASE."
 
 # =========================================================
+# FILESYSTEM SNAPSHOT
+# =========================================================
+
+PRE_EXEC_FILES="$(
+  find "$ROOT_DIR" -type f | sort
+)"
+
+# =========================================================
 # BUILD AIDER ARGS
 # =========================================================
 
@@ -122,6 +134,19 @@ AIDER_ARGS=(
   --message \
   "Execute the provided mode contract exactly. Emit only the required sentinel-framed JSON artifact."
 )
+
+# =========================================================
+# HARD CONTAINMENT ENFORCEMENT
+# =========================================================
+
+if ! is_mutation_mode
+then
+
+  AIDER_ARGS+=(
+    --dry-run
+  )
+
+fi
 
 # =========================================================
 # MUTATION-AUTHORIZED MODES
@@ -174,6 +199,33 @@ set -e
 echo
 echo "[AEGIS] Aider execution completed."
 echo
+
+# =========================================================
+# FILESYSTEM MATERIALIZATION DETECTION
+# =========================================================
+
+POST_EXEC_FILES="$(
+  find "$ROOT_DIR" -type f | sort
+)"
+
+if ! is_mutation_mode
+then
+
+  UNAUTHORIZED_FILES="$(
+    comm -13 \
+      <(echo "$PRE_EXEC_FILES") \
+      <(echo "$POST_EXEC_FILES")
+  )"
+
+  [[ -z "$UNAUTHORIZED_FILES" ]] || {
+
+    echo
+    echo "$UNAUTHORIZED_FILES"
+    echo
+
+    fail "Unauthorized filesystem materialization detected."
+  }
+fi
 
 # =========================================================
 # TIMEOUT DETECTION
@@ -264,7 +316,12 @@ echo
 
 echo "$ARTIFACT" | jq empty \
   >/dev/null 2>&1 \
-  || fail "Invalid JSON runtime artifact."
+  || {
+
+    debug_output "INVALID JSON OUTPUT"
+
+    fail "Invalid JSON runtime artifact."
+  }
 
 # =========================================================
 # REQUIRED FIELD VALIDATION

@@ -1,63 +1,107 @@
 # =========================================================
-# AEGIS AIDER EXECUTION PROFILE
+# AEGIS HARNESS — EXECUTOR CONFIGURATION
 # =========================================================
-
-# ---------------------------------------------------------
-# EXECUTION MODEL
-# ---------------------------------------------------------
 
 model: openai/meta/llama-3.1-8b-instruct
 
-# ---------------------------------------------------------
-# DISPOSABLE EXECUTION
-# ---------------------------------------------------------
+yes-always: true
+
+dry-run: true
+
+auto-commits: false
+
+git: false
 
 restore-chat-history: false
 
-# ---------------------------------------------------------
-# REPOSITORY COGNITION CONTAINMENT
-# ---------------------------------------------------------
-
 map-tokens: 0
+
 map-refresh: manual
-
-# ---------------------------------------------------------
-# GIT CONTAINMENT
-# ---------------------------------------------------------
-
-git: false
-auto-commits: false
-dirty-commits: false
-
-# ---------------------------------------------------------
-# OUTPUT CONTROL
-# ---------------------------------------------------------
 
 stream: false
 
-# ---------------------------------------------------------
-# INTERACTION CONTROL
-# ---------------------------------------------------------
+pretty: false
 
-yes-always: true
+show-model-warnings: false
 
-# ---------------------------------------------------------
-# EXECUTION PHILOSOPHY
-# ---------------------------------------------------------
+suggest-shell-commands: false
 
-# This configuration intentionally prioritizes:
+detect-urls: false
+
+notifications: false
+
+fancy-input: false
+
+multiline: false
+
+encoding: utf-8
+
+line-endings: lf
+
+# =========================================================
+# EXECUTION TOPOLOGY
+# =========================================================
+
+# IMPORTANT:
+# Hard containment modes operate as:
+# - analysis-only cognition
+# - stdout-only artifact emission
+# - non-persistent execution
 #
-# - disposable cognition
-# - bounded execution
-# - deterministic orchestration
-# - explicit continuity
-# - runtime sovereignty
+# Mutation authority is runtime-controlled.
 #
-# The executor must not:
+# Modes:
+# - discovery
+# - forensics
+# - validation
+# - adversarial
 #
-# - retain hidden conversational memory
-# - establish implicit repository cognition
-# - persist latent operational continuity
-# - autonomously govern execution lifecycle
+# must remain:
+# - read-only
+# - dry-run
+# - non-materializing
 #
-# Runtime authority remains external and sovereign.
+# Modes:
+# - repair
+# - optimize
+#
+# may receive:
+# - editable surfaces
+# - bounded mutation authority
+
+# =========================================================
+# HARD CONTAINMENT DEFAULTS
+# =========================================================
+
+# Prevent unnecessary repository cognition
+subtree-only: true
+
+# Prevent repository mutation behavior
+dirty-commits: false
+
+# Prevent helper interaction behavior
+check-update: false
+
+# Prevent implicit persistence behavior
+cache-prompts: false
+
+# Prevent filesystem suggestion behavior
+show-diffs: false
+
+# Prevent interactive cognition loops
+watch-files: false
+
+# =========================================================
+# IMPORTANT NOTE
+# =========================================================
+
+# Runtime remains the sovereign authority.
+#
+# This configuration does NOT provide
+# security containment by itself.
+#
+# Mechanical containment is enforced by:
+# - runtime validation
+# - filesystem materialization detection
+# - mutation boundary validation
+# - disposable sandbox isolation
