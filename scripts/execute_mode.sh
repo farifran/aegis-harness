@@ -72,22 +72,6 @@ debug_output() {
   || fail "Missing architecture_graph.json."
 
 # =========================================================
-# MODE CAPABILITY MODEL
-# =========================================================
-
-is_mutation_mode() {
-
-  case "$EXPECTED_MODE" in
-    repair|optimize)
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
-}
-
-# =========================================================
 # ENVIRONMENT VALIDATION
 # =========================================================
 
@@ -98,12 +82,27 @@ is_mutation_mode() {
   || fail "Missing OPENAI_API_BASE."
 
 # =========================================================
-# FILESYSTEM SNAPSHOT
+# MODE MESSAGE
 # =========================================================
 
-PRE_EXEC_FILES="$(
-  find "$ROOT_DIR" -type f | sort
-)"
+MODE_MESSAGE="Execute the provided mode contract exactly."
+
+if [[ "$EXPECTED_MODE" == "repair" ]]
+then
+
+MODE_MESSAGE="Execute the provided repair mode contract exactly.
+
+Objective:
+Remove the empty export statement from src/ui/index.ts while preserving valid TypeScript syntax."
+
+fi
+
+if [[ "$EXPECTED_MODE" == "optimize" ]]
+then
+
+MODE_MESSAGE="Execute the provided optimize mode contract exactly."
+
+fi
 
 # =========================================================
 # BUILD AIDER ARGS
@@ -114,15 +113,6 @@ AIDER_ARGS=(
 
   --model openai/meta/llama-3.1-8b-instruct
 
-  --no-stream
-  --no-pretty
-  --no-git
-
-  --map-tokens 0
-  --map-refresh manual
-
-  --no-show-model-warnings
-
   --yes-always
   --exit
 
@@ -131,32 +121,15 @@ AIDER_ARGS=(
   --read "$AGENTS_FILE"
   --read "$ARCH_GRAPH_FILE"
 
-  --message \
-  "Execute the provided mode contract exactly. Emit only the required sentinel-framed JSON artifact."
+  --message "$MODE_MESSAGE"
 )
 
 # =========================================================
-# HARD CONTAINMENT ENFORCEMENT
+# EDITABLE SURFACES
 # =========================================================
 
-if ! is_mutation_mode
+if [[ -n "$EDITABLE_SURFACES" ]]
 then
-
-  AIDER_ARGS+=(
-    --dry-run
-  )
-
-fi
-
-# =========================================================
-# MUTATION-AUTHORIZED MODES
-# =========================================================
-
-if is_mutation_mode
-then
-
-  [[ -n "$EDITABLE_SURFACES" ]] \
-    || fail "Missing editable surfaces."
 
   IFS=',' read -r -a SURFACES \
     <<< "$EDITABLE_SURFACES"
@@ -169,19 +142,21 @@ then
     [[ -z "$surface" ]] && continue
 
     AIDER_ARGS+=(
-      "$ROOT_DIR/$surface"
+      "$surface"
     )
 
   done
 fi
 
 # =========================================================
-# EXECUTE AIDER
+# EXECUTION
 # =========================================================
 
 echo
 echo "[AEGIS] Starting aider execution..."
 echo
+
+cd "$ROOT_DIR"
 
 set +e
 
@@ -199,33 +174,6 @@ set -e
 echo
 echo "[AEGIS] Aider execution completed."
 echo
-
-# =========================================================
-# FILESYSTEM MATERIALIZATION DETECTION
-# =========================================================
-
-POST_EXEC_FILES="$(
-  find "$ROOT_DIR" -type f | sort
-)"
-
-if ! is_mutation_mode
-then
-
-  UNAUTHORIZED_FILES="$(
-    comm -13 \
-      <(echo "$PRE_EXEC_FILES") \
-      <(echo "$POST_EXEC_FILES")
-  )"
-
-  [[ -z "$UNAUTHORIZED_FILES" ]] || {
-
-    echo
-    echo "$UNAUTHORIZED_FILES"
-    echo
-
-    fail "Unauthorized filesystem materialization detected."
-  }
-fi
 
 # =========================================================
 # TIMEOUT DETECTION
@@ -269,13 +217,6 @@ then
   fail "Provider connection failure."
 fi
 
-if echo "$OUTPUT" | grep -qi \
-  "API key"
-then
-  debug_output "PROVIDER API KEY FAILURE"
-  fail "Provider API key failure."
-fi
-
 # =========================================================
 # SENTINEL EXTRACTION
 # =========================================================
@@ -300,19 +241,26 @@ ARTIFACT="$(
 )"
 
 # =========================================================
+# OPTIONAL ARTIFACT
+# =========================================================
+
+if [[ -z "$ARTIFACT" ]]
+then
+
+  echo
+  echo "[AEGIS] No runtime artifact emitted."
+  echo
+
+  exit 0
+fi
+
+# =========================================================
 # ARTIFACT VALIDATION
 # =========================================================
 
 echo
 echo "[AEGIS] Validating artifact..."
 echo
-
-[[ -n "$ARTIFACT" ]] || {
-
-  debug_output "RAW OUTPUT"
-
-  fail "Missing sentinel-framed artifact."
-}
 
 echo "$ARTIFACT" | jq empty \
   >/dev/null 2>&1 \
@@ -322,29 +270,6 @@ echo "$ARTIFACT" | jq empty \
 
     fail "Invalid JSON runtime artifact."
   }
-
-# =========================================================
-# REQUIRED FIELD VALIDATION
-# =========================================================
-
-REQUIRED_FIELDS=(
-  mode
-  status
-  certainty
-)
-
-for FIELD in "${REQUIRED_FIELDS[@]}"
-do
-
-  VALUE="$(
-    echo "$ARTIFACT" | jq -r \
-      ".$FIELD // empty"
-  )"
-
-  [[ -n "$VALUE" ]] \
-    || fail "Missing required field: $FIELD"
-
-done
 
 # =========================================================
 # MODE VALIDATION

@@ -2,67 +2,73 @@
 
 ## Current Objective
 
-Establish deterministic, bounded, disposable cognition execution for the Aegis Harness.
+Establish deterministic, bounded, disposable execution orchestration for the Aegis Harness.
 
-The system is transitioning from:
-- persistent executor behavior;
-to:
-- isolated runtime-governed execution.
+The system operates through:
+- disposable execution sessions;
+- isolated worktree containment;
+- runtime-governed persistence;
+- explicit continuity promotion;
+- mechanically observable execution.
 
 ---
 
 ## Current Operational State
 
-The runtime:
-- governs execution lifecycle;
-- governs sandbox isolation;
-- governs context injection;
-- governs artifact validation;
-- governs mutation validation;
-- governs continuity persistence.
+The runtime governs:
+- execution lifecycle;
+- sandbox/worktree isolation;
+- context injection;
+- continuity persistence;
+- artifact extraction;
+- persistence promotion;
+- execution validation.
 
-Execution sessions are intended to be:
+Execution environments are:
 - ephemeral;
 - isolated;
 - disposable;
-- mechanically observable.
+- non-authoritative by default.
 
-Modes remain:
-- capability-bounded;
-- JSON-output constrained;
-- operationally contained.
+Sandbox state is transient unless explicitly promoted by the runtime.
 
 ---
 
 ## Current Architecture Direction
 
 The system is converging toward:
-- bounded cognition;
-- explicit continuity governance;
-- disposable execution sessions;
-- deterministic runtime orchestration;
-- structurally observable artifacts;
-- capability-bound mutation authority.
+- disposable sandbox containment;
+- runtime-governed persistence;
+- explicit continuity promotion;
+- deterministic orchestration;
+- capability-scoped cognition;
+- mechanically observable execution.
 
 The runtime remains:
 - semantically blind;
-- mechanically deterministic.
+- mechanically deterministic;
+- persistence-authoritative.
 
 ---
 
 ## Current Containment Strategy
 
-Execution containment includes:
+Containment is enforced through:
 - isolated git worktrees;
-- disposable execution sessions;
-- explicit context injection;
-- runtime-owned persistence;
-- runtime-owned recovery;
-- bounded editable surfaces;
-- git diff mutation validation;
-- aider confirmation boundaries.
+- disposable execution sandboxes;
+- runtime-governed promotion;
+- filesystem isolation;
+- explicit continuity ownership;
+- bounded persistence authority.
 
-Executor continuity must remain non-persistent.
+Executors are allowed to operate naturally inside disposable environments.
+
+Containment does NOT rely primarily on:
+- prompt-level suppression;
+- semantic anti-materialization alignment;
+- executor behavioral neutralization.
+
+Persistence authority belongs exclusively to the runtime.
 
 ---
 
@@ -71,16 +77,21 @@ Executor continuity must remain non-persistent.
 The runtime must remain:
 - semantically blind;
 - mechanically deterministic;
-- operationally bounded.
+- operationally bounded;
+- persistence-authoritative.
+
+Execution environments must remain:
+- disposable;
+- isolated;
+- non-authoritative by default.
 
 Modes must not:
-- persist hidden cognition;
-- mutate runtime authority;
-- establish architectural truth;
-- mutate unauthorized filesystem surfaces;
-- generate implementation pressure unless explicitly authorized.
+- self-authorize persistence;
+- self-authorize continuity ownership;
+- self-authorize architectural authority;
+- self-authorize runtime governance.
 
-Continuity remains explicitly governed through runtime-owned session state only.
+Persistence occurs ONLY through explicit runtime promotion.
 
 ---
 
@@ -88,74 +99,55 @@ Continuity remains explicitly governed through runtime-owned session state only.
 
 Validated operational principles:
 
-- isolated sandbox execution is viable;
-- disposable execution sessions are operationally feasible;
-- runtime-governed containment is structurally viable;
-- environment propagation survives sandbox isolation;
-- explicit continuity is preferable to hidden persistence;
-- fail-fast mechanical validation is preferred over semantic repair;
-- runtime simplicity is preferred over orchestration intelligence;
-- capability-bound mutation is preferable to unrestricted autonomy;
-- append-only continuity is preferable to mutable session rewriting;
-- filesystem observability is preferable to implicit mutation trust.
+- isolated sandbox execution is operationally viable;
+- disposable execution environments are structurally preferable;
+- executor topology influences cognition topology;
+- prompt alignment alone is insufficient for containment;
+- runtime-governed persistence is structurally viable;
+- explicit promotion is preferable to implicit persistence;
+- filesystem isolation is preferable to executor suppression;
+- fail-fast validation is preferable to semantic repair;
+- runtime simplicity is preferable to orchestration intelligence.
 
 ---
 
-## Mutation Governance
+## Continuity Governance
 
-The system distinguishes between:
-- cognition authority;
-- mutation authority;
-- persistence authority.
+Continuity ownership belongs exclusively to the runtime.
 
-Mutation authority remains:
-- explicitly bounded;
-- runtime-validated;
-- capability-scoped.
+Execution sandboxes are transient.
 
-Hard containment modes:
-- discovery;
-- forensics;
-- validation;
-- adversarial;
+Sandbox contents are:
+- disposable;
+- non-authoritative;
+- operationally bounded.
 
-must remain filesystem read-only.
+Only explicitly promoted state may survive execution.
 
-Mutation-authorized modes:
-- repair;
-- optimize;
+Continuity must never emerge implicitly through:
+- executor persistence;
+- hidden runtime state;
+- cached conversational memory;
+- latent repository cognition;
+- sandbox residue;
+- implicit orchestration carryover.
 
-may mutate only explicitly authorized surfaces.
-
-Unauthorized mutation must always fail execution mechanically.
-
----
-
-## Continuity Model
-
-The runtime is the sole owner of operational continuity.
-
-Modes:
-- produce cognition artifacts;
-- do not persist continuity;
-- do not govern recovery state.
-
-Operational continuity is maintained through:
-- append-only deterministic execution blocks;
-- runtime-owned session persistence;
-- runtime-owned recovery snapshots.
-
-The runtime never semantically reconstructs continuity.
+The runtime governs:
+- continuity promotion;
+- persistence boundaries;
+- recovery state;
+- operational survivability.
 
 ---
 
 ## Session Bootstrap
 
-A fresh execution session must:
+A fresh execution environment must:
 - initialize from this doctrine;
-- establish explicit operational continuity;
+- receive explicitly injected context;
 - remain execution-scoped;
-- avoid hidden persistence across runs;
-- recreate runtime state deterministically.
+- terminate without implicit persistence.
+
+Execution environments are disposable cognition containers.
 
 No active execution session initialized yet.

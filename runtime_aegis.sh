@@ -12,21 +12,17 @@ ROOT_DIR="$(
 
 RUNTIME_DIR="$ROOT_DIR/.harness/runtime"
 
-SESSION_ACTIVE_TASK="$RUNTIME_DIR/active_task.md"
+ACTIVE_TASK="$RUNTIME_DIR/active_task.md"
 
-LAST_GOOD_STATE="$RUNTIME_DIR/last_good_active_task.md"
+LAST_GOOD_TASK="$RUNTIME_DIR/last_good_active_task.md"
 
-ACTIVE_TASK_TEMPLATE="$ROOT_DIR/docs/active_task.template.md"
-
-CURRENT_WORKTREE=""
+WORKTREE_BASE="$ROOT_DIR/.harness/worktrees"
 
 MODES=(
-  "discovery"
-  "forensics"
-  "repair"
-  "optimize"
-  "validation"
-  "adversarial"
+  discovery
+  forensics
+  validation
+  adversarial
 )
 
 # =========================================================
@@ -34,315 +30,115 @@ MODES=(
 # =========================================================
 
 fail() {
+
   echo
-  echo "[AEGIS RUNTIME] ERROR: $1"
+  echo "[AEGIS] $1" >&2
   echo
+
   exit 1
 }
 
 # =========================================================
-# ENVIRONMENT VALIDATION
+# VALIDATION
 # =========================================================
 
-validate_environment() {
+[[ -f "$ACTIVE_TASK" ]] \
+  || fail "Missing runtime active_task.md"
 
-  command -v aider >/dev/null 2>&1 \
-    || fail "Missing aider."
-
-  command -v jq >/dev/null 2>&1 \
-    || fail "Missing jq."
-
-  command -v timeout >/dev/null 2>&1 \
-    || fail "Missing timeout."
-
-  [[ -n "${OPENAI_API_KEY:-}" ]] \
-    || fail "Missing OPENAI_API_KEY."
-
-  [[ -n "${OPENAI_API_BASE:-}" ]] \
-    || fail "Missing OPENAI_API_BASE."
-}
+mkdir -p "$WORKTREE_BASE"
 
 # =========================================================
-# CLEANUP
+# EXECUTION LOOP
 # =========================================================
 
-cleanup() {
+for MODE in "${MODES[@]}"
+do
 
-  if [[ -n "${CURRENT_WORKTREE:-}" ]] &&
-     [[ -d "$CURRENT_WORKTREE" ]]
-  then
-    cd "$ROOT_DIR" >/dev/null 2>&1 || true
+  echo
+  echo "================================================="
+  echo "[AEGIS] Executing: $MODE"
+  echo "================================================="
+  echo
 
-    git worktree remove \
-      "$CURRENT_WORKTREE" \
-      --force \
-      >/dev/null 2>&1 || true
-  fi
-}
+  WORKTREE_PATH="$WORKTREE_BASE/$MODE"
 
-trap cleanup EXIT
-
-# =========================================================
-# MODE CAPABILITY MODEL
-# =========================================================
-
-is_mutation_mode() {
-
-  local mode="$1"
-
-  case "$mode" in
-    repair|optimize)
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
-}
-
-# =========================================================
-# INITIALIZE RUNTIME STATE
-# =========================================================
-
-initialize_runtime_state() {
-
-  rm -rf /tmp/aegis-*
-  rm -rf "$RUNTIME_DIR"
-
-  mkdir -p "$RUNTIME_DIR"
-
-  cp "$ACTIVE_TASK_TEMPLATE" \
-     "$SESSION_ACTIVE_TASK"
-
-  cp "$SESSION_ACTIVE_TASK" \
-     "$LAST_GOOD_STATE"
-}
-
-# =========================================================
-# CREATE SANDBOX
-# =========================================================
-
-create_sandbox() {
-
-  local mode="$1"
-
-  CURRENT_WORKTREE="/tmp/aegis-$mode"
+  rm -rf "$WORKTREE_PATH"
 
   git worktree add \
     --detach \
-    "$CURRENT_WORKTREE" \
+    "$WORKTREE_PATH" \
+    HEAD
+
+  pushd "$WORKTREE_PATH" \
     >/dev/null
 
-  mkdir -p \
-    "$CURRENT_WORKTREE/.harness/runtime"
+  chmod +x scripts/execute_mode.sh
 
-  cp "$SESSION_ACTIVE_TASK" \
-     "$CURRENT_WORKTREE/.harness/runtime/active_task.md"
-}
+  set +e
 
-# =========================================================
-# ALLOWED MUTATION SURFACES
-# =========================================================
-
-build_allowed_mutations() {
-
-  local mode="$1"
-
-  if is_mutation_mode "$mode"
-  then
-    cat <<EOF
-src/
-tests/
-EOF
-  fi
-}
-
-# =========================================================
-# GIT DIFF VALIDATION
-# =========================================================
-
-validate_mutations() {
-
-  local mode="$1"
-
-  local changed_files
-
-  changed_files="$(
-    cd "$CURRENT_WORKTREE"
-    git diff --name-only
+  OUTPUT="$(
+    bash scripts/execute_mode.sh \
+      ".skills/$MODE.md" \
+      "$MODE" \
+      ".harness/runtime/active_task.md" \
+      2>&1
   )"
 
-  # -------------------------------------------------------
-  # HARD CONTAINMENT MODES
-  # -------------------------------------------------------
+  EXIT_CODE=$?
 
-  if ! is_mutation_mode "$mode"
+  set -e
+
+  popd >/dev/null
+
+  echo "$OUTPUT"
+
+  if [[ "$EXIT_CODE" -ne 0 ]]
   then
 
-    if [[ -n "$changed_files" ]]
-    then
-      echo
-      echo "[AEGIS] Unauthorized mutation surface detected."
-      echo
-      echo "$changed_files"
-      echo
+    echo
+    echo "[AEGIS] Mode failed: $MODE"
+    echo
 
-      fail "Hard containment violation"
-    fi
+    git worktree remove \
+      --force \
+      "$WORKTREE_PATH"
 
-    return
+    exit 1
   fi
 
-  # -------------------------------------------------------
-  # MUTATION-AUTHORIZED MODES
-  # -------------------------------------------------------
+  # =======================================================
+  # ACTIVE TASK PROMOTION
+  # =======================================================
 
-  local allowed
-
-  allowed="$(build_allowed_mutations "$mode")"
-
-  while read -r file
-  do
-    [[ -z "$file" ]] && continue
-
-    local authorized=false
-
-    while read -r allowed_path
-    do
-      [[ -z "$allowed_path" ]] && continue
-
-      if [[ "$file" == "$allowed_path"* ]]
-      then
-        authorized=true
-        break
-      fi
-
-    done <<< "$allowed"
-
-    if [[ "$authorized" == false ]]
-    then
-      echo
-      echo "[AEGIS] Unauthorized mutation surface detected."
-      echo
-      echo "Unauthorized file:"
-      echo "$file"
-      echo
-
-      fail "Mutation boundary violation"
-    fi
-
-  done <<< "$changed_files"
-}
-
-# =========================================================
-# PERSIST CONTINUITY
-# =========================================================
-
-persist_continuity() {
-
-  local mode="$1"
-  local artifact="$2"
-
-  {
-    echo
-    echo "---"
-    echo
-    echo "## Mode Execution — $mode"
-    echo
-    echo '```json'
-    echo "$artifact"
-    echo '```'
-  } >> "$SESSION_ACTIVE_TASK"
-
-  cp "$SESSION_ACTIVE_TASK" \
-     "$LAST_GOOD_STATE"
-}
-
-# =========================================================
-# EXECUTE MODE
-# =========================================================
-
-execute_mode() {
-
-  local mode="$1"
-
-  echo
-  echo "================================================="
-  echo "[AEGIS] Executing: $mode"
-  echo "================================================="
-  echo
-
-  create_sandbox "$mode"
-
-  local artifact
-
-  if is_mutation_mode "$mode"
+  if [[ -f \
+    "$WORKTREE_PATH/.harness/runtime/active_task.md" ]]
   then
 
-    artifact="$(
-      cd "$CURRENT_WORKTREE"
+    cp \
+      "$WORKTREE_PATH/.harness/runtime/active_task.md" \
+      "$ACTIVE_TASK"
 
-      bash "$ROOT_DIR/scripts/execute_mode.sh" \
-        ".skills/${mode}.md" \
-        "$mode" \
-        ".harness/runtime/active_task.md" \
-        "src/,tests/"
-    )"
-
-  else
-
-    artifact="$(
-      cd "$CURRENT_WORKTREE"
-
-      bash "$ROOT_DIR/scripts/execute_mode.sh" \
-        ".skills/${mode}.md" \
-        "$mode" \
-        ".harness/runtime/active_task.md"
-    )"
-
+    cp \
+      "$ACTIVE_TASK" \
+      "$LAST_GOOD_TASK"
   fi
 
-  validate_mutations "$mode"
-
-  persist_continuity \
-    "$mode" \
-    "$artifact"
+  # =======================================================
+  # WORKTREE CLEANUP
+  # =======================================================
 
   git worktree remove \
-    "$CURRENT_WORKTREE" \
     --force \
-    >/dev/null
-
-  CURRENT_WORKTREE=""
+    "$WORKTREE_PATH"
 
   echo
   echo "[AEGIS] Mode completed successfully."
   echo
-}
 
-# =========================================================
-# MAIN
-# =========================================================
+done
 
-main() {
-
-  validate_environment
-
-  [[ -f "$ACTIVE_TASK_TEMPLATE" ]] \
-    || fail "Missing active_task.template.md"
-
-  initialize_runtime_state
-
-  for MODE in "${MODES[@]}"
-  do
-    execute_mode "$MODE"
-  done
-
-  echo
-  echo "================================================="
-  echo "[AEGIS] Runtime execution completed."
-  echo "================================================="
-  echo
-}
-
-main "$@"
+echo
+echo "================================================="
+echo "[AEGIS] Runtime completed successfully."
+echo "================================================="
+echo

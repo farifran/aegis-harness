@@ -1,46 +1,50 @@
 # =========================================================
-# AEGIS RUNTIME STATE
+# AEGIS RUNTIME
 # =========================================================
 
-.harness/runtime/
+.harness/worktrees/
 
 # =========================================================
-# AEGIS SANDBOX RESIDUE
-# =========================================================
-
-tmp/aegis-*
-/tmp/aegis-*
-
-# =========================================================
-# AIDER TRANSIENT STATE
+# AIDER EPHEMERAL STATE
 # =========================================================
 
 .aider.chat.history.md
 .aider.input.history
-.aider.tags.cache.v4
+.aider.llm.history
 
 # =========================================================
-# OS / EDITOR
+# EXECUTION ARTIFACTS
 # =========================================================
 
-.DS_Store
-Thumbs.db
+*_artifact.json
 
-.vscode/
-.idea/
-
-# =========================================================
-# NODE / BUILD
-# =========================================================
-
-node_modules/
-dist/
-build/
-coverage/
+discovery_artifact.json
+forensics_artifact.json
+validation_artifact.json
+adversarial_artifact.json
+repair_artifact.json
+optimize_artifact.json
 
 # =========================================================
-# LOGS
+# TRANSIENT EXECUTION OUTPUTS
 # =========================================================
 
-*.log
-.aider*
+tmp/
+temp/
+sandbox/
+
+# =========================================================
+# EXECUTOR MATERIALIZATION
+# =========================================================
+
+.skills/**/artifacts/
+.skills/**/output/
+.skills/**/reports/
+
+# =========================================================
+# RUNTIME TRANSIENT STATE
+# =========================================================
+
+.harness/runtime/*.tmp
+.harness/runtime/*.bak
+.harness/runtime/*.snapshot

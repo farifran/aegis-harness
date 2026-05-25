@@ -1,338 +1,118 @@
 {
   "version": "2.0",
-  "philosophy": {
-    "core_principle": "Modes produce cognition. Runtime owns continuity.",
-    "execution_model": [
-      "deterministic",
-      "bounded",
-      "disposable",
-      "mechanically_observable"
-    ],
-    "architectural_priorities": [
-      "explicit_authority",
-      "bounded_cognition",
-      "runtime_sovereignty",
-      "capability_scoped_mutation",
-      "mechanical_validation",
-      "operational_containment",
-      "disposable_execution"
-    ],
-    "anti_patterns": [
-      "hidden_persistence",
-      "runtime_semantic_reasoning",
-      "implicit_cross_mode_memory",
-      "autonomous_orchestration",
-      "unbounded_mutation",
-      "governance_drift",
-      "authority_inversion"
-    ]
-  },
-
-  "authority_hierarchy": [
-    "AGENTS.md",
-    ".harness/",
-    ".skills/",
-    "runtime_aegis.sh",
-    "aider.conf.yml",
-    "docs/active_task.template.md",
-    "repository_implementation"
-  ],
-
-  "layers": {
+  "architecture": {
     "governance": {
-      "authority": "constitutional",
-      "source_of_truth": [
-        "AGENTS.md"
-      ],
-      "responsibilities": [
-        "governance_boundaries",
-        "authority_constraints",
-        "operational_principles",
-        "containment_philosophy"
-      ],
-      "must_not": [
-        "execute_runtime_logic",
-        "persist_runtime_state",
-        "perform_cognition",
-        "mutate_implementation"
-      ]
+      "authority_root": "AGENTS.md",
+      "runtime_authority": "runtime_aegis.sh",
+      "continuity_authority": ".harness/runtime",
+      "structural_truth_source": "repository topology"
     },
-
     "runtime": {
-      "authority": "sovereign_operational",
-      "source_of_truth": [
-        "runtime_aegis.sh"
-      ],
-      "responsibilities": [
-        "execution_lifecycle",
-        "sandbox_isolation",
-        "context_injection",
-        "artifact_validation",
-        "mutation_validation",
-        "continuity_persistence",
-        "recovery_state"
-      ],
-      "properties": [
-        "semantically_blind",
+      "execution_model": "disposable_worktree_execution",
+      "execution_isolation": "ephemeral_git_worktrees",
+      "containment_model": "runtime_governed_persistence",
+      "continuity_model": "explicit_runtime_promotion",
+      "runtime_characteristics": [
         "mechanically_deterministic",
-        "append_only_continuity"
-      ],
-      "must_not": [
-        "infer_hidden_intent",
-        "repair_cognition_semantically",
-        "establish_architectural_truth",
-        "perform_autonomous_reasoning"
+        "semantically_blind",
+        "persistence_authoritative",
+        "sandbox_oriented"
       ]
     },
-
-    "modes": {
-      "authority": "bounded_cognition",
-      "source_of_truth": [
-        ".skills/"
+    "executor_topology": {
+      "analysis_modes": {
+        "modes": [
+          "discovery",
+          "forensics",
+          "validation",
+          "adversarial"
+        ],
+        "topology": "analysis_only_cognition",
+        "authority": [
+          "observation",
+          "assessment",
+          "inspection",
+          "bounded_analysis"
+        ],
+        "persistence_authority": false
+      },
+      "mutation_modes": {
+        "modes": [
+          "repair",
+          "optimize"
+        ],
+        "topology": "mutation_authorized_cognition",
+        "authority": [
+          "bounded_mutation",
+          "authorized_modification",
+          "implementation_adjustment"
+        ],
+        "persistence_authority": false
+      }
+    },
+    "sandbox_model": {
+      "sandbox_type": "isolated_git_worktree",
+      "sandbox_characteristics": [
+        "ephemeral",
+        "disposable",
+        "non_authoritative",
+        "filesystem_isolated"
       ],
-      "responsibilities": [
-        "reasoning",
-        "analysis",
-        "bounded_mutation",
-        "artifact_production"
+      "sandbox_allowed_behaviors": [
+        "patch_generation",
+        "artifact_materialization",
+        "coding_oriented_cognition",
+        "temporary_filesystem_mutation",
+        "transient_operational_state"
       ],
-      "must_not": [
-        "persist_continuity",
-        "govern_runtime",
-        "establish_architectural_truth",
-        "mutate_unauthorized_surfaces"
+      "sandbox_persistence": "runtime_promoted_only"
+    },
+    "promotion_pipeline": {
+      "promotion_authority": "runtime_only",
+      "promotion_targets": [
+        "active_task.md",
+        "validated_runtime_outputs",
+        "authorized_repository_mutations"
+      ],
+      "promotion_constraints": [
+        "explicit",
+        "observable",
+        "runtime_validated",
+        "mechanically_bounded"
       ]
     },
-
-    "session_state": {
-      "authority": "runtime_owned",
-      "source_of_truth": [
+    "continuity": {
+      "persistent_state": [
         ".harness/runtime/active_task.md",
         ".harness/runtime/last_good_active_task.md"
       ],
-      "properties": [
-        "ephemeral",
-        "append_only",
-        "execution_scoped",
-        "runtime_persisted"
+      "transient_state": [
+        ".harness/worktrees"
       ],
-      "must_not": [
-        "be_mode_owned",
-        "persist_between_sessions",
-        "contain_hidden_memory"
+      "continuity_rules": [
+        "sandbox_state_is_non_authoritative",
+        "implicit_persistence_forbidden",
+        "runtime_owns_continuity",
+        "promotion_required_for_survival"
       ]
     },
-
-    "doctrine": {
-      "authority": "persistent_operational_principles",
-      "source_of_truth": [
-        "docs/active_task.template.md"
+    "containment": {
+      "primary_containment": [
+        "filesystem_isolation",
+        "sandbox_disposal",
+        "runtime_promotion_governance"
       ],
-      "properties": [
-        "persistent",
-        "immutable_during_execution",
-        "runtime_independent"
+      "secondary_containment": [
+        "prompt_alignment",
+        "mode_constraints",
+        "bounded_context_injection"
       ],
-      "must_not": [
-        "contain_session_state",
-        "be_mutated_by_modes",
-        "be_runtime_rewritten"
-      ]
-    },
-
-    "implementation": {
-      "authority": "capability_scoped_mutation",
-      "source_of_truth": [
-        "src/",
-        "tests/"
-      ],
-      "properties": [
-        "runtime_validated",
-        "mutation_bounded",
-        "filesystem_observable"
-      ],
-      "must_not": [
-        "mutate_governance",
-        "mutate_runtime_authority",
-        "mutate_session_ownership"
+      "containment_principles": [
+        "executor_topology_is_non_neutral",
+        "prompt_alignment_is_insufficient",
+        "disposable_execution_is_preferred",
+        "mechanical_boundaries_are_authoritative"
       ]
     }
-  },
-
-  "mode_capabilities": {
-    "discovery": {
-      "type": "hard_containment",
-      "filesystem_mutation": false,
-      "continuity_authority": false,
-      "runtime_authority": false,
-      "purpose": [
-        "architectural_observation",
-        "bounded_discovery",
-        "structural_analysis"
-      ]
-    },
-
-    "forensics": {
-      "type": "hard_containment",
-      "filesystem_mutation": false,
-      "continuity_authority": false,
-      "runtime_authority": false,
-      "purpose": [
-        "operational_analysis",
-        "artifact_inspection",
-        "risk_identification"
-      ]
-    },
-
-    "repair": {
-      "type": "mutation_authorized",
-      "filesystem_mutation": true,
-      "continuity_authority": false,
-      "runtime_authority": false,
-      "allowed_mutation_surfaces": [
-        "src/",
-        "tests/"
-      ],
-      "purpose": [
-        "bounded_implementation_repair",
-        "operational_stabilization"
-      ]
-    },
-
-    "optimize": {
-      "type": "mutation_authorized",
-      "filesystem_mutation": true,
-      "continuity_authority": false,
-      "runtime_authority": false,
-      "allowed_mutation_surfaces": [
-        "src/",
-        "tests/"
-      ],
-      "purpose": [
-        "bounded_optimization",
-        "complexity_reduction",
-        "implementation_refinement"
-      ]
-    },
-
-    "validation": {
-      "type": "hard_containment",
-      "filesystem_mutation": false,
-      "continuity_authority": false,
-      "runtime_authority": false,
-      "purpose": [
-        "mechanical_validation",
-        "execution_verification",
-        "containment_confirmation"
-      ]
-    },
-
-    "adversarial": {
-      "type": "hard_containment",
-      "filesystem_mutation": false,
-      "continuity_authority": false,
-      "runtime_authority": false,
-      "purpose": [
-        "containment_stress_testing",
-        "weakness_discovery",
-        "operational_falsification"
-      ]
-    }
-  },
-
-  "continuity_model": {
-    "persistent_doctrine": {
-      "path": "docs/active_task.template.md",
-      "properties": [
-        "persistent",
-        "immutable_during_execution"
-      ]
-    },
-
-    "session_state": {
-      "path": ".harness/runtime/active_task.md",
-      "properties": [
-        "ephemeral",
-        "runtime_owned",
-        "append_only"
-      ]
-    },
-
-    "recovery_state": {
-      "path": ".harness/runtime/last_good_active_task.md",
-      "properties": [
-        "single_checkpoint",
-        "runtime_owned",
-        "mechanically_restorable"
-      ]
-    }
-  },
-
-  "containment_model": {
-    "sandboxing": {
-      "type": "disposable_git_worktree",
-      "properties": [
-        "isolated",
-        "ephemeral",
-        "execution_scoped"
-      ]
-    },
-
-    "context_governance": {
-      "principles": [
-        "bounded_visibility",
-        "proportional_exposure",
-        "runtime_injected_context"
-      ]
-    },
-
-    "mutation_validation": {
-      "mechanisms": [
-        "git_diff_validation",
-        "bounded_editable_surfaces",
-        "capability_scoped_mutation",
-        "runtime_validation"
-      ],
-      "failure_behavior": "fail_fast"
-    },
-
-    "artifact_validation": {
-      "mechanisms": [
-        "sentinel_framing",
-        "strict_json_validation",
-        "required_field_validation",
-        "mode_consistency_validation"
-      ],
-      "failure_behavior": "fail_fast"
-    }
-  },
-
-  "execution_flow": [
-    "initialize_runtime_state",
-    "create_isolated_sandbox",
-    "inject_bounded_context",
-    "execute_mode",
-    "validate_artifact",
-    "validate_mutation_boundaries",
-    "persist_continuity",
-    "update_recovery_state",
-    "destroy_sandbox"
-  ],
-
-  "failure_philosophy": {
-    "principles": [
-      "explicit_failure_visibility",
-      "mechanical_validation_over_semantic_repair",
-      "deterministic_failure_behavior",
-      "bounded_operational_authority"
-    ],
-
-    "must_fail_when": [
-      "artifact_integrity_breaks",
-      "mutation_boundaries_are_violated",
-      "execution_integrity_is_compromised",
-      "continuity_becomes_implicit",
-      "runtime_sovereignty_is_violated"
-    ]
   }
 }

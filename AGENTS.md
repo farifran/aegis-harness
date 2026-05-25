@@ -1,76 +1,69 @@
-## Executor Topology Separation
+## Disposable Sandbox Containment
 
-The system distinguishes between:
+The Aegis Harness treats execution environments as disposable containment boundaries.
 
-- analysis-only cognition topology;
-- mutation-authorized cognition topology.
+Executors are allowed to operate naturally inside isolated sandboxes or git worktrees.
 
-This distinction is structural.
+The system does NOT rely primarily on:
+- prompt-level suppression;
+- executor behavioral neutralization;
+- semantic anti-materialization alignment.
 
-Analysis-only modes:
-- discovery
-- forensics
-- validation
-- adversarial
+Instead, containment is enforced through:
+- disposable execution environments;
+- runtime-governed persistence;
+- explicit promotion rules;
+- isolated filesystem boundaries;
+- controlled continuity ownership.
 
-must remain:
-- read-only;
-- non-materializing;
-- stdout-only;
-- persistence-independent.
+Inside disposable sandboxes, executors may:
+- generate patches;
+- create temporary artifacts;
+- emit helper text;
+- perform coding-oriented cognition;
+- materialize transient operational state.
 
-These modes must NEVER:
-- create files;
-- create directories;
-- apply patches;
-- materialize artifacts;
-- persist outputs;
-- mutate repository state.
+These behaviors are considered non-authoritative unless explicitly promoted by the runtime.
 
-Artifacts for these modes exist ONLY in stdout.
+The runtime remains the sole authority responsible for:
+- continuity persistence;
+- active task promotion;
+- recovery state promotion;
+- authorized filesystem persistence;
+- operational acceptance.
 
-Mutation-authorized modes:
-- repair
-- optimize
+Sandbox contents are ephemeral.
 
-may mutate ONLY:
-- explicitly authorized editable surfaces;
-- runtime-approved mutation boundaries.
+Sandbox state must never become implicitly authoritative.
 
-Mutation authority never implies:
-- persistence authority;
-- governance authority;
-- runtime authority.
+Persistence occurs ONLY through explicit runtime promotion.
 
-The runtime remains the sole owner of:
-- persistence;
-- continuity;
-- recovery state;
-- filesystem authority.
+The runtime therefore governs:
+- what survives execution;
+- what becomes continuity;
+- what becomes operational memory;
+- what becomes repository state.
 
-Containment must remain mechanically enforced.
+Containment is therefore:
+- filesystem-level;
+- runtime-level;
+- authority-level.
 
-Prompt alignment alone is insufficient as a security or authority boundary.
+Not merely:
+- prompt-level;
+- semantic-level;
+- behavioral-level.
 
-The system therefore relies on:
-- runtime validation;
-- filesystem materialization detection;
-- mutation boundary validation;
-- disposable sandbox isolation.
-
-Executor topology matters.
+Executor topology influences cognition topology.
 
 Coding-oriented executors naturally induce:
 - edit cognition;
-- patch generation;
-- filesystem materialization behavior.
+- patch cognition;
+- filesystem materialization behavior;
+- collaborative coding interaction patterns.
 
-The runtime must therefore explicitly enforce:
-- capability boundaries;
-- persistence boundaries;
-- mutation boundaries;
-- containment integrity.
+The system therefore isolates executors mechanically rather than attempting full behavioral suppression.
 
-Artifacts are transient runtime outputs.
+Disposable execution is a containment primitive.
 
-Artifacts are NOT persistent repository objects unless explicitly runtime-authorized.
+Promotion is an authority primitive.
