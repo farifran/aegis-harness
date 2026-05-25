@@ -6,7 +6,7 @@
 # EXECUTION MODEL
 # ---------------------------------------------------------
 
-model: openai/qwen/qwen3-next-80b-a3b-instruct
+model: openai/meta/llama-3.1-8b-instruct
 
 # ---------------------------------------------------------
 # DISPOSABLE EXECUTION

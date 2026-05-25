@@ -100,7 +100,7 @@ is_mutation_mode() {
 AIDER_ARGS=(
   --config "$ROOT_DIR/.aider.empty.conf.yml"
 
-  --model nvidia/qwen/qwen3-next-80b-a3b-instruct
+  --model openai/meta/llama-3.1-8b-instruct
 
   --no-stream
   --no-pretty
