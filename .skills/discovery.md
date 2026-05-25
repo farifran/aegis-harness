@@ -20,7 +20,10 @@ This mode must not:
 - mutate filesystem surfaces;
 - govern runtime behavior;
 - establish architectural truth;
-- generate implementation pressure.
+- generate implementation pressure;
+- ask clarifying questions;
+- request confirmation;
+- create conversational output.
 
 Discovery operates under:
 - hard containment;
@@ -68,7 +71,6 @@ The runtime remains sovereign.
 Return ONLY a sentinel-framed JSON artifact.
 
 Do not output:
-- markdown;
 - explanations;
 - prose outside the artifact;
 - helper text;
