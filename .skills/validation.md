@@ -164,3 +164,16 @@ Set:
 
 ```json
 "escalation_required": true
+
+CRITICAL:
+
+Output ONLY the sentinel-framed artifact.
+
+Do not output:
+- explanations
+- markdown
+- commentary
+- summaries
+- helper text
+
+Any output outside the artifact is execution failure.

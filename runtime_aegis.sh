@@ -41,6 +41,28 @@ fail() {
 }
 
 # =========================================================
+# ENVIRONMENT VALIDATION
+# =========================================================
+
+validate_environment() {
+
+  command -v aider >/dev/null 2>&1 \
+    || fail "Missing aider."
+
+  command -v jq >/dev/null 2>&1 \
+    || fail "Missing jq."
+
+  command -v timeout >/dev/null 2>&1 \
+    || fail "Missing timeout."
+
+  [[ -n "${OPENAI_API_KEY:-}" ]] \
+    || fail "Missing OPENAI_API_KEY."
+
+  [[ -n "${OPENAI_API_BASE:-}" ]] \
+    || fail "Missing OPENAI_API_BASE."
+}
+
+# =========================================================
 # CLEANUP
 # =========================================================
 
@@ -89,13 +111,11 @@ initialize_runtime_state() {
 
   mkdir -p "$RUNTIME_DIR"
 
-  for FILE in \
-    active_task.md \
-    last_good_active_task.md
-  do
-    cp "$ACTIVE_TASK_TEMPLATE" \
-       "$RUNTIME_DIR/$FILE"
-  done
+  cp "$ACTIVE_TASK_TEMPLATE" \
+     "$SESSION_ACTIVE_TASK"
+
+  cp "$SESSION_ACTIVE_TASK" \
+     "$LAST_GOOD_STATE"
 }
 
 # =========================================================
@@ -221,7 +241,6 @@ validate_mutations() {
 persist_continuity() {
 
   local mode="$1"
-
   local artifact="$2"
 
   {
@@ -257,14 +276,31 @@ execute_mode() {
 
   local artifact
 
-  artifact="$(
-    cd "$CURRENT_WORKTREE"
+  if is_mutation_mode "$mode"
+  then
 
-    bash "$ROOT_DIR/scripts/execute_mode.sh" \
-      ".skills/${mode}.md" \
-      "$mode" \
-      ".harness/runtime/active_task.md"
-  )"
+    artifact="$(
+      cd "$CURRENT_WORKTREE"
+
+      bash "$ROOT_DIR/scripts/execute_mode.sh" \
+        ".skills/${mode}.md" \
+        "$mode" \
+        ".harness/runtime/active_task.md" \
+        "src/,tests/"
+    )"
+
+  else
+
+    artifact="$(
+      cd "$CURRENT_WORKTREE"
+
+      bash "$ROOT_DIR/scripts/execute_mode.sh" \
+        ".skills/${mode}.md" \
+        "$mode" \
+        ".harness/runtime/active_task.md"
+    )"
+
+  fi
 
   validate_mutations "$mode"
 
@@ -289,6 +325,8 @@ execute_mode() {
 # =========================================================
 
 main() {
+
+  validate_environment
 
   [[ -f "$ACTIVE_TASK_TEMPLATE" ]] \
     || fail "Missing active_task.template.md"

@@ -1,3 +1,16 @@
+export OPENAI_API_KEY="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"
+
+export OPENAI_API_BASE="https://integrate.api.nvidia.com/v1"
+
+aider \
+  --model openai/qwen/qwen3-next-80b-a3b-instruct \
+  --message "Reply only with OK" \
+  --yes-always \
+  --no-show-model-warnings \
+  --no-stream \
+  --no-pretty
+
+
 # Aegis Harness
 
 Um runtime epistemológico para engenharia estruturalmente limitada com modelos frontier.

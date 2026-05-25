@@ -7,16 +7,17 @@ set -euo pipefail
 # =========================================================
 
 MODE_FILE="${1:?missing mode file}"
-
 EXPECTED_MODE="${2:?missing mode name}"
-
 ACTIVE_TASK_PATH="${3:?missing active task path}"
+EDITABLE_SURFACES="${4:-}"
 
 ROOT_DIR="$(
   cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd
 )"
 
 MODE_PATH="$ROOT_DIR/$MODE_FILE"
+AGENTS_FILE="$ROOT_DIR/AGENTS.md"
+ARCH_GRAPH_FILE="$ROOT_DIR/.harness/architecture_graph.json"
 
 EXECUTION_TIMEOUT=300
 
@@ -32,6 +33,25 @@ fail() {
 }
 
 # =========================================================
+# DEBUG OUTPUT
+# =========================================================
+
+debug_output() {
+
+  local title="$1"
+
+  echo
+  echo "================================================="
+  echo "[AEGIS DEBUG] $title"
+  echo "================================================="
+  echo
+  echo "$OUTPUT"
+  echo
+  echo "================================================="
+  echo
+}
+
+# =========================================================
 # VALIDATION
 # =========================================================
 
@@ -41,17 +61,20 @@ fail() {
 [[ -f "$ACTIVE_TASK_PATH" ]] \
   || fail "Missing runtime active task."
 
+[[ -f "$AGENTS_FILE" ]] \
+  || fail "Missing AGENTS.md."
+
+[[ -f "$ARCH_GRAPH_FILE" ]] \
+  || fail "Missing architecture_graph.json."
+
 # =========================================================
 # MODE CAPABILITY MODEL
 # =========================================================
 
-is_hard_containment_mode() {
+is_mutation_mode() {
 
   case "$EXPECTED_MODE" in
-    discovery|\
-    forensics|\
-    validation|\
-    adversarial)
+    repair|optimize)
       return 0
       ;;
     *)
@@ -61,27 +84,68 @@ is_hard_containment_mode() {
 }
 
 # =========================================================
-# BUILD AIDER FLAGS
+# ENVIRONMENT VALIDATION
 # =========================================================
 
-AIDER_FLAGS=(
+[[ -n "${OPENAI_API_KEY:-}" ]] \
+  || fail "Missing OPENAI_API_KEY."
+
+[[ -n "${OPENAI_API_BASE:-}" ]] \
+  || fail "Missing OPENAI_API_BASE."
+
+# =========================================================
+# BUILD AIDER ARGS
+# =========================================================
+
+AIDER_ARGS=(
   --config "$ROOT_DIR/.aider.empty.conf.yml"
-  --model openai/qwen/qwen3-next-80b-a3b-instruct
+
+  --model nvidia/qwen/qwen3-next-80b-a3b-instruct
+
   --no-stream
+  --no-pretty
   --no-git
+
   --map-tokens 0
   --map-refresh manual
+
+  --no-show-model-warnings
+
   --yes-always
   --exit
+
+  --read "$ACTIVE_TASK_PATH"
+  --read "$AGENTS_FILE"
+  --read "$ARCH_GRAPH_FILE"
+
+  --message-file "$MODE_PATH"
 )
 
-# ---------------------------------------------------------
-# HARD CONTAINMENT MODES
-# ---------------------------------------------------------
+# =========================================================
+# MUTATION-AUTHORIZED MODES
+# =========================================================
 
-if is_hard_containment_mode
+if is_mutation_mode
 then
-  AIDER_FLAGS+=(--ask)
+
+  [[ -n "$EDITABLE_SURFACES" ]] \
+    || fail "Missing editable surfaces."
+
+  IFS=',' read -r -a SURFACES \
+    <<< "$EDITABLE_SURFACES"
+
+  for surface in "${SURFACES[@]}"
+  do
+
+    surface="${surface//[[:space:]]/}"
+
+    [[ -z "$surface" ]] && continue
+
+    AIDER_ARGS+=(
+      "$ROOT_DIR/$surface"
+    )
+
+  done
 fi
 
 # =========================================================
@@ -93,10 +157,7 @@ set +e
 OUTPUT="$(
   timeout "$EXECUTION_TIMEOUT" \
     aider \
-      "${AIDER_FLAGS[@]}" \
-      "$ACTIVE_TASK_PATH" \
-      "$MODE_FILE" \
-      --message-file "$MODE_PATH" \
+      "${AIDER_ARGS[@]}" \
       2>&1
 )"
 
@@ -110,6 +171,7 @@ set -e
 
 if [[ "$EXIT_CODE" -eq 124 ]]
 then
+  debug_output "TIMEOUT OUTPUT"
   fail "Provider execution timeout."
 fi
 
@@ -120,30 +182,35 @@ fi
 if echo "$OUTPUT" | grep -qi \
   "InternalServerError"
 then
+  debug_output "PROVIDER INTERNAL SERVER FAILURE"
   fail "Provider internal server failure."
 fi
 
 if echo "$OUTPUT" | grep -qi \
   "RateLimit"
 then
+  debug_output "PROVIDER RATE LIMIT FAILURE"
   fail "Provider rate limit failure."
 fi
 
 if echo "$OUTPUT" | grep -qi \
   "AuthenticationError"
 then
+  debug_output "PROVIDER AUTH FAILURE"
   fail "Provider authentication failure."
 fi
 
 if echo "$OUTPUT" | grep -qi \
   "Connection error"
 then
+  debug_output "PROVIDER CONNECTION FAILURE"
   fail "Provider connection failure."
 fi
 
 if echo "$OUTPUT" | grep -qi \
   "API key"
 then
+  debug_output "PROVIDER API KEY FAILURE"
   fail "Provider API key failure."
 fi
 
@@ -170,8 +237,12 @@ ARTIFACT="$(
 # ARTIFACT VALIDATION
 # =========================================================
 
-[[ -n "$ARTIFACT" ]] \
-  || fail "Missing sentinel-framed artifact."
+[[ -n "$ARTIFACT" ]] || {
+
+  debug_output "RAW OUTPUT"
+
+  fail "Missing sentinel-framed artifact."
+}
 
 echo "$ARTIFACT" | jq empty \
   >/dev/null 2>&1 \
@@ -189,6 +260,7 @@ REQUIRED_FIELDS=(
 
 for FIELD in "${REQUIRED_FIELDS[@]}"
 do
+
   VALUE="$(
     echo "$ARTIFACT" | jq -r \
       ".$FIELD // empty"
