@@ -82,25 +82,48 @@ debug_output() {
   || fail "Missing OPENAI_API_BASE."
 
 # =========================================================
+# LOAD MODE CONTRACT
+# =========================================================
+
+MODE_CONTRACT="$(
+  cat "$MODE_PATH"
+)"
+
+# =========================================================
 # MODE MESSAGE
 # =========================================================
 
-MODE_MESSAGE="Execute the provided mode contract exactly."
+MODE_MESSAGE="/ask
+
+Execute the following mode contract exactly.
+
+DO NOT create files.
+DO NOT emit patches.
+DO NOT implement code.
+DO NOT generate file listings.
+
+Emit ONLY the required sentinel-framed artifact.
+
+$MODE_CONTRACT"
 
 if [[ "$EXPECTED_MODE" == "repair" ]]
 then
 
-MODE_MESSAGE="Execute the provided repair mode contract exactly.
+MODE_MESSAGE="Execute the following repair mode contract exactly.
 
 Objective:
-Remove the empty export statement from src/ui/index.ts while preserving valid TypeScript syntax."
+Remove the empty export statement from src/ui/index.ts while preserving valid TypeScript syntax.
+
+$MODE_CONTRACT"
 
 fi
 
 if [[ "$EXPECTED_MODE" == "optimize" ]]
 then
 
-MODE_MESSAGE="Execute the provided optimize mode contract exactly."
+MODE_MESSAGE="Execute the following optimize mode contract exactly.
+
+$MODE_CONTRACT"
 
 fi
 
@@ -111,12 +134,13 @@ fi
 AIDER_ARGS=(
   --config "$ROOT_DIR/.aider.empty.conf.yml"
 
-  --model openai/meta/llama-3.1-8b-instruct
+  --model openai/meta/llama-3.3-70b-instruct
+
+  --edit-format diff
 
   --yes-always
   --exit
 
-  --read "$MODE_PATH"
   --read "$ACTIVE_TASK_PATH"
   --read "$AGENTS_FILE"
   --read "$ARCH_GRAPH_FILE"
@@ -241,17 +265,26 @@ ARTIFACT="$(
 )"
 
 # =========================================================
-# OPTIONAL ARTIFACT
+# REQUIRED ARTIFACT VALIDATION
 # =========================================================
 
 if [[ -z "$ARTIFACT" ]]
 then
 
-  echo
-  echo "[AEGIS] No runtime artifact emitted."
-  echo
+  if [[ "$EXPECTED_MODE" == "repair" ]] \
+    || [[ "$EXPECTED_MODE" == "optimize" ]]
+  then
 
-  exit 0
+    echo
+    echo "[AEGIS] No runtime artifact emitted."
+    echo
+
+    exit 0
+  fi
+
+  debug_output "RAW OUTPUT"
+
+  fail "Missing sentinel-framed artifact."
 fi
 
 # =========================================================
