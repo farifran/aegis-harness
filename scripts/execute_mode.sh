@@ -200,6 +200,12 @@ echo "[AEGIS] Aider execution completed."
 echo
 
 # =========================================================
+# PROPAGATE RAW OUTPUT
+# =========================================================
+
+echo "$OUTPUT"
+
+# =========================================================
 # TIMEOUT DETECTION
 # =========================================================
 
@@ -250,18 +256,9 @@ echo "[AEGIS] Extracting artifact..."
 echo
 
 ARTIFACT="$(
-  echo "$OUTPUT" | awk '
-    /AEGIS_ARTIFACT_BEGIN/ {
-      capture=1
-      next
-    }
-
-    /AEGIS_ARTIFACT_END/ {
-      capture=0
-    }
-
-    capture
-  '
+  printf '%s\n' "$OUTPUT" \
+    | sed -n '/AEGIS_ARTIFACT_BEGIN/,/AEGIS_ARTIFACT_END/p' \
+    | sed '1d;$d'
 )"
 
 # =========================================================
@@ -323,4 +320,4 @@ echo
 # SUCCESS
 # =========================================================
 
-echo "$ARTIFACT"
+printf '%s\n' "$ARTIFACT"
