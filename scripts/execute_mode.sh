@@ -114,11 +114,13 @@ AIDER_ARGS=(
   --yes-always
   --exit
 
+  --read "$MODE_PATH"
   --read "$ACTIVE_TASK_PATH"
   --read "$AGENTS_FILE"
   --read "$ARCH_GRAPH_FILE"
 
-  --message-file "$MODE_PATH"
+  --message \
+  "Execute the provided mode contract exactly. Emit only the required sentinel-framed JSON artifact."
 )
 
 # =========================================================
@@ -152,6 +154,10 @@ fi
 # EXECUTE AIDER
 # =========================================================
 
+echo
+echo "[AEGIS] Starting aider execution..."
+echo
+
 set +e
 
 OUTPUT="$(
@@ -164,6 +170,10 @@ OUTPUT="$(
 EXIT_CODE=$?
 
 set -e
+
+echo
+echo "[AEGIS] Aider execution completed."
+echo
 
 # =========================================================
 # TIMEOUT DETECTION
@@ -218,6 +228,10 @@ fi
 # SENTINEL EXTRACTION
 # =========================================================
 
+echo
+echo "[AEGIS] Extracting artifact..."
+echo
+
 ARTIFACT="$(
   echo "$OUTPUT" | awk '
     /AEGIS_ARTIFACT_BEGIN/ {
@@ -237,6 +251,10 @@ ARTIFACT="$(
 # ARTIFACT VALIDATION
 # =========================================================
 
+echo
+echo "[AEGIS] Validating artifact..."
+echo
+
 [[ -n "$ARTIFACT" ]] || {
 
   debug_output "RAW OUTPUT"
@@ -255,7 +273,7 @@ echo "$ARTIFACT" | jq empty \
 REQUIRED_FIELDS=(
   mode
   status
-  confidence
+  certainty
 )
 
 for FIELD in "${REQUIRED_FIELDS[@]}"
@@ -281,6 +299,10 @@ ARTIFACT_MODE="$(
 
 [[ "$ARTIFACT_MODE" == "$EXPECTED_MODE" ]] \
   || fail "Mode/artifact mismatch detected."
+
+echo
+echo "[AEGIS] Artifact validated successfully."
+echo
 
 # =========================================================
 # SUCCESS

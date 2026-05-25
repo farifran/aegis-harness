@@ -1,0 +1,15 @@
+{
+  "mode": "discovery",
+  "status": "success",
+  "certainty": "observed",
+  "findings": [
+    {
+      "id": "F-001",
+      "type": "observed_state",
+      "scope": "runtime",
+      "summary": "observable operational state"
+    }
+  ],
+  "uncertainties": [],
+  "escalation_required": false
+}
