@@ -7,30 +7,41 @@ set -euo pipefail
 # =========================================================
 
 MODE_FILE="${1:?missing mode file}"
+
 EXPECTED_MODE="${2:?missing mode name}"
-ACTIVE_TASK_PATH="${3:?missing active task path}"
+
+ACTIVE_TASK_PATH="${3:-}"
+
 EDITABLE_SURFACES="${4:-}"
 
 ROOT_DIR="$(
   cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd
 )"
 
-MODE_PATH="$ROOT_DIR/$MODE_FILE"
-AGENTS_FILE="$ROOT_DIR/AGENTS.md"
-ARCH_GRAPH_FILE="$ROOT_DIR/.harness/architecture_graph.json"
+# =========================================================
+# CENTRAL CONFIG
+# =========================================================
 
-EXECUTION_TIMEOUT=300
+source "$ROOT_DIR/.harness/config.sh"
+
+# =========================================================
+# PATHS
+# =========================================================
+
+MODE_PATH="$ROOT_DIR/$MODE_FILE"
+
+AGENTS_FILE="$ROOT_DIR/AGENTS.md"
+
+ARCH_GRAPH_FILE="$ROOT_DIR/.harness/architecture_graph.json"
 
 # =========================================================
 # FAILURE
 # =========================================================
 
 fail() {
-
   echo
   echo "[AEGIS] $1" >&2
   echo
-
   exit 1
 }
 
@@ -39,7 +50,6 @@ fail() {
 # =========================================================
 
 debug_output() {
-
   local title="$1"
 
   echo
@@ -48,7 +58,7 @@ debug_output() {
   echo "================================================="
   echo
 
-  echo "$OUTPUT"
+  printf '%s\n' "$OUTPUT"
 
   echo
   echo "================================================="
@@ -62,23 +72,22 @@ debug_output() {
 [[ -f "$MODE_PATH" ]] \
   || fail "Mode file not found."
 
-if [[ "$EXPECTED_MODE" != "discovery" ]]
-then
-
-  [[ -f "$ACTIVE_TASK_PATH" ]] \
-    || fail "Missing runtime active task."
-
-fi
-
 [[ -f "$AGENTS_FILE" ]] \
   || fail "Missing AGENTS.md."
 
 [[ -f "$ARCH_GRAPH_FILE" ]] \
   || fail "Missing architecture_graph.json."
 
-# =========================================================
-# ENVIRONMENT VALIDATION
-# =========================================================
+if [[ "$EXPECTED_MODE" != "discovery" ]]
+then
+
+  [[ -n "$ACTIVE_TASK_PATH" ]] \
+    || fail "Missing runtime active task path."
+
+  [[ -f "$ACTIVE_TASK_PATH" ]] \
+    || fail "Missing runtime active task."
+
+fi
 
 [[ -n "${OPENAI_API_KEY:-}" ]] \
   || fail "Missing OPENAI_API_KEY."
@@ -95,41 +104,76 @@ MODE_CONTRACT="$(
 )"
 
 # =========================================================
-# MODE MESSAGE
+# OPERATIONAL BOOTSTRAP
 # =========================================================
 
-MODE_MESSAGE="/ask
+MODE_BOOTSTRAP="Execute immediately.
 
-$MODE_CONTRACT"
+No conversation.
+No questions.
+No explanations.
+
+Emit exactly one sentinel-framed artifact."
 
 # =========================================================
-# REPAIR OBJECTIVE
+# MODE OBJECTIVE
 # =========================================================
+
+MODE_OBJECTIVE="Inspect the currently observable runtime and repository state."
+
+if [[ "$EXPECTED_MODE" == "forensics" ]]
+then
+  MODE_OBJECTIVE="Inspect the currently observable operational integrity state."
+fi
+
+if [[ "$EXPECTED_MODE" == "validation" ]]
+then
+  MODE_OBJECTIVE="Inspect the currently observable execution validity state."
+fi
+
+if [[ "$EXPECTED_MODE" == "adversarial" ]]
+then
+  MODE_OBJECTIVE="Inspect the currently observable boundary and failure surfaces."
+fi
 
 if [[ "$EXPECTED_MODE" == "repair" ]]
 then
 
-MODE_MESSAGE="/ask
+MODE_OBJECTIVE="Execute only the explicitly authorized bounded repair.
 
-Objective:
-Remove the empty export statement from src/ui/index.ts while preserving valid TypeScript syntax.
-
-$MODE_CONTRACT"
+Remove the empty export statement from src/ui/index.ts while preserving valid TypeScript syntax."
 
 fi
-
-# =========================================================
-# OPTIMIZE OBJECTIVE
-# =========================================================
 
 if [[ "$EXPECTED_MODE" == "optimize" ]]
 then
+  MODE_OBJECTIVE="Execute only explicitly authorized bounded optimization."
+fi
+
+# =========================================================
+# STRUCTURAL OUTPUT PRIMING
+# =========================================================
+
+OUTPUT_PRIMING="Begin output now:
+
+AEGIS_ARTIFACT_BEGIN
+{
+  \"mode\": \"$EXPECTED_MODE\","
+
+# =========================================================
+# FINAL MESSAGE
+# =========================================================
 
 MODE_MESSAGE="/ask
 
-$MODE_CONTRACT"
+$MODE_BOOTSTRAP
 
-fi
+Objective:
+$MODE_OBJECTIVE
+
+$MODE_CONTRACT
+
+$OUTPUT_PRIMING"
 
 # =========================================================
 # BUILD AIDER ARGS
@@ -138,19 +182,33 @@ fi
 AIDER_ARGS=(
   --config "$ROOT_DIR/.aider.empty.conf.yml"
 
-  --model openai/meta/llama-3.3-70b-instruct
+  --model "$AEGIS_MODEL"
 
-  --edit-format diff
+  --edit-format "$AEGIS_EDIT_FORMAT"
 
   --yes-always
   --exit
 
-  --read "$ACTIVE_TASK_PATH"
   --read "$AGENTS_FILE"
+
   --read "$ARCH_GRAPH_FILE"
 
   --message "$MODE_MESSAGE"
 )
+
+# =========================================================
+# OPTIONAL ACTIVE TASK
+# =========================================================
+
+if [[ -n "$ACTIVE_TASK_PATH" ]] \
+  && [[ -f "$ACTIVE_TASK_PATH" ]]
+then
+
+  AIDER_ARGS+=(
+    --read "$ACTIVE_TASK_PATH"
+  )
+
+fi
 
 # =========================================================
 # EDITABLE SURFACES
@@ -169,9 +227,7 @@ then
 
     [[ -z "$surface" ]] && continue
 
-    AIDER_ARGS+=(
-      "$surface"
-    )
+    AIDER_ARGS+=("$surface")
 
   done
 fi
@@ -189,7 +245,7 @@ cd "$ROOT_DIR"
 set +e
 
 OUTPUT="$(
-  timeout "$EXECUTION_TIMEOUT" \
+  timeout "$AEGIS_EXECUTION_TIMEOUT" \
     aider \
       "${AIDER_ARGS[@]}" \
       2>&1
@@ -203,10 +259,6 @@ echo
 echo "[AEGIS] Aider execution completed."
 echo
 
-# =========================================================
-# PROPAGATE RAW OUTPUT
-# =========================================================
-
 printf '%s\n' "$OUTPUT"
 
 # =========================================================
@@ -215,40 +267,51 @@ printf '%s\n' "$OUTPUT"
 
 if [[ "$EXIT_CODE" -eq 124 ]]
 then
+
   debug_output "TIMEOUT OUTPUT"
+
   fail "Provider execution timeout."
+
 fi
 
 # =========================================================
 # PROVIDER FAILURE DETECTION
 # =========================================================
 
-if echo "$OUTPUT" | grep -qi \
-  "InternalServerError"
+if echo "$OUTPUT" | grep -qi "InternalServerError"
 then
+
   debug_output "PROVIDER INTERNAL SERVER FAILURE"
+
   fail "Provider internal server failure."
+
 fi
 
-if echo "$OUTPUT" | grep -qi \
-  "RateLimit"
+if echo "$OUTPUT" | grep -qi "RateLimit"
 then
+
   debug_output "PROVIDER RATE LIMIT FAILURE"
+
   fail "Provider rate limit failure."
+
 fi
 
-if echo "$OUTPUT" | grep -qi \
-  "AuthenticationError"
+if echo "$OUTPUT" | grep -qi "AuthenticationError"
 then
+
   debug_output "PROVIDER AUTH FAILURE"
+
   fail "Provider authentication failure."
+
 fi
 
-if echo "$OUTPUT" | grep -qi \
-  "Connection error"
+if echo "$OUTPUT" | grep -qi "Connection error"
 then
+
   debug_output "PROVIDER CONNECTION FAILURE"
+
   fail "Provider connection failure."
+
 fi
 
 # =========================================================
@@ -281,11 +344,13 @@ then
     echo
 
     exit 0
+
   fi
 
   debug_output "RAW OUTPUT"
 
   fail "Missing sentinel-framed artifact."
+
 fi
 
 # =========================================================
@@ -316,12 +381,12 @@ ARTIFACT_MODE="$(
 [[ "$ARTIFACT_MODE" == "$EXPECTED_MODE" ]] \
   || fail "Mode/artifact mismatch detected."
 
-echo
-echo "[AEGIS] Artifact validated successfully."
-echo
-
 # =========================================================
 # SUCCESS
 # =========================================================
+
+echo
+echo "[AEGIS] Artifact validated successfully."
+echo
 
 printf '%s\n' "$ARTIFACT"
