@@ -1,15 +1,39 @@
-export OPENAI_API_KEY="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"
+cat >> ~/.bashrc <<'EOF'
 
 export OPENAI_API_BASE="https://integrate.api.nvidia.com/v1"
 
-aider \
-  --model openai/qwen/qwen3-next-80b-a3b-instruct \
-  --message "Reply only with OK" \
+export OPENAI_API_KEY="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"
+
+EOF
+
+source ~/.bashrc
+
+echo $OPENAI_API_BASE
+
+curl https://integrate.api.nvidia.com/v1/chat/completions \
+  -H "Authorization: Bearer $OPENAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model":"meta/llama-3.3-70b-instruct",
+    "messages":[
+      {
+        "role":"user",
+        "content":"Reply only with OK"
+      }
+    ],
+    "temperature":0
+  }'
+
+timeout 60 aider \
+  --model openai/meta/llama-3.3-70b-instruct \
+  --message "Reply ONLY with: OK" \
   --yes-always \
   --no-show-model-warnings \
   --no-stream \
-  --no-pretty
-
+  --no-pretty \
+  --map-tokens 0 \
+  --no-git \
+  --exit
 
 # Aegis Harness
 

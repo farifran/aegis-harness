@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+source ~/.bashrc
 set -euo pipefail
 
 # =========================================================
@@ -42,10 +43,16 @@ fail() {
 # VALIDATION
 # =========================================================
 
-[[ -f "$ACTIVE_TASK" ]] \
-  || fail "Missing runtime active_task.md"
-
 mkdir -p "$WORKTREE_BASE"
+
+git worktree prune
+
+# =========================================================
+# RUNTIME STATE RESET
+# =========================================================
+
+rm -f "$ACTIVE_TASK"
+rm -f "$LAST_GOOD_TASK"
 
 # =========================================================
 # EXECUTION LOOP
@@ -65,6 +72,7 @@ do
   rm -rf "$WORKTREE_PATH"
 
   git worktree add \
+    --force \
     --detach \
     "$WORKTREE_PATH" \
     HEAD
@@ -90,7 +98,20 @@ do
 
   popd >/dev/null
 
-  echo "$OUTPUT"
+  # =======================================================
+  # AIDER RESIDUE CLEANUP
+  # =======================================================
+
+  rm -rf "$WORKTREE_PATH/.aider.tags.cache.v4"
+
+  rm -f "$WORKTREE_PATH/.aider.chat.history.md"
+  rm -f "$WORKTREE_PATH/.aider.input.history"
+
+  printf '%s\n' "$OUTPUT"
+
+  # =======================================================
+  # FAILURE DETECTION
+  # =======================================================
 
   if [[ "$EXIT_CODE" -ne 0 ]]
   then
@@ -101,7 +122,8 @@ do
 
     git worktree remove \
       --force \
-      "$WORKTREE_PATH"
+      "$WORKTREE_PATH" \
+      >/dev/null 2>&1 || true
 
     exit 1
   fi
@@ -129,7 +151,8 @@ do
 
   git worktree remove \
     --force \
-    "$WORKTREE_PATH"
+    "$WORKTREE_PATH" \
+    >/dev/null 2>&1 || true
 
   echo
   echo "[AEGIS] Mode completed successfully."
@@ -137,6 +160,16 @@ do
 
 done
 
+# =========================================================
+# GLOBAL CLEANUP
+# =========================================================
+
+rm -rf "$WORKTREE_BASE"
+rm -rf "$ROOT_DIR/.aider.tags.cache.v4"
+rm -f "$ROOT_DIR/.aider.chat.history.md"
+rm -f "$ROOT_DIR/.aider.input.history"
+rm -f "$HOME/.aider.chat.history.md"
+rm -f "$HOME/.aider.input.history"
 echo
 echo "================================================="
 echo "[AEGIS] Runtime completed successfully."

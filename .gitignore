@@ -5,12 +5,25 @@
 .harness/worktrees/
 
 # =========================================================
+# RUNTIME TRANSIENT STATE
+# =========================================================
+
+.harness/runtime/active_task.md
+.harness/runtime/last_good_active_task.md
+
+.harness/runtime/*.tmp
+.harness/runtime/*.bak
+.harness/runtime/*.snapshot
+
+# =========================================================
 # AIDER EPHEMERAL STATE
 # =========================================================
 
 .aider.chat.history.md
 .aider.input.history
 .aider.llm.history
+
+.aider.tags.cache*/
 
 # =========================================================
 # EXECUTION ARTIFACTS
@@ -35,9 +48,30 @@ sandbox/
 .skills/**/reports/
 
 # =========================================================
-# RUNTIME TRANSIENT STATE
+# NODE / JAVASCRIPT
 # =========================================================
 
-.harness/runtime/*.tmp
-.harness/runtime/*.bak
-.harness/runtime/*.snapshot
+node_modules/
+**/node_modules/
+
+# =========================================================
+# PYTHON TRANSIENT STATE
+# =========================================================
+
+__pycache__/
+*.pyc
+
+# =========================================================
+# GENERIC TRANSIENT FILES
+# =========================================================
+
+*.tmp
+*.temp
+*.log
+
+# =========================================================
+# TOOL CACHE
+# =========================================================
+
+.cache/
+.npm/
