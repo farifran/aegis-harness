@@ -18,13 +18,6 @@
 
 *_artifact.json
 
-discovery_artifact.json
-forensics_artifact.json
-validation_artifact.json
-adversarial_artifact.json
-repair_artifact.json
-optimize_artifact.json
-
 # =========================================================
 # TRANSIENT EXECUTION OUTPUTS
 # =========================================================
