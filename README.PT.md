@@ -24,7 +24,7 @@ curl https://integrate.api.nvidia.com/v1/chat/completions \
     "temperature":0
   }'
 
-timeout 60 aider \
+timeout 20 aider \
   --model openai/meta/llama-3.3-70b-instruct \
   --message "Reply ONLY with: OK" \
   --yes-always \

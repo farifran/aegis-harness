@@ -3,92 +3,107 @@
 source ~/.bashrc
 set -euo pipefail
 
-# =========================================================
-# AEGIS RUNTIME
-# =========================================================
-
 ROOT_DIR="$(
   cd "$(dirname "${BASH_SOURCE[0]}")" && pwd
 )"
 
+source "$ROOT_DIR/.harness/config.sh"
+
 RUNTIME_DIR="$ROOT_DIR/.harness/runtime"
 
 ACTIVE_TASK="$RUNTIME_DIR/active_task.md"
-
 LAST_GOOD_TASK="$RUNTIME_DIR/last_good_active_task.md"
 
 WORKTREE_BASE="$ROOT_DIR/.harness/worktrees"
 
-MODES=(
-  discovery
-  forensics
-  validation
-  adversarial
-)
-
-# =========================================================
-# FAILURE
-# =========================================================
+CURRENT_WORKTREE_PATH=""
 
 fail() {
-
   echo
   echo "[AEGIS] $1" >&2
   echo
-
   exit 1
 }
 
-# =========================================================
-# VALIDATION
-# =========================================================
+cleanup_worktree() {
+  local path="${1:-}"
+
+  [[ -n "$path" ]] || return 0
+
+  rm -rf "$path/.aider.tags.cache.v4" >/dev/null 2>&1 || true
+  rm -f "$path/.aider.chat.history.md" >/dev/null 2>&1 || true
+  rm -f "$path/.aider.input.history" >/dev/null 2>&1 || true
+
+  git worktree remove \
+    --force \
+    "$path" \
+    >/dev/null 2>&1 || true
+}
+
+cleanup_global() {
+  rm -rf "$WORKTREE_BASE" >/dev/null 2>&1 || true
+
+  rm -rf "$ROOT_DIR/.aider.tags.cache.v4" >/dev/null 2>&1 || true
+
+  rm -f "$ROOT_DIR/.aider.chat.history.md" >/dev/null 2>&1 || true
+  rm -f "$ROOT_DIR/.aider.input.history" >/dev/null 2>&1 || true
+
+  rm -f "$HOME/.aider.chat.history.md" >/dev/null 2>&1 || true
+  rm -f "$HOME/.aider.input.history" >/dev/null 2>&1 || true
+
+  git worktree prune >/dev/null 2>&1 || true
+}
+
+cleanup_all() {
+  cleanup_worktree "${CURRENT_WORKTREE_PATH:-}"
+  cleanup_global
+}
+
+trap cleanup_all EXIT INT TERM
 
 mkdir -p "$WORKTREE_BASE"
 
 git worktree prune
 
-# =========================================================
-# RUNTIME STATE RESET
-# =========================================================
-
 rm -f "$ACTIVE_TASK"
 rm -f "$LAST_GOOD_TASK"
 
-# =========================================================
-# EXECUTION LOOP
-# =========================================================
-
-for MODE in "${MODES[@]}"
+for MODE in "${AEGIS_ANALYSIS_MODES[@]}"
 do
-
   echo
   echo "================================================="
   echo "[AEGIS] Executing: $MODE"
   echo "================================================="
   echo
 
-  WORKTREE_PATH="$WORKTREE_BASE/$MODE"
+  CURRENT_WORKTREE_PATH="$WORKTREE_BASE/$MODE"
 
-  rm -rf "$WORKTREE_PATH"
+  rm -rf "$CURRENT_WORKTREE_PATH"
 
   git worktree add \
     --force \
     --detach \
-    "$WORKTREE_PATH" \
+    "$CURRENT_WORKTREE_PATH" \
     HEAD
 
-  pushd "$WORKTREE_PATH" \
-    >/dev/null
+  pushd "$CURRENT_WORKTREE_PATH" >/dev/null
 
   chmod +x scripts/execute_mode.sh
 
   set +e
 
+  ACTIVE_TASK_ARG=".harness/runtime/active_task.md"
+
+  if [[ "$MODE" == "discovery" ]]
+  then
+    ACTIVE_TASK_ARG=""
+  fi
+
   OUTPUT="$(
     bash scripts/execute_mode.sh \
       ".skills/$MODE.md" \
       "$MODE" \
-      ".harness/runtime/active_task.md" \
+      "$ACTIVE_TASK_ARG" \
       2>&1
   )"
 
@@ -98,46 +113,22 @@ do
 
   popd >/dev/null
 
-  # =======================================================
-  # AIDER RESIDUE CLEANUP
-  # =======================================================
-
-  rm -rf "$WORKTREE_PATH/.aider.tags.cache.v4"
-
-  rm -f "$WORKTREE_PATH/.aider.chat.history.md"
-  rm -f "$WORKTREE_PATH/.aider.input.history"
-
   printf '%s\n' "$OUTPUT"
-
-  # =======================================================
-  # FAILURE DETECTION
-  # =======================================================
 
   if [[ "$EXIT_CODE" -ne 0 ]]
   then
-
     echo
     echo "[AEGIS] Mode failed: $MODE"
     echo
 
-    git worktree remove \
-      --force \
-      "$WORKTREE_PATH" \
-      >/dev/null 2>&1 || true
-
     exit 1
   fi
 
-  # =======================================================
-  # ACTIVE TASK PROMOTION
-  # =======================================================
-
   if [[ -f \
-    "$WORKTREE_PATH/.harness/runtime/active_task.md" ]]
+    "$CURRENT_WORKTREE_PATH/.harness/runtime/active_task.md" ]]
   then
-
     cp \
-      "$WORKTREE_PATH/.harness/runtime/active_task.md" \
+      "$CURRENT_WORKTREE_PATH/.harness/runtime/active_task.md" \
       "$ACTIVE_TASK"
 
     cp \
@@ -145,31 +136,15 @@ do
       "$LAST_GOOD_TASK"
   fi
 
-  # =======================================================
-  # WORKTREE CLEANUP
-  # =======================================================
+  cleanup_worktree "$CURRENT_WORKTREE_PATH"
 
-  git worktree remove \
-    --force \
-    "$WORKTREE_PATH" \
-    >/dev/null 2>&1 || true
+  CURRENT_WORKTREE_PATH=""
 
   echo
   echo "[AEGIS] Mode completed successfully."
   echo
-
 done
 
-# =========================================================
-# GLOBAL CLEANUP
-# =========================================================
-
-rm -rf "$WORKTREE_BASE"
-rm -rf "$ROOT_DIR/.aider.tags.cache.v4"
-rm -f "$ROOT_DIR/.aider.chat.history.md"
-rm -f "$ROOT_DIR/.aider.input.history"
-rm -f "$HOME/.aider.chat.history.md"
-rm -f "$HOME/.aider.input.history"
 echo
 echo "================================================="
 echo "[AEGIS] Runtime completed successfully."

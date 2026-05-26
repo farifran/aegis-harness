@@ -80,8 +80,6 @@ You may:
 - inspect observable operational boundaries;
 - inspect observable runtime behavior.
 
-This is expected behavior inside disposable execution environments.
-
 Discovery must NEVER:
 - reinterpret transient sandbox state as persistent authority;
 - assume hidden continuity ownership;
