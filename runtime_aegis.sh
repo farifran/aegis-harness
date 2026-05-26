@@ -10,10 +10,7 @@ ROOT_DIR="$(
 source "$ROOT_DIR/.harness/config.sh"
 
 RUNTIME_DIR="$ROOT_DIR/.harness/runtime"
-
 ACTIVE_TASK="$RUNTIME_DIR/active_task.md"
-LAST_GOOD_TASK="$RUNTIME_DIR/last_good_active_task.md"
-
 WORKTREE_BASE="$ROOT_DIR/.harness/worktrees"
 
 CURRENT_WORKTREE_PATH=""
@@ -34,20 +31,15 @@ cleanup_worktree() {
   rm -f "$path/.aider.chat.history.md" >/dev/null 2>&1 || true
   rm -f "$path/.aider.input.history" >/dev/null 2>&1 || true
 
-  git worktree remove \
-    --force \
-    "$path" \
-    >/dev/null 2>&1 || true
+  git worktree remove --force "$path" >/dev/null 2>&1 || true
 }
 
 cleanup_global() {
   rm -rf "$WORKTREE_BASE" >/dev/null 2>&1 || true
 
   rm -rf "$ROOT_DIR/.aider.tags.cache.v4" >/dev/null 2>&1 || true
-
   rm -f "$ROOT_DIR/.aider.chat.history.md" >/dev/null 2>&1 || true
   rm -f "$ROOT_DIR/.aider.input.history" >/dev/null 2>&1 || true
-
   rm -f "$HOME/.aider.chat.history.md" >/dev/null 2>&1 || true
   rm -f "$HOME/.aider.input.history" >/dev/null 2>&1 || true
 
@@ -62,11 +54,10 @@ cleanup_all() {
 trap cleanup_all EXIT INT TERM
 
 mkdir -p "$WORKTREE_BASE"
-
+mkdir -p "$RUNTIME_DIR"
 git worktree prune
 
 rm -f "$ACTIVE_TASK"
-rm -f "$LAST_GOOD_TASK"
 
 for MODE in "${AEGIS_ANALYSIS_MODES[@]}"
 do
@@ -86,19 +77,22 @@ do
     "$CURRENT_WORKTREE_PATH" \
     HEAD
 
-  pushd "$CURRENT_WORKTREE_PATH" >/dev/null
-
-  chmod +x scripts/execute_mode.sh
-
-  set +e
-
-  ACTIVE_TASK_ARG=".harness/runtime/active_task.md"
-
-  if [[ "$MODE" == "discovery" ]]
+  if [[ -f "$ACTIVE_TASK" ]]
   then
-    ACTIVE_TASK_ARG=""
+    mkdir -p "$CURRENT_WORKTREE_PATH/.harness/runtime"
+    cp "$ACTIVE_TASK" "$CURRENT_WORKTREE_PATH/.harness/runtime/active_task.md"
   fi
 
+  pushd "$CURRENT_WORKTREE_PATH" >/dev/null
+  chmod +x scripts/execute_mode.sh
+
+  ACTIVE_TASK_ARG=""
+  if [[ "$MODE" != "discovery" ]]
+  then
+    ACTIVE_TASK_ARG=".harness/runtime/active_task.md"
+  fi
+
+  set +e
   OUTPUT="$(
     bash scripts/execute_mode.sh \
       ".skills/$MODE.md" \
@@ -106,9 +100,7 @@ do
       "$ACTIVE_TASK_ARG" \
       2>&1
   )"
-
   EXIT_CODE=$?
-
   set -e
 
   popd >/dev/null
@@ -120,24 +112,21 @@ do
     echo
     echo "[AEGIS] Mode failed: $MODE"
     echo
-
     exit 1
   fi
 
-  if [[ -f \
-    "$CURRENT_WORKTREE_PATH/.harness/runtime/active_task.md" ]]
+  if [[ "$MODE" == "discovery" ]]
   then
-    cp \
-      "$CURRENT_WORKTREE_PATH/.harness/runtime/active_task.md" \
-      "$ACTIVE_TASK"
+    cat > "$ACTIVE_TASK" <<EOF
+# ACTIVE TASK
 
-    cp \
-      "$ACTIVE_TASK" \
-      "$LAST_GOOD_TASK"
+Discovery completed successfully.
+
+Continue runtime analysis using currently observable repository and runtime state.
+EOF
   fi
 
   cleanup_worktree "$CURRENT_WORKTREE_PATH"
-
   CURRENT_WORKTREE_PATH=""
 
   echo

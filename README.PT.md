@@ -1,3 +1,5 @@
+# Aegis LLM Setting
+
 cat >> ~/.bashrc <<'EOF'
 
 export OPENAI_API_BASE="https://integrate.api.nvidia.com/v1"
@@ -34,6 +36,13 @@ timeout 20 aider \
   --map-tokens 0 \
   --no-git \
   --exit
+
+# Aegis Melhoras
+
+1. Contract hardening - Pronto
+2. Schema centralization
+3. Mutation governance
+4. Repair authorization topology
 
 # Aegis Harness
 
