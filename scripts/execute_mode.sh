@@ -29,6 +29,7 @@ fail() {
 
 debug_output() {
   local title="$1"
+
   echo
   echo "================================================="
   echo "[AEGIS DEBUG] $title"
@@ -49,8 +50,10 @@ if [[ "$EXPECTED_MODE" != "discovery" ]]; then
   [[ -f "$ACTIVE_TASK_PATH" ]] || fail "Missing runtime active task."
 fi
 
-[[ -n "${OPENAI_API_KEY:-}" ]] || fail "Missing OPENAI_API_KEY."
-[[ -n "${OPENAI_API_BASE:-}" ]] || fail "Missing OPENAI_API_BASE."
+[[ -n "${AEGIS_MODEL:-}" ]] || fail "Missing AEGIS_MODEL."
+[[ -n "${AEGIS_EDIT_FORMAT:-}" ]] || fail "Missing AEGIS_EDIT_FORMAT."
+[[ -n "${AEGIS_EXECUTION_TIMEOUT:-}" ]] || fail "Missing AEGIS_EXECUTION_TIMEOUT."
+[[ "${AEGIS_EXECUTION_TIMEOUT}" =~ ^[0-9]+$ ]] || fail "Invalid execution timeout."
 
 MODE_CONTRACT="$(
   cat "$MODE_PATH"
@@ -58,17 +61,26 @@ MODE_CONTRACT="$(
 
 MODE_OBJECTIVE="Inspect observable runtime and repository state."
 
-if [[ "$EXPECTED_MODE" == "forensics" ]]; then
-  MODE_OBJECTIVE="Inspect observable operational integrity."
-elif [[ "$EXPECTED_MODE" == "validation" ]]; then
-  MODE_OBJECTIVE="Inspect observable execution validity."
-elif [[ "$EXPECTED_MODE" == "adversarial" ]]; then
-  MODE_OBJECTIVE="Inspect observable boundary and failure surfaces."
-elif [[ "$EXPECTED_MODE" == "repair" ]]; then
-  MODE_OBJECTIVE="Execute the explicitly authorized bounded repair."
-elif [[ "$EXPECTED_MODE" == "optimize" ]]; then
-  MODE_OBJECTIVE="Execute the explicitly authorized bounded optimization."
-fi
+case "$EXPECTED_MODE" in
+  discovery)
+    MODE_OBJECTIVE="Inspect observable runtime and repository state."
+    ;;
+  forensics)
+    MODE_OBJECTIVE="Inspect observable operational integrity."
+    ;;
+  validation)
+    MODE_OBJECTIVE="Inspect observable execution validity."
+    ;;
+  adversarial)
+    MODE_OBJECTIVE="Inspect observable boundary and failure surfaces."
+    ;;
+  repair)
+    MODE_OBJECTIVE="Execute the explicitly authorized bounded repair."
+    ;;
+  optimize)
+    MODE_OBJECTIVE="Execute the explicitly authorized bounded optimization."
+    ;;
+esac
 
 MODE_MESSAGE="/ask
 
@@ -116,6 +128,7 @@ fi
 
 if [[ -n "$EDITABLE_SURFACES" ]]; then
   IFS=',' read -r -a SURFACES <<< "$EDITABLE_SURFACES"
+
   for surface in "${SURFACES[@]}"; do
     surface="${surface//[[:space:]]/}"
     [[ -z "$surface" ]] && continue

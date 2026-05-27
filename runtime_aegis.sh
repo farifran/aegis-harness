@@ -53,8 +53,89 @@ cleanup_all() {
 
 trap cleanup_all EXIT INT TERM
 
+validate_runtime_consistency() {
+  local required_files=(
+    "$ROOT_DIR/AGENTS.md"
+    "$ROOT_DIR/.harness/config.sh"
+    "$ROOT_DIR/scripts/execute_mode.sh"
+    "$ROOT_DIR/.harness/architecture_graph.json"
+    "$ROOT_DIR/.skills/discovery.md"
+    "$ROOT_DIR/.skills/forensics.md"
+    "$ROOT_DIR/.skills/validation.md"
+    "$ROOT_DIR/.skills/adversarial.md"
+    "$ROOT_DIR/.skills/repair.md"
+    "$ROOT_DIR/.skills/optimize.md"
+  )
+
+  local file
+  for file in "${required_files[@]}"
+  do
+    [[ -f "$file" ]] || fail "Missing runtime file: ${file#"$ROOT_DIR/"}"
+  done
+
+  [[ -n "${AEGIS_MODEL:-}" ]] \
+    || fail "Invalid config: missing model."
+
+  [[ -n "${AEGIS_EDIT_FORMAT:-}" ]] \
+    || fail "Invalid config: missing edit format."
+
+  [[ "${AEGIS_EXECUTION_TIMEOUT:-}" =~ ^[0-9]+$ ]] \
+    || fail "Invalid config: execution timeout must be numeric."
+
+  [[ "${AEGIS_EXECUTION_TIMEOUT:-0}" -gt 0 ]] \
+    || fail "Invalid config: execution timeout must be greater than zero."
+
+  [[ -n "${AEGIS_ANALYSIS_MODES[*]:-}" ]] \
+    || fail "Invalid config: missing analysis mode list."
+
+  [[ -n "${AEGIS_MUTATION_MODES[*]:-}" ]] \
+    || fail "Invalid config: missing mutation mode list."
+
+  declare -A seen_modes=()
+  local mode authority_var authority file_path
+
+  for mode in "${AEGIS_ANALYSIS_MODES[@]}" "${AEGIS_MUTATION_MODES[@]}"
+  do
+    [[ -n "$mode" ]] || fail "Invalid config: empty mode entry."
+
+    [[ -z "${seen_modes[$mode]:-}" ]] \
+      || fail "Invalid config: duplicate mode declaration: $mode"
+
+    seen_modes["$mode"]=1
+
+    file_path="$ROOT_DIR/.skills/$mode.md"
+    [[ -f "$file_path" ]] \
+      || fail "Missing mode contract: .skills/$mode.md"
+
+    authority_var="AEGIS_MODE_EDIT_AUTHORITY_${mode}"
+    authority="${!authority_var:-}"
+
+    [[ -n "$authority" ]] \
+      || fail "Invalid config: missing edit authority for mode: $mode"
+
+    case "$mode" in
+      "${AEGIS_ANALYSIS_MODES[@]}")
+        [[ "$authority" == "false" ]] \
+          || fail "Invalid config: analysis mode must not have edit authority: $mode"
+        ;;
+      "${AEGIS_MUTATION_MODES[@]}")
+        [[ "$authority" == "true" ]] \
+          || fail "Invalid config: mutation mode must have edit authority: $mode"
+        ;;
+    esac
+  done
+
+  grep -q 'AEGIS_ARTIFACT_BEGIN' "$ROOT_DIR/scripts/execute_mode.sh" \
+    || fail "Invalid executor: missing artifact sentinel handling."
+
+  grep -q 'Execute immediately.' "$ROOT_DIR/scripts/execute_mode.sh" \
+    || fail "Invalid executor: missing execution coercion."
+}
+
 mkdir -p "$WORKTREE_BASE"
 mkdir -p "$RUNTIME_DIR"
+
+validate_runtime_consistency
 git worktree prune
 
 rm -f "$ACTIVE_TASK"

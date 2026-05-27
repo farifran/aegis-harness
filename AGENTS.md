@@ -1,111 +1,218 @@
-# AEGIS HARNESS
+# AEGIS HARNESS — SYSTEM SUMMARY
+
+## Purpose
 
 Aegis Harness is a bounded deterministic AI runtime.
 
-The runtime owns:
+It separates:
+- cognition;
 - orchestration;
-- persistence;
 - continuity;
+- persistence;
 - governance;
-- lifecycle control.
+- mutation authority.
+
+The system rejects:
+- hidden persistence;
+- implicit governance;
+- uncontrolled mutation;
+- autonomous authority;
+- conversational execution topology.
+
+---
+
+## Core Model
 
 The model is a bounded execution unit.
 
-The model never owns:
-- persistence authority;
-- governance authority;
-- continuity authority;
-- architectural sovereignty.
+The runtime owns:
+- orchestration;
+- lifecycle control;
+- continuity management;
+- persistence decisions;
+- cleanup.
 
-All execution occurs inside disposable isolated worktrees.
+Git is the only authoritative persistence layer.
 
 Sandbox state is transient and non-authoritative.
 
-Git remains the only authoritative persistence layer.
+---
+
+## Operating Principle
+
+Aegis prioritizes:
+- deterministic execution;
+- explicit authority;
+- observable behavior;
+- disposable execution environments;
+- mechanical protocol enforcement.
+
+The runtime is sovereign.
+
+The model is bounded.
 
 ---
 
-# EXECUTION PRINCIPLES
+## Topology
 
-Always:
-- remain bounded;
-- remain evidence-based;
-- remain operationally observable;
-- follow injected contracts exactly.
+### `runtime_aegis.sh`
+Orchestrates the full runtime:
+- creates worktrees;
+- injects continuity when needed;
+- executes modes;
+- cleans up transient state;
+- removes disposable sandboxes.
 
-Never:
-- self-authorize capabilities;
-- fabricate evidence;
-- infer hidden authority;
-- reinterpret suspicion as certainty;
-- mutate outside explicitly authorized surfaces.
+### `scripts/execute_mode.sh`
+Executes one mode:
+- loads the mode contract;
+- builds the protocol message;
+- runs aider;
+- extracts sentinel-framed artifacts;
+- validates JSON;
+- validates mode match;
+- enforces protocol compliance.
 
-Missing information must remain:
-- unknown;
-- bounded;
-- non-authoritative.
+### `.harness/config.sh`
+Central configuration:
+- model;
+- timeout;
+- mode lists;
+- edit authority.
 
-Operational plausibility is NOT operational evidence.
+### `AGENTS.md`
+Global runtime governance:
+- authority boundaries;
+- execution principles;
+- continuity model;
+- artifact model.
 
-Semantic confidence is NOT execution authority.
-
-Transient sandbox materialization is NOT automatically authoritative.
-
----
-
-# OPERATIONAL MODEL
-
-Execution is protocol-oriented, not conversational.
-
-Expected behavior:
-- immediate execution;
-- deterministic outputs;
-- schema compliance;
-- sentinel-framed artifacts.
-
-Never emit:
-- acknowledgements;
-- conversational replies;
-- clarification requests;
-- explanatory prose;
-- reasoning narration.
-
-Execution must begin immediately from injected runtime instructions.
-
-Conversational drift is considered protocol deviation.
+### `.skills/*.md`
+Mode contracts:
+- discovery;
+- forensics;
+- validation;
+- adversarial;
+- repair;
+- optimize.
 
 ---
 
-# AUTHORITY MODEL
+## Mode Model
 
-Authority is runtime-governed.
+### Discovery
+Observation of:
+- runtime state;
+- repository topology;
+- execution structure;
+- orchestration behavior.
 
-The runtime exclusively owns:
-- persistence decisions;
-- continuity promotion;
-- operational acceptance;
-- orchestration topology;
-- lifecycle governance.
+### Forensics
+Inspection of:
+- integrity;
+- inconsistencies;
+- mutation anomalies;
+- boundary violations.
 
-Analysis modes:
-- inspect only.
+### Validation
+Verification of:
+- execution correctness;
+- containment integrity;
+- promotion integrity;
+- policy compliance.
 
-Mutation modes:
-- mutate only explicitly authorized surfaces.
+### Adversarial
+Assessment of:
+- containment weaknesses;
+- escalation surfaces;
+- leakage risks;
+- orchestration weaknesses.
 
-No mode may:
-- expand its own authority;
-- reinterpret governance boundaries;
-- self-authorize persistence;
-- self-authorize continuity ownership.
+### Repair
+Explicitly authorized bounded mutation.
+
+### Optimize
+Explicitly authorized bounded optimization.
 
 ---
 
-# CONTINUITY MODEL
+## Continuity
 
 Runtime continuity is ephemeral.
 
-Continuity may temporarily exist through:
+Current continuity is represented through:
+- `active_task.md`
 
-```text
-active_task.md
+This file is:
+- runtime-owned;
+- disposable;
+- non-authoritative.
+
+Persistent history belongs to git.
+
+---
+
+## Protocol
+
+Execution is protocol-oriented, not conversational.
+
+The runtime expects:
+- immediate execution;
+- sentinel-framed artifacts;
+- schema compliance;
+- no acknowledgements;
+- no explanations;
+- no conversational drift.
+
+Artifacts must be machine-readable and bounded.
+
+---
+
+## Current Strengths
+
+The system already has:
+- explicit authority separation;
+- deterministic lifecycle;
+- disposable sandboxing;
+- centralized configuration;
+- protocol hardening;
+- bounded mode contracts;
+- machine-validated artifacts.
+
+---
+
+## Current Limits
+
+The system still does not yet include:
+- checkpoint recovery topology;
+- artifact schema centralization;
+- runtime integrity hashing;
+- rollback orchestration;
+- recovery promotion logic.
+
+Those are deferred until the current runtime is fully stabilized.
+
+---
+
+## Current Priority
+
+The current priority is:
+- remove redundancy;
+- reduce verbosity;
+- prevent protocol drift;
+- preserve KISS;
+- harden operational determinism;
+- keep authority boundaries explicit.
+
+---
+
+## Final Position
+
+Aegis Harness is not a general autonomous agent framework.
+
+It is a bounded runtime protocol for:
+- controlled cognition;
+- explicit authority;
+- disposable execution;
+- deterministic validation;
+- governed persistence.
