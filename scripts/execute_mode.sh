@@ -35,7 +35,9 @@ debug_output() {
   echo "[AEGIS DEBUG] $title"
   echo "================================================="
   echo
+
   printf '%s\n' "$RAW_OUTPUT"
+
   echo
   echo "================================================="
   echo
@@ -196,7 +198,7 @@ then
 fi
 
 JSON_PAYLOAD="$(
-python3 - <<'PY'
+printf '%s' "$RAW_OUTPUT" | python3 -c '
 import json
 import sys
 
@@ -205,7 +207,7 @@ data = sys.stdin.read()
 decoder = json.JSONDecoder()
 
 for i, ch in enumerate(data):
-    if ch != '{':
+    if ch != "{":
         continue
 
     try:
@@ -216,8 +218,7 @@ for i, ch in enumerate(data):
         pass
 
 sys.exit(1)
-PY
-<<< "$RAW_OUTPUT"
+'
 )"
 
 [[ -n "$JSON_PAYLOAD" ]] || {
