@@ -35,31 +35,47 @@ debug_output() {
   echo "[AEGIS DEBUG] $title"
   echo "================================================="
   echo
-  printf '%s\n' "$OUTPUT"
+  printf '%s\n' "$RAW_OUTPUT"
   echo
   echo "================================================="
   echo
 }
 
-[[ -f "$MODE_PATH" ]] || fail "Mode file not found."
-[[ -f "$AGENTS_FILE" ]] || fail "Missing AGENTS.md."
-[[ -f "$ARCH_GRAPH_FILE" ]] || fail "Missing architecture_graph.json."
+[[ -f "$MODE_PATH" ]] \
+  || fail "Mode file not found."
 
-if [[ "$EXPECTED_MODE" != "discovery" ]]; then
-  [[ -n "$ACTIVE_TASK_PATH" ]] || fail "Missing runtime active task path."
-  [[ -f "$ACTIVE_TASK_PATH" ]] || fail "Missing runtime active task."
+[[ -f "$AGENTS_FILE" ]] \
+  || fail "Missing AGENTS.md."
+
+[[ -f "$ARCH_GRAPH_FILE" ]] \
+  || fail "Missing architecture_graph.json."
+
+if [[ "$EXPECTED_MODE" != "discovery" ]]
+then
+  [[ -n "$ACTIVE_TASK_PATH" ]] \
+    || fail "Missing runtime active task path."
+
+  [[ -f "$ACTIVE_TASK_PATH" ]] \
+    || fail "Missing runtime active task."
 fi
 
-[[ -n "${AEGIS_MODEL:-}" ]] || fail "Missing AEGIS_MODEL."
-[[ -n "${AEGIS_EDIT_FORMAT:-}" ]] || fail "Missing AEGIS_EDIT_FORMAT."
-[[ -n "${AEGIS_EXECUTION_TIMEOUT:-}" ]] || fail "Missing AEGIS_EXECUTION_TIMEOUT."
-[[ "${AEGIS_EXECUTION_TIMEOUT}" =~ ^[0-9]+$ ]] || fail "Invalid execution timeout."
+[[ -n "${AEGIS_MODEL:-}" ]] \
+  || fail "Missing AEGIS_MODEL."
+
+[[ -n "${AEGIS_EDIT_FORMAT:-}" ]] \
+  || fail "Missing AEGIS_EDIT_FORMAT."
+
+[[ -n "${AEGIS_EXECUTION_TIMEOUT:-}" ]] \
+  || fail "Missing AEGIS_EXECUTION_TIMEOUT."
+
+[[ "${AEGIS_EXECUTION_TIMEOUT}" =~ ^[0-9]+$ ]] \
+  || fail "Invalid execution timeout."
 
 MODE_CONTRACT="$(
   cat "$MODE_PATH"
 )"
 
-MODE_OBJECTIVE="Inspect observable runtime and repository state."
+MODE_OBJECTIVE="Inspect observable runtime state."
 
 case "$EXPECTED_MODE" in
   discovery)
@@ -72,7 +88,7 @@ case "$EXPECTED_MODE" in
     MODE_OBJECTIVE="Inspect observable execution validity."
     ;;
   adversarial)
-    MODE_OBJECTIVE="Inspect observable boundary and failure surfaces."
+    MODE_OBJECTIVE="Inspect observable boundary and containment weaknesses."
     ;;
   repair)
     MODE_OBJECTIVE="Execute the explicitly authorized bounded repair."
@@ -92,17 +108,15 @@ Rules:
 - no acknowledgements;
 - no explanations;
 - no reasoning;
-- emit exactly one sentinel-framed artifact;
-- any prose before the sentinel is a protocol violation.
+- emit exactly one JSON object;
+- do not emit markdown;
+- do not emit prose before JSON;
+- do not emit prose after JSON.
 
 Objective:
 $MODE_OBJECTIVE
 
-$MODE_CONTRACT
-
-Begin immediately:
-
-AEGIS_ARTIFACT_BEGIN"
+$MODE_CONTRACT"
 
 AIDER_ARGS=(
   --config "$ROOT_DIR/.aider.empty.conf.yml"
@@ -114,24 +128,31 @@ AIDER_ARGS=(
   --message "$MODE_MESSAGE"
 )
 
-if [[ "$MODE_EDIT_AUTHORITY" == "true" ]]; then
+if [[ "$MODE_EDIT_AUTHORITY" == "true" ]]
+then
   AIDER_ARGS+=(
     --edit-format "$AEGIS_EDIT_FORMAT"
   )
 fi
 
-if [[ -n "$ACTIVE_TASK_PATH" ]] && [[ -f "$ACTIVE_TASK_PATH" ]]; then
+if [[ -n "$ACTIVE_TASK_PATH" ]] \
+  && [[ -f "$ACTIVE_TASK_PATH" ]]
+then
   AIDER_ARGS+=(
     --read "$ACTIVE_TASK_PATH"
   )
 fi
 
-if [[ -n "$EDITABLE_SURFACES" ]]; then
+if [[ -n "$EDITABLE_SURFACES" ]]
+then
   IFS=',' read -r -a SURFACES <<< "$EDITABLE_SURFACES"
 
-  for surface in "${SURFACES[@]}"; do
+  for surface in "${SURFACES[@]}"
+  do
     surface="${surface//[[:space:]]/}"
+
     [[ -z "$surface" ]] && continue
+
     AIDER_ARGS+=("$surface")
   done
 fi
@@ -143,98 +164,92 @@ echo
 cd "$ROOT_DIR"
 
 set +e
-OUTPUT="$(
+
+RAW_OUTPUT="$(
   timeout "$AEGIS_EXECUTION_TIMEOUT" \
     aider \
       "${AIDER_ARGS[@]}" \
       2>&1
 )"
+
 EXIT_CODE=$?
+
 set -e
 
 echo
 echo "[AEGIS] Aider execution completed."
 echo
-printf '%s\n' "$OUTPUT"
 
-FIRST_SENTINEL_LINE="$(
-  printf '%s\n' "$OUTPUT" \
-    | grep -n "AEGIS_ARTIFACT_BEGIN" \
-    | head -n1 \
-    | cut -d: -f1
-)"
+printf '%s\n' "$RAW_OUTPUT"
 
-[[ -n "$FIRST_SENTINEL_LINE" ]] || {
-  debug_output "RAW OUTPUT"
-  fail "Missing sentinel-framed artifact."
-}
-
-PRE_SENTINEL_OUTPUT="$(
-  printf '%s\n' "$OUTPUT" \
-    | head -n "$((FIRST_SENTINEL_LINE - 1))" \
-    | sed '/^[[:space:]]*$/d'
-)"
-
-FILTERED_PRE_SENTINEL="$(
-  printf '%s\n' "$PRE_SENTINEL_OUTPUT" \
-    | grep -v -E '^(Aider v|Model:|Git repo:|Repo-map:|Added |Warning:|Tokens:)' \
-    || true
-)"
-
-[[ -z "$FILTERED_PRE_SENTINEL" ]] || {
-  debug_output "PROTOCOL VIOLATION"
-  fail "Protocol violation detected before artifact."
-}
-
-if [[ "$EXIT_CODE" -eq 124 ]]; then
+if [[ "$EXIT_CODE" -eq 124 ]]
+then
   debug_output "TIMEOUT OUTPUT"
   fail "Provider execution timeout."
 fi
 
-if echo "$OUTPUT" | grep -qi -E 'InternalServerError|RateLimit|AuthenticationError|Connection error'; then
+if echo "$RAW_OUTPUT" | grep -qi -E \
+  'InternalServerError|RateLimit|AuthenticationError|Connection error'
+then
   debug_output "PROVIDER FAILURE"
   fail "Provider execution failure."
 fi
 
-echo
-echo "[AEGIS] Extracting artifact..."
-echo
+JSON_PAYLOAD="$(
+python3 - <<'PY'
+import json
+import sys
 
-ARTIFACT="$(
-  printf '%s\n' "$OUTPUT" \
-    | sed -n '/AEGIS_ARTIFACT_BEGIN/,/AEGIS_ARTIFACT_END/p' \
-    | sed '1d;$d'
+data = sys.stdin.read()
+
+decoder = json.JSONDecoder()
+
+for i, ch in enumerate(data):
+    if ch != '{':
+        continue
+
+    try:
+        obj, end = decoder.raw_decode(data[i:])
+        print(json.dumps(obj))
+        sys.exit(0)
+    except Exception:
+        pass
+
+sys.exit(1)
+PY
+<<< "$RAW_OUTPUT"
 )"
 
-if [[ -z "$ARTIFACT" ]]; then
-  if [[ "$EXPECTED_MODE" == "repair" ]] || [[ "$EXPECTED_MODE" == "optimize" ]]; then
-    echo
-    echo "[AEGIS] No runtime artifact emitted."
-    echo
-    exit 0
-  fi
-
+[[ -n "$JSON_PAYLOAD" ]] || {
   debug_output "RAW OUTPUT"
-  fail "Missing runtime artifact."
-fi
+  fail "Missing JSON artifact."
+}
 
 echo
 echo "[AEGIS] Validating artifact..."
 echo
 
-echo "$ARTIFACT" | jq empty >/dev/null 2>&1 || {
+echo "$JSON_PAYLOAD" | jq empty >/dev/null 2>&1 || {
   debug_output "INVALID JSON OUTPUT"
   fail "Invalid JSON runtime artifact."
 }
 
 ARTIFACT_MODE="$(
-  echo "$ARTIFACT" | jq -r '.mode'
+  echo "$JSON_PAYLOAD" | jq -r '.mode'
 )"
 
-[[ "$ARTIFACT_MODE" == "$EXPECTED_MODE" ]] || fail "Mode/artifact mismatch detected."
+[[ "$ARTIFACT_MODE" == "$EXPECTED_MODE" ]] || {
+  fail "Mode/artifact mismatch detected."
+}
+
+OUTPUT="$(printf '%s\n%s\n%s\n' \
+  'AEGIS_ARTIFACT_BEGIN' \
+  "$JSON_PAYLOAD" \
+  'AEGIS_ARTIFACT_END'
+)"
 
 echo
 echo "[AEGIS] Artifact validated successfully."
 echo
 
-printf '%s\n' "$ARTIFACT"
+printf '%s\n' "$OUTPUT"
