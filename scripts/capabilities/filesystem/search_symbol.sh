@@ -1,63 +1,31 @@
 #!/usr/bin/env bash
 
-# =================================================
-# AEGIS HARNESS — CAPABILITY
-# filesystem.search_symbol
-# =================================================
-#
-# Purpose:
-# - deterministic readonly symbol inspection
-# - runtime-grounded repository evidence
-# - bounded structural search capability
-#
-# This capability intentionally:
-# - avoids semantic interpretation
-# - avoids assistant behavior
-# - avoids authority claims
-# - avoids implicit repository awareness
-#
-# The runtime owns:
-# - capability exposure
-# - query grounding
-# - authority boundaries
-#
-# This capability only:
-# - searches observable repository symbols
-# - emits deterministic JSON payloads
-#
-# =================================================
-
 set -Eeuo pipefail
 
-# =================================================
-# CONSTANTS
-# =================================================
+readonly SYMBOL_QUERY="${1:-}"
 
-CAPABILITY="filesystem.search_symbol"
+readonly EXECUTION_ID="${AEGIS_EXECUTION_ID:-unknown}"
 
-DEFAULT_QUERY="AEGIS"
+readonly GENERATED_AT="$(
+  date -u +"%Y-%m-%dT%H:%M:%SZ"
+)"
 
-# =================================================
-# INPUTS
-# =================================================
+fail() {
 
-QUERY="${1:-$DEFAULT_QUERY}"
-
-SEARCH_ROOT="${2:-.}"
-
-# =================================================
-# HELPERS
-# =================================================
-
-fatal() {
+  local error_message="$1"
 
   jq -n \
-    --arg capability "$CAPABILITY" \
-    --arg error "$1" \
+    --arg capability "filesystem.search_symbol" \
+    --arg classification "readonly" \
+    --arg execution_id "${EXECUTION_ID}" \
+    --arg generated_at "${GENERATED_AT}" \
+    --arg error "${error_message}" \
     '{
       success: false,
       capability: $capability,
-      classification: "readonly",
+      classification: $classification,
+      execution_id: $execution_id,
+      generated_at: $generated_at,
       payload: null,
       error: $error
     }'
@@ -65,64 +33,31 @@ fatal() {
   exit 1
 }
 
-# =================================================
-# VALIDATION
-# =================================================
+[[ -n "${SYMBOL_QUERY}" ]] \
+  || fail "missing_symbol_query"
 
-[[ -n "$QUERY" ]] \
-  || fatal "missing_query"
-
-[[ -d "$SEARCH_ROOT" ]] \
-  || fatal "search_root_not_found"
-
-# =================================================
-# SEARCH EXECUTION
-# =================================================
-
-execute_search() {
-
-  grep -RIn \
-    --exclude-dir=.git \
+SEARCH_RESULTS="$(
+  grep -Rni \
     --exclude-dir=node_modules \
-    --exclude-dir=.harness/runtime/capability_payloads \
-    --exclude-dir=.harness/runtime/capability_env \
-    "$QUERY" \
-    "$SEARCH_ROOT" \
-    || true
-}
-
-# =================================================
-# RESULT MATERIALIZATION
-# =================================================
-
-RESULTS="$(
-  execute_search
+    --exclude-dir=.git \
+    "${SYMBOL_QUERY}" . || true
 )"
-
-RESULT_COUNT="$(
-  printf '%s\n' "$RESULTS" \
-    | grep -c . \
-    || true
-)"
-
-# =================================================
-# OUTPUT
-# =================================================
 
 jq -n \
-  --arg capability "$CAPABILITY" \
-  --arg query "$QUERY" \
-  --arg search_root "$SEARCH_ROOT" \
-  --arg results "$RESULTS" \
-  --argjson result_count "${RESULT_COUNT:-0}" \
+  --arg capability "filesystem.search_symbol" \
+  --arg classification "readonly" \
+  --arg execution_id "${EXECUTION_ID}" \
+  --arg generated_at "${GENERATED_AT}" \
+  --arg query "${SYMBOL_QUERY}" \
+  --arg results "${SEARCH_RESULTS}" \
   '{
     success: true,
     capability: $capability,
-    classification: "readonly",
+    classification: $classification,
+    execution_id: $execution_id,
+    generated_at: $generated_at,
     payload: {
       query: $query,
-      search_root: $search_root,
-      result_count: $result_count,
       results: $results
     },
     error: null

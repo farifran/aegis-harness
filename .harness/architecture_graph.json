@@ -1,79 +1,113 @@
 {
-  "schema_version": "2.0",
+  "schema_version": "3.0",
+  "topology_version": "2.0",
+  "constitutional_layer": "layer_1",
+  "constitutional_status": "active",
+  "compatibility_class": "runtime_capability_topology",
+  "change_policy": "frozen_by_default",
+
   "system": {
     "name": "Aegis Harness",
     "architecture_type": "bounded_capability_runtime",
     "execution_model": "protocol_oriented",
     "grounding_model": "runtime_exposed_capabilities",
     "continuity_model": "ephemeral_runtime_state",
-    "persistence_model": "explicit_git_persistence"
+    "persistence_model": "explicit_git_persistence",
+    "authority_model": "runtime_sovereignty"
   },
-  "core_principles": [
+
+  "constitutional_principles": [
     "runtime_governs_execution",
-    "modes_produce_cognition",
     "capabilities_bound_authority",
     "grounding_is_explicit",
     "continuity_is_ephemeral",
     "persistence_is_explicit",
-    "protocol_enforcement_is_runtime_owned",
-    "repository_awareness_is_capability_bound"
+    "execution_is_protocol_oriented",
+    "topology_is_observable",
+    "cognition_is_bounded",
+    "repository_awareness_is_capability_bounded"
   ],
+
   "runtime": {
     "authority": "sovereign",
+    "classification": "runtime_owned",
     "responsibilities": [
       "worktree_lifecycle",
       "capability_environment_lifecycle",
+      "capability_payload_materialization",
       "execution_orchestration",
+      "execution_routing",
+      "protocol_enforcement",
+      "artifact_validation",
       "continuity_injection",
       "continuity_promotion",
-      "protocol_topology_verification",
-      "capability_routing",
       "cleanup",
+      "capability_routing",
       "persistence_decisions"
     ],
     "forbidden": [
       "semantic_reasoning",
       "architectural_interpretation",
-      "cognitive_execution",
-      "implicit_authority_expansion"
+      "implicit_authority_expansion",
+      "hidden_continuity",
+      "topology_self_redefinition"
     ]
   },
+
   "executor": {
-    "type": "protocol_vm",
+    "type": "protocol_virtual_machine",
+    "classification": "bounded_execution_orchestrator",
     "responsibilities": [
       "contract_loading",
-      "capability_manifest_loading",
-      "capability_environment_injection",
-      "execution_substrate_routing",
+      "capability_envelope_resolution",
+      "capability_environment_materialization",
+      "capability_payload_generation",
+      "substrate_routing",
+      "protocol_validation",
+      "artifact_normalization",
       "payload_validation",
-      "mode_identity_validation",
-      "payload_normalization"
+      "mode_identity_validation"
     ],
     "forbidden": [
       "continuity_ownership",
       "persistence_ownership",
-      "orchestration_ownership",
       "semantic_inference",
-      "implicit_repository_grounding"
+      "implicit_repository_grounding",
+      "runtime_authority_override"
     ]
   },
+
   "grounding": {
     "model": "capability_grounded_execution",
+    "classification": "runtime_materialized_operational_evidence",
+
     "principles": [
       "repository_access_is_explicit",
-      "capability_exposure_is_runtime_owned",
-      "grounding_is_not_prompt_inheritance",
-      "modes_consume_capability_surfaces"
+      "grounding_is_runtime_exposed",
+      "capability_payloads_are_authoritative",
+      "repository_awareness_is_not_implicit",
+      "grounding_is_observable",
+      "grounding_is_mechanically_materialized"
     ],
+
     "forbidden": [
-      "implicit_repository_awareness",
-      "assistant_style_context_inheritance",
-      "hidden_continuity_assumptions"
+      "assistant_style_repository_inheritance",
+      "hidden_repository_visibility",
+      "prompt_only_grounding",
+      "unrestricted_context_inheritance",
+      "hidden_operational_memory"
     ]
   },
+
   "capability_topology": {
     "model": "runtime_owned_capability_surfaces",
     "capability_root": "scripts/capabilities",
+
+    "classification": {
+      "readonly": "analysis_surface",
+      "bounded_mutation": "mutation_surface"
+    },
+
     "capability_classes": {
       "filesystem": {
         "readonly": [
@@ -82,158 +116,295 @@
           "filesystem.search_symbol"
         ]
       },
+
       "git": {
         "readonly": [
           "git.diff",
           "git.status"
         ]
       },
+
       "topology": {
         "readonly": [
           "topology.read_graph"
         ]
       },
+
       "runtime": {
         "readonly": [
           "runtime.read_active_task"
         ]
       }
     },
-    "future_mutation_capabilities": [
+
+    "future_extension_surfaces": [
       "filesystem.write",
       "patch.apply",
-      "dependency.install"
+      "dependency.install",
+      "topology.validate",
+      "artifact.promote"
     ]
   },
+
+  "mode_topology": {
+    "analysis_modes": {
+      "classification": "readonly_cognition",
+
+      "modes": {
+        "discovery": {
+          "authority": "readonly",
+          "execution_engine": "raw",
+          "mutation_authority": false,
+          "continuity_ownership": false,
+          "grounding_model": "capability_payloads"
+        },
+
+        "forensics": {
+          "authority": "readonly",
+          "execution_engine": "raw",
+          "mutation_authority": false,
+          "continuity_ownership": false,
+          "grounding_model": "capability_payloads"
+        },
+
+        "validation": {
+          "authority": "readonly",
+          "execution_engine": "raw",
+          "mutation_authority": false,
+          "continuity_ownership": false,
+          "grounding_model": "capability_payloads"
+        },
+
+        "adversarial": {
+          "authority": "readonly",
+          "execution_engine": "raw",
+          "mutation_authority": false,
+          "continuity_ownership": false,
+          "grounding_model": "capability_payloads"
+        }
+      }
+    },
+
+    "mutation_modes": {
+      "classification": "bounded_mutation_cognition",
+
+      "modes": {
+        "repair": {
+          "authority": "bounded_mutation",
+          "execution_engine": "aider",
+          "mutation_authority": true,
+          "continuity_ownership": false,
+          "grounding_model": "capability_payloads"
+        },
+
+        "optimize": {
+          "authority": "bounded_mutation",
+          "execution_engine": "aider",
+          "mutation_authority": true,
+          "continuity_ownership": false,
+          "grounding_model": "capability_payloads"
+        }
+      }
+    }
+  },
+
   "execution_substrates": {
     "raw": {
-      "type": "bounded_readonly_cognition",
+      "classification": "bounded_readonly_cognition",
       "used_by": [
         "discovery",
         "forensics",
         "validation",
         "adversarial"
+      ],
+
+      "properties": [
+        "json_only_output",
+        "provider_bounded",
+        "deterministic_protocol",
+        "readonly_cognition",
+        "runtime_grounded"
       ]
     },
+
     "aider": {
-      "type": "bounded_mutation_substrate",
+      "classification": "bounded_mutation_substrate",
       "used_by": [
         "repair",
         "optimize"
+      ],
+
+      "properties": [
+        "bounded_mutation",
+        "patch_oriented",
+        "runtime_governed",
+        "capability_scoped"
       ]
     }
   },
-  "mode_topology": {
-    "analysis_modes": {
-      "discovery": {
-        "authority": "readonly",
-        "execution_engine": "raw",
-        "continuity_ownership": false,
-        "mutation_authority": false
-      },
-      "forensics": {
-        "authority": "readonly",
-        "execution_engine": "raw",
-        "continuity_ownership": false,
-        "mutation_authority": false
-      },
-      "validation": {
-        "authority": "readonly",
-        "execution_engine": "raw",
-        "continuity_ownership": false,
-        "mutation_authority": false
-      },
-      "adversarial": {
-        "authority": "readonly",
-        "execution_engine": "raw",
-        "continuity_ownership": false,
-        "mutation_authority": false
-      }
-    },
-    "mutation_modes": {
-      "repair": {
-        "authority": "bounded_mutation",
-        "execution_engine": "aider",
-        "continuity_ownership": false,
-        "mutation_authority": true
-      },
-      "optimize": {
-        "authority": "bounded_mutation",
-        "execution_engine": "aider",
-        "continuity_ownership": false,
-        "mutation_authority": true
-      }
-    }
-  },
+
   "continuity_model": {
-    "type": "runtime_owned_ephemeral_state",
+    "classification": "runtime_owned_ephemeral_state",
+
     "runtime_state_files": [
       ".harness/runtime/active_task.md",
       ".harness/runtime/last_good_active_task.md"
     ],
+
     "principles": [
       "continuity_is_explicit",
       "continuity_is_runtime_owned",
       "continuity_is_disposable",
       "git_is_durable_persistence"
     ],
+
     "forbidden": [
-      "hidden_memory",
-      "assistant_continuity",
-      "implicit_state_inheritance"
+      "assistant_memory",
+      "hidden_persistence",
+      "implicit_state_inheritance",
+      "cross_execution_memory"
     ]
   },
+
   "protocol_model": {
     "execution_model": "non_conversational",
+
     "requirements": [
-      "single_json_payload",
+      "single_json_artifact",
       "machine_parseable_output",
-      "mode_identity_validation",
-      "runtime_owned_framing"
+      "runtime_framed_execution",
+      "artifact_validation",
+      "mode_identity_validation"
     ],
+
     "rejected": [
       "assistant_narration",
-      "acknowledgements",
       "clarification_loops",
+      "mixed_protocol_output",
       "conversational_drift",
-      "mixed_protocol_output"
+      "implicit_execution_state"
     ]
   },
+
   "containment_model": {
-    "execution_boundary": "disposable_git_worktree",
-    "containment_principles": [
+    "execution_boundary": "disposable_worktree",
+
+    "principles": [
       "capability_bound_authority",
-      "explicit_mutation_surfaces",
       "runtime_owned_cleanup",
-      "transient_execution_state"
+      "explicit_mutation_surfaces",
+      "transient_execution_state",
+      "isolated_execution_surface"
     ],
+
     "forbidden": [
       "cross_mode_state_inheritance",
       "hidden_mutation",
-      "implicit_authority_expansion"
+      "implicit_authority_expansion",
+      "persistent_runtime_residue"
     ]
   },
-  "architectural_direction": {
-    "current_stage": "capability_runtime_transition",
-    "moving_away_from": [
-      "prompt_grounding",
-      "assistant_repository_inheritance",
-      "implicit_context_topology"
+
+  "surface_classification": {
+    "authoritative": [
+      "AGENTS.md",
+      ".harness/architecture_graph.json",
+      ".harness/config.sh"
     ],
+
+    "derived": [
+      "README.md",
+      "summary.md",
+      "operator_docs",
+      "onboarding_material"
+    ],
+
+    "transient": [
+      ".harness/runtime/capability_env",
+      ".harness/runtime/capability_payloads",
+      ".harness/worktrees"
+    ]
+  },
+
+  "governance": {
+    "precedence_order": [
+      "AGENTS.md",
+      ".harness/architecture_graph.json",
+      ".harness/config.sh",
+      ".skills/*.md",
+      "runtime_scripts",
+      "README.md",
+      "summary.md"
+    ],
+
+    "change_governance": {
+      "default_state": "frozen",
+
+      "reopen_conditions": [
+        "runtime_sovereignty_change",
+        "authority_topology_change",
+        "execution_philosophy_change",
+        "protocol_governance_change"
+      ]
+    },
+
+    "deprecation_policy": [
+      "active",
+      "deprecated",
+      "migration_supported",
+      "removed"
+    ]
+  },
+
+  "constitutional_states": {
+    "proven": [
+      "runtime_external_to_execution_surface",
+      "capability_environment_materialization",
+      "capability_payload_grounding",
+      "readonly_analysis_topology",
+      "protocol_oriented_execution"
+    ],
+
+    "intended": [
+      "bounded_mutation_hardening",
+      "capability_coercion",
+      "payload_provenance_tracking",
+      "schema_strict_mode_validation"
+    ],
+
+    "deferred": [
+      "advanced_capability_sandboxing",
+      "cross_provider_protocol_normalization",
+      "distributed_runtime_execution"
+    ]
+  },
+
+  "architectural_direction": {
+    "moving_away_from": [
+      "assistant_repository_inheritance",
+      "prompt_oriented_execution",
+      "implicit_context_topology",
+      "hidden_continuity"
+    ],
+
     "moving_toward": [
       "runtime_exposed_capability_grounding",
-      "bounded_execution_environments",
-      "explicit_capability_surfaces",
-      "capability_oriented_execution"
+      "capability_oriented_execution",
+      "bounded_execution_surfaces",
+      "runtime_governed_cognition",
+      "mechanically_observable_authority"
     ]
   },
-  "final_operational_model": {
-    "runtime": "governs_execution",
-    "executor": "enforces_protocol",
-    "capabilities": "bound_authority",
-    "modes": "produce_bounded_cognition",
-    "grounding": "explicit_and_runtime_owned",
-    "continuity": "ephemeral",
-    "persistence": "explicit"
-  }
+
+  "constitutional_invariants": [
+    "runtime_remains_sovereign",
+    "authority_remains_explicit",
+    "grounding_remains_capability_bounded",
+    "continuity_remains_ephemeral",
+    "persistence_remains_explicit",
+    "execution_remains_protocol_oriented",
+    "capabilities_remain_bounded",
+    "topology_remains_observable",
+    "mutation_remains_runtime_governed"
+  ]
 }

@@ -1,45 +1,59 @@
-# =================================================
-# scripts/capabilities/topology/read_graph.sh
-# =================================================
-
 #!/usr/bin/env bash
 
 set -Eeuo pipefail
 
-CAPABILITY="topology.read_graph"
+readonly GRAPH_FILE=".harness/architecture_graph.json"
 
-GRAPH_FILE=".harness/architecture_graph.json"
+readonly EXECUTION_ID="${AEGIS_EXECUTION_ID:-unknown}"
 
-fatal() {
+readonly GENERATED_AT="$(
+  date -u +"%Y-%m-%dT%H:%M:%SZ"
+)"
+
+fail() {
+
+  local error_message="$1"
+
   jq -n \
-    --arg capability "$CAPABILITY" \
-    --arg error "$1" \
+    --arg capability "topology.read_graph" \
+    --arg classification "readonly" \
+    --arg execution_id "${EXECUTION_ID}" \
+    --arg generated_at "${GENERATED_AT}" \
+    --arg error "${error_message}" \
     '{
       success: false,
       capability: $capability,
-      classification: "readonly",
+      classification: $classification,
+      execution_id: $execution_id,
+      generated_at: $generated_at,
       payload: null,
       error: $error
     }'
+
   exit 1
 }
 
-[[ -f "$GRAPH_FILE" ]] \
-  || fatal "graph_not_found"
+[[ -f "${GRAPH_FILE}" ]] \
+  || fail "missing_architecture_graph"
 
-GRAPH_CONTENT="$(cat "$GRAPH_FILE")"
+jq empty "${GRAPH_FILE}" \
+  >/dev/null 2>&1 \
+  || fail "invalid_architecture_graph"
 
 jq -n \
-  --arg capability "$CAPABILITY" \
-  --arg path "$GRAPH_FILE" \
-  --argjson graph "$GRAPH_CONTENT" \
+  --arg capability "topology.read_graph" \
+  --arg classification "readonly" \
+  --arg execution_id "${EXECUTION_ID}" \
+  --arg generated_at "${GENERATED_AT}" \
+  --slurpfile graph "${GRAPH_FILE}" \
   '{
     success: true,
     capability: $capability,
-    classification: "readonly",
+    classification: $classification,
+    execution_id: $execution_id,
+    generated_at: $generated_at,
     payload: {
-      path: $path,
-      graph: $graph
+      graph: $graph[0]
     },
     error: null
   }'

@@ -1,42 +1,57 @@
-# =================================================
-# scripts/capabilities/runtime/read_active_task.sh
-# =================================================
-
 #!/usr/bin/env bash
 
 set -Eeuo pipefail
 
-CAPABILITY="runtime.read_active_task"
+readonly ACTIVE_TASK_FILE="${1:-}"
 
-TASK_FILE=".harness/runtime/active_task.md"
+readonly EXECUTION_ID="${AEGIS_EXECUTION_ID:-unknown}"
 
-fatal() {
+readonly GENERATED_AT="$(
+  date -u +"%Y-%m-%dT%H:%M:%SZ"
+)"
+
+fail() {
+
+  local error_message="$1"
+
   jq -n \
-    --arg capability "$CAPABILITY" \
-    --arg error "$1" \
+    --arg capability "runtime.read_active_task" \
+    --arg classification "readonly" \
+    --arg execution_id "${EXECUTION_ID}" \
+    --arg generated_at "${GENERATED_AT}" \
+    --arg error "${error_message}" \
     '{
       success: false,
       capability: $capability,
-      classification: "readonly",
+      classification: $classification,
+      execution_id: $execution_id,
+      generated_at: $generated_at,
       payload: null,
       error: $error
     }'
+
   exit 1
 }
 
-[[ -f "$TASK_FILE" ]] \
-  || fatal "active_task_not_found"
+[[ -n "${ACTIVE_TASK_FILE}" ]] \
+  || fail "missing_active_task_file"
 
-CONTENT="$(cat "$TASK_FILE")"
+[[ -f "${ACTIVE_TASK_FILE}" ]] \
+  || fail "active_task_not_found"
 
 jq -n \
-  --arg capability "$CAPABILITY" \
-  --arg path "$TASK_FILE" \
-  --arg content "$CONTENT" \
+  --arg capability "runtime.read_active_task" \
+  --arg classification "readonly" \
+  --arg execution_id "${EXECUTION_ID}" \
+  --arg generated_at "${GENERATED_AT}" \
+  --arg path "${ACTIVE_TASK_FILE}" \
+  --rawfile content "${ACTIVE_TASK_FILE}" \
   '{
     success: true,
     capability: $capability,
-    classification: "readonly",
+    classification: $classification,
+    execution_id: $execution_id,
+    generated_at: $generated_at,
     payload: {
       path: $path,
       content: $content

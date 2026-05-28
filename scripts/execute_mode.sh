@@ -1,551 +1,598 @@
 #!/usr/bin/env bash
 
-# =================================================
+# =========================================================
 # AEGIS HARNESS — EXECUTION PROTOCOL VM
-# =================================================
+# =========================================================
 #
-# Purpose:
-# - protocol-oriented execution
-# - substrate routing
-# - capability environment injection
-# - capability payload grounding
-# - deterministic payload validation
+# Version: 2.2
+# Layer: Protocol Execution VM
+# Status: Hardened
 #
-# Runtime owns:
-# - orchestration
-# - continuity
-# - persistence
-# - capability exposure
+# Responsibilities:
 #
-# Executor owns:
 # - protocol enforcement
+# - capability envelope resolution
+# - capability environment materialization
+# - capability payload generation
+# - payload freshness guarantees
+# - grounding payload construction
 # - substrate routing
-# - capability payload injection
-# - payload validation
+# - artifact validation
+# - deterministic cleanup
 #
-# =================================================
+# The executor intentionally does NOT:
+#
+# - own orchestration
+# - own runtime sovereignty
+# - own persistence
+# - infer architecture
+# - inherit repository awareness
+#
+# =========================================================
 
 set -Eeuo pipefail
 
-# =================================================
-# INPUTS
-# =================================================
-
-MODE_CONTRACT="${1:-}"
-
-MODE_NAME="${2:-}"
-
-ACTIVE_TASK_PATH="${3:-}"
-
-# =================================================
+# =========================================================
 # ROOT RESOLUTION
-# =================================================
+# =========================================================
 
-ROOT_DIR="$(
-  cd "$(dirname "${BASH_SOURCE[0]}")/.." \
-  && pwd
+readonly AEGIS_EXECUTOR_ROOT="$(
+  cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd
 )"
 
-CONFIG_FILE="$ROOT_DIR/.harness/config.sh"
+cd "${AEGIS_EXECUTOR_ROOT}"
 
-RAW_SUBSTRATE="$ROOT_DIR/scripts/substrates/raw_llm.sh"
+# =========================================================
+# CONFIGURATION
+# =========================================================
 
-CAPABILITY_ENV_DIR="$ROOT_DIR/.harness/runtime/capability_env"
-
-CAPABILITY_PAYLOAD_DIR="$ROOT_DIR/.harness/runtime/capability_payloads"
-
-WORKTREE_PATH="${AEGIS_WORKTREE_PATH:-$ROOT_DIR}"
-
-# =================================================
-# HELPERS
-# =================================================
-
-log() {
-  printf '[AEGIS][EXECUTOR] %s\n' "$1" >&2
-}
-
-fatal() {
-  printf '[AEGIS][EXECUTOR][FATAL] %s\n' "$1" >&2
+[[ -f ".harness/config.sh" ]] || {
+  echo "[AEGIS][EXECUTOR][FATAL] missing_config" >&2
   exit 1
 }
 
-# =================================================
+source ".harness/config.sh"
+
+# =========================================================
+# INPUTS
+# =========================================================
+
+readonly AEGIS_SKILL_FILE="${1:?missing_skill_file}"
+
+readonly AEGIS_MODE="${2:?missing_mode}"
+
+readonly AEGIS_ACTIVE_TASK_FILE_INPUT="${3:?missing_active_task}"
+
+# =========================================================
+# EXECUTION IDENTITY
+# =========================================================
+
+readonly AEGIS_EXECUTION_ID="${AEGIS_EXECUTION_ID:-unknown}"
+
+readonly AEGIS_EXECUTION_TIMESTAMP="${AEGIS_EXECUTION_TIMESTAMP:-unknown}"
+
+# =========================================================
+# LOGGING
+# =========================================================
+
+executor_log() {
+  echo "[AEGIS][EXECUTOR] $*" >&2
+}
+
+executor_warn() {
+  echo "[AEGIS][EXECUTOR][WARN] $*" >&2
+}
+
+executor_fatal() {
+  echo "[AEGIS][EXECUTOR][FATAL] $*" >&2
+  exit 1
+}
+
+# =========================================================
+# EXECUTION ENGINE
+# =========================================================
+
+readonly AEGIS_EXECUTION_ENGINE="${AEGIS_EXECUTION_ENGINES[$AEGIS_MODE]:-}"
+
+readonly AEGIS_SUBSTRATE_SCRIPT="scripts/substrates/${AEGIS_EXECUTION_ENGINE}_llm.sh"
+
+# =========================================================
+# PATHS
+# =========================================================
+
+readonly AEGIS_CAPABILITY_ENV_PATH="${AEGIS_CAPABILITY_ENV_DIR}"
+
+readonly AEGIS_CAPABILITY_PAYLOAD_PATH="${AEGIS_CAPABILITY_PAYLOAD_DIR}"
+
+# =========================================================
+# TEMPFILES
+# =========================================================
+
+declare -a AEGIS_EXECUTOR_TEMPFILES=()
+
+register_tempfile() {
+
+  local tempfile_path="$1"
+
+  AEGIS_EXECUTOR_TEMPFILES+=("${tempfile_path}")
+}
+
+# =========================================================
+# CLEANUP
+# =========================================================
+
+cleanup_executor() {
+
+  set +e
+
+  executor_log "Starting executor cleanup..."
+
+  local tempfile_path
+
+  for tempfile_path in "${AEGIS_EXECUTOR_TEMPFILES[@]:-}"; do
+
+    [[ -f "${tempfile_path}" ]] || continue
+
+    rm -f "${tempfile_path}" \
+      >/dev/null 2>&1 || true
+  done
+
+  executor_log "Executor cleanup completed"
+
+  set -e
+}
+
+trap cleanup_executor EXIT
+trap 'executor_warn "Interrupted"; exit 130' INT TERM
+
+# =========================================================
 # VALIDATION
-# =================================================
+# =========================================================
 
-[[ -n "$MODE_CONTRACT" ]] \
-  || fatal "missing_mode_contract"
+validate_inputs() {
 
-[[ -n "$MODE_NAME" ]] \
-  || fatal "missing_mode_name"
+  [[ -f "${AEGIS_SKILL_FILE}" ]] \
+    || executor_fatal "missing_skill_file"
 
-[[ -f "$MODE_CONTRACT" ]] \
-  || fatal "mode_contract_not_found"
+  [[ -n "${AEGIS_MODE}" ]] \
+    || executor_fatal "missing_mode"
 
-[[ -f "$CONFIG_FILE" ]] \
-  || fatal "config_not_found"
+  declare -p AEGIS_WORKTREE_PATH \
+    >/dev/null 2>&1 \
+    || executor_fatal "missing_worktree_path"
 
-source "$CONFIG_FILE"
+  [[ -d "${AEGIS_WORKTREE_PATH}" ]] \
+    || executor_fatal "invalid_worktree_surface"
 
-# =================================================
-# MODE TOPOLOGY
-# =================================================
+  [[ -f "${AEGIS_ACTIVE_TASK_FILE_INPUT}" ]] \
+    || touch "${AEGIS_ACTIVE_TASK_FILE_INPUT}"
+}
 
-ENGINE_VAR="AEGIS_MODE_EXECUTION_ENGINE_${MODE_NAME}"
+validate_execution_engine() {
 
-EXECUTION_ENGINE="${!ENGINE_VAR:-}"
+  [[ -n "${AEGIS_EXECUTION_ENGINE}" ]] \
+    || executor_fatal "unknown_execution_engine"
+}
 
-[[ -n "$EXECUTION_ENGINE" ]] \
-  || fatal "missing_execution_engine"
+validate_substrate() {
 
-CAPABILITY_ARRAY_NAME="AEGIS_MODE_CAPABILITIES_${MODE_NAME}"
+  [[ -f "${AEGIS_SUBSTRATE_SCRIPT}" ]] \
+    || executor_fatal "missing_substrate"
+}
 
-declare -n MODE_CAPABILITIES="$CAPABILITY_ARRAY_NAME"
+# =========================================================
+# CAPABILITY ENVELOPE
+# =========================================================
 
-[[ -v MODE_CAPABILITIES ]] \
-  || fatal "missing_capability_envelope"
+resolve_capability_envelope() {
 
-[[ "${#MODE_CAPABILITIES[@]}" -gt 0 ]] \
-  || fatal "empty_capability_envelope"
+  local envelope_name
 
-# =================================================
+  envelope_name="${AEGIS_MODE_CAPABILITY_MAP[$AEGIS_MODE]:-}"
+
+  [[ -n "${envelope_name}" ]] \
+    || executor_fatal "missing_capability_envelope"
+
+  declare -n RESOLVED_CAPABILITIES="${envelope_name}"
+
+  [[ "${#RESOLVED_CAPABILITIES[@]}" -gt 0 ]] \
+    || executor_fatal "empty_capability_envelope"
+}
+
+# =========================================================
+# CLEAN STALE STATE
+# =========================================================
+
+remove_stale_execution_state() {
+
+  executor_log "Removing stale execution state..."
+
+  rm -rf "${AEGIS_CAPABILITY_ENV_PATH}" \
+    >/dev/null 2>&1 || true
+
+  rm -rf "${AEGIS_CAPABILITY_PAYLOAD_PATH}" \
+    >/dev/null 2>&1 || true
+}
+
+# =========================================================
 # CAPABILITY ENVIRONMENT
-# =================================================
+# =========================================================
 
 materialize_capability_environment() {
 
-  rm -rf "$CAPABILITY_ENV_DIR"
+  executor_log "Materializing capability environment..."
 
-  mkdir -p "$CAPABILITY_ENV_DIR"
+  mkdir -p "${AEGIS_CAPABILITY_ENV_PATH}"
 
-  for capability in "${MODE_CAPABILITIES[@]}"; do
+  local capability
 
-    [[ -n "$capability" ]] \
-      || fatal "empty_capability_name"
+  for capability in "${RESOLVED_CAPABILITIES[@]}"; do
 
-    normalized="$(
-      printf '%s' "$capability" \
-        | tr '.' '_'
-    )"
+    local handler
+    handler="${AEGIS_CAPABILITY_HANDLERS[$capability]:-}"
 
-    handler_var="AEGIS_CAPABILITY_HANDLER_${normalized^^}"
+    [[ -n "${handler}" ]] \
+      || executor_fatal "missing_handler_for_capability: ${capability}"
 
-    handler="${!handler_var:-}"
+    [[ -f "${handler}" ]] \
+      || executor_fatal "missing_handler_file: ${handler}"
 
-    [[ -n "$handler" ]] \
-      || fatal "missing_handler_for_capability: $capability"
+    local capability_surface
+    capability_surface="${AEGIS_CAPABILITY_ENV_PATH}/${capability}"
 
-    target="$ROOT_DIR/$handler"
+    cat > "${capability_surface}" <<EOF
+#!/usr/bin/env bash
+bash "${AEGIS_EXECUTOR_ROOT}/${handler}" "\$@"
+EOF
 
-    [[ -f "$target" ]] \
-      || fatal "capability_handler_not_found: $target"
-
-    chmod +x "$target"
-
-    ln -sf \
-      "$target" \
-      "$CAPABILITY_ENV_DIR/$capability"
-
+    chmod +x "${capability_surface}"
   done
 }
 
-# =================================================
-# CAPABILITY PAYLOADS
-# =================================================
+# =========================================================
+# PAYLOAD METADATA
+# =========================================================
 
-reset_capability_payloads() {
-
-  rm -rf "$CAPABILITY_PAYLOAD_DIR"
-
-  mkdir -p "$CAPABILITY_PAYLOAD_DIR"
-}
-
-execute_capability() {
+wrap_payload_metadata() {
 
   local capability="$1"
 
-  local capability_path
+  local raw_payload_file="$2"
 
-  capability_path="$CAPABILITY_ENV_DIR/$capability"
+  local wrapped_payload_file="$3"
 
-  [[ -f "$capability_path" ]] \
-    || fatal "capability_not_materialized: $capability"
+  jq -n \
+    --arg execution_id "${AEGIS_EXECUTION_ID}" \
+    --arg generated_at "${AEGIS_EXECUTION_TIMESTAMP}" \
+    --arg mode "${AEGIS_MODE}" \
+    --arg capability "${capability}" \
+    --slurpfile payload "${raw_payload_file}" \
+    '{
+      execution_id: $execution_id,
+      generated_at: $generated_at,
+      mode: $mode,
+      capability: $capability,
+      payload: $payload[0]
+    }' \
+    > "${wrapped_payload_file}"
+}
 
-  case "$capability" in
+# =========================================================
+# CAPABILITY PAYLOADS
+# =========================================================
 
-    filesystem.list_tree)
+generate_capability_payload() {
 
-      (
-        cd "$WORKTREE_PATH"
-        bash "$capability_path"
-      )
+  local capability="$1"
+
+  local capability_surface="$2"
+
+  local payload_file="$3"
+
+  local raw_payload_file
+  raw_payload_file="$(mktemp)"
+
+  register_tempfile "${raw_payload_file}"
+
+  case "${capability}" in
+
+    "filesystem.list_tree")
+
+      bash "${capability_surface}" "." \
+        > "${raw_payload_file}"
+
       ;;
 
-    filesystem.read)
+    "filesystem.read")
 
-      (
-        cd "$WORKTREE_PATH"
-        bash "$capability_path" "AGENTS.md"
-      )
+      bash "${capability_surface}" "AGENTS.md" \
+        > "${raw_payload_file}"
+
       ;;
 
-    filesystem.search_symbol)
+    "filesystem.search_symbol")
 
-      case "$MODE_NAME" in
+      bash "${capability_surface}" \
+        "${AEGIS_DISCOVERY_SYMBOL_QUERY}" \
+        > "${raw_payload_file}"
 
-        discovery)
-
-          (
-            cd "$WORKTREE_PATH"
-
-            bash "$capability_path" \
-              "$AEGIS_DISCOVERY_SYMBOL_QUERY"
-          )
-          ;;
-
-        forensics)
-
-          (
-            cd "$WORKTREE_PATH"
-
-            bash "$capability_path" \
-              "$AEGIS_FORENSICS_SYMBOL_QUERY"
-          )
-          ;;
-
-        validation)
-
-          (
-            cd "$WORKTREE_PATH"
-
-            bash "$capability_path" \
-              "$AEGIS_VALIDATION_SYMBOL_QUERY"
-          )
-          ;;
-
-        adversarial)
-
-          (
-            cd "$WORKTREE_PATH"
-
-            bash "$capability_path" \
-              "$AEGIS_ADVERSARIAL_SYMBOL_QUERY"
-          )
-          ;;
-
-        *)
-
-          (
-            cd "$WORKTREE_PATH"
-
-            bash "$capability_path" \
-              "$AEGIS_DISCOVERY_SYMBOL_QUERY"
-          )
-          ;;
-
-      esac
       ;;
 
-    git.status)
+    "topology.read_graph")
 
-      (
-        cd "$WORKTREE_PATH"
-        bash "$capability_path"
-      )
+      bash "${capability_surface}" \
+        > "${raw_payload_file}"
+
       ;;
 
-    git.diff)
+    "runtime.read_active_task")
 
-      (
-        cd "$WORKTREE_PATH"
-        bash "$capability_path"
-      )
+      bash "${capability_surface}" \
+        "${AEGIS_ACTIVE_TASK_FILE_INPUT}" \
+        > "${raw_payload_file}"
+
       ;;
 
-    topology.read_graph)
+    "git.diff")
 
-      (
-        cd "$ROOT_DIR"
-        bash "$capability_path"
-      )
+      bash "${capability_surface}" \
+        > "${raw_payload_file}"
+
       ;;
 
-    runtime.read_active_task)
+    "git.status")
 
-      (
-        cd "$ROOT_DIR"
-        bash "$capability_path"
-      )
+      bash "${capability_surface}" \
+        > "${raw_payload_file}"
+
       ;;
 
     *)
 
-      (
-        cd "$WORKTREE_PATH"
-        bash "$capability_path"
-      )
-      ;;
+      executor_fatal "unsupported_capability_payload_generation: ${capability}"
 
+      ;;
   esac
+
+  jq empty "${raw_payload_file}" \
+    >/dev/null 2>&1 \
+    || executor_fatal "invalid_raw_capability_payload"
+
+  wrap_payload_metadata \
+    "${capability}" \
+    "${raw_payload_file}" \
+    "${payload_file}"
 }
 
 materialize_capability_payloads() {
 
-  reset_capability_payloads
+  executor_log "Materializing capability payloads..."
 
-  for capability in "${MODE_CAPABILITIES[@]}"; do
+  mkdir -p "${AEGIS_CAPABILITY_PAYLOAD_PATH}"
 
-    log "Executing capability: $capability"
+  local capability
 
-    payload="$(
-      execute_capability "$capability"
-    )" || fatal "capability_execution_failure: $capability"
+  for capability in "${RESOLVED_CAPABILITIES[@]}"; do
 
-    echo "$payload" | jq empty >/dev/null 2>&1 \
-      || fatal "invalid_capability_payload: $capability"
+    executor_log "Executing capability: ${capability}"
 
-    payload_file="$(
-      printf '%s' "$capability" \
-        | tr '.' '_'
-    ).json"
+    local capability_surface
+    capability_surface="${AEGIS_CAPABILITY_ENV_PATH}/${capability}"
 
-    printf '%s\n' "$payload" \
-      > "$CAPABILITY_PAYLOAD_DIR/$payload_file"
+    [[ -f "${capability_surface}" ]] \
+      || executor_fatal "missing_capability_surface"
 
+    local payload_file
+    payload_file="${AEGIS_CAPABILITY_PAYLOAD_PATH}/$(echo "${capability}" | tr '.' '_').json"
+
+    generate_capability_payload \
+      "${capability}" \
+      "${capability_surface}" \
+      "${payload_file}"
+
+    [[ -f "${payload_file}" ]] \
+      || executor_fatal "missing_payload_output"
+
+    jq empty "${payload_file}" \
+      >/dev/null 2>&1 \
+      || executor_fatal "invalid_capability_payload"
+
+    local payload_execution_id
+
+    payload_execution_id="$(
+      jq -r '.execution_id // empty' "${payload_file}"
+    )"
+
+    [[ "${payload_execution_id}" == "${AEGIS_EXECUTION_ID}" ]] \
+      || executor_fatal "stale_payload_detected"
   done
 }
 
-validate_capability_payloads() {
+# =========================================================
+# MANIFEST HASH
+# =========================================================
 
-  [[ -d "$CAPABILITY_PAYLOAD_DIR" ]] \
-    || fatal "missing_capability_payload_directory"
+compute_manifest_hash() {
 
-  payload_count="$(
-    find "$CAPABILITY_PAYLOAD_DIR" \
-      -name '*.json' \
-      | wc -l \
-      | tr -d ' '
+  local manifest_hash
+
+  manifest_hash="$(
+    bash scripts/capabilities/generate_manifest.sh \
+      | sha256sum \
+      | awk '{print $1}'
   )"
 
-  [[ "$payload_count" -gt 0 ]] \
-    || fatal "empty_capability_payloads"
+  [[ -n "${manifest_hash}" ]] \
+    || executor_fatal "manifest_hash_failure"
+
+  echo "${manifest_hash}"
 }
 
-# =================================================
-# CAPABILITY GROUNDING
-# =================================================
+# =========================================================
+# GROUNDING PAYLOAD
+# =========================================================
 
-build_capability_grounding() {
+build_grounding_payload() {
 
-  for payload in "$CAPABILITY_PAYLOAD_DIR"/*.json; do
+  local grounding_file
+  grounding_file="$(mktemp)"
 
-    [[ -f "$payload" ]] || continue
+  register_tempfile "${grounding_file}"
 
-    printf '=== CAPABILITY PAYLOAD ===\n'
-    printf 'FILE: %s\n\n' "$payload"
+  local manifest_hash
+  manifest_hash="$(compute_manifest_hash)"
 
-    cat "$payload"
+  jq -n \
+    --arg execution_id "${AEGIS_EXECUTION_ID}" \
+    --arg runtime_timestamp "${AEGIS_EXECUTION_TIMESTAMP}" \
+    --arg manifest_hash "${manifest_hash}" \
+    --arg mode "${AEGIS_MODE}" \
+    --arg skill_file "${AEGIS_SKILL_FILE}" \
+    --arg worktree "${AEGIS_WORKTREE_PATH}" \
+    --arg payload_dir "${AEGIS_CAPABILITY_PAYLOAD_PATH}" \
+    '{
+      execution_id: $execution_id,
+      runtime_timestamp: $runtime_timestamp,
+      capability_manifest_hash: $manifest_hash,
+      mode: $mode,
+      skill_file: $skill_file,
+      worktree_path: $worktree,
+      capability_payload_directory: $payload_dir
+    }' \
+    > "${grounding_file}"
 
-    printf '\n\n'
+  jq empty "${grounding_file}" \
+    >/dev/null 2>&1 \
+    || executor_fatal "invalid_grounding_payload"
+
+  cat "${grounding_file}"
+}
+
+# =========================================================
+# ARTIFACT VALIDATION
+# =========================================================
+
+validate_artifact() {
+
+  local artifact="$1"
+
+  echo "${artifact}" \
+    | jq empty \
+    >/dev/null 2>&1 \
+    || executor_fatal "invalid_artifact_json"
+
+  local required_fields=(
+    mode
+    execution_id
+  )
+
+  local field_name
+
+  for field_name in "${required_fields[@]}"; do
+
+    local field_value
+
+    field_value="$(
+      echo "${artifact}" \
+        | jq -r ".${field_name} // empty"
+    )"
+
+    [[ -n "${field_value}" ]] \
+      || executor_fatal "missing_artifact_field: ${field_name}"
 
   done
-}
 
-# =================================================
-# CONTINUITY
-# =================================================
+  local mode_identity
 
-load_active_task() {
-
-  if [[ -f "$ACTIVE_TASK_PATH" ]]; then
-    cat "$ACTIVE_TASK_PATH"
-  fi
-}
-
-# =================================================
-# EXECUTION BOOTSTRAP
-# =================================================
-
-build_execution_bootstrap() {
-
-cat <<EOF
-You are executing inside the Aegis Harness runtime.
-
-Execution mode:
-$MODE_NAME
-
-Execution substrate:
-$EXECUTION_ENGINE
-
-Rules:
-- emit exactly one JSON object
-- emit no prose outside JSON
-- emit no markdown
-- emit no acknowledgements
-- consume only runtime-provided evidence
-- avoid implicit repository assumptions
-- avoid speculative fabrication
-- do not self-authorize capabilities
-EOF
-}
-
-# =================================================
-# RAW SUBSTRATE
-# =================================================
-
-run_raw_substrate() {
-
-  [[ -f "$RAW_SUBSTRATE" ]] \
-    || fatal "raw_substrate_not_found"
-
-  local bootstrap
-  local contract
-  local continuity
-  local grounding
-
-  bootstrap="$(build_execution_bootstrap)"
-
-  contract="$(cat "$MODE_CONTRACT")"
-
-  continuity="$(load_active_task || true)"
-
-  grounding="$(build_capability_grounding)"
-
-  bash "$RAW_SUBSTRATE" \
-    "$AEGIS_MODEL" \
-    "$bootstrap" \
-    "$contract" \
-    "$continuity
-
-$grounding"
-}
-
-# =================================================
-# AIDER SUBSTRATE
-# =================================================
-
-run_aider_substrate() {
-
-  local bootstrap
-  local contract
-  local continuity
-  local grounding
-
-  bootstrap="$(build_execution_bootstrap)"
-
-  contract="$(cat "$MODE_CONTRACT")"
-
-  continuity="$(load_active_task || true)"
-
-  grounding="$(build_capability_grounding)"
-
-  (
-    cd "$WORKTREE_PATH"
-
-    aider \
-      --model "$AEGIS_MODEL" \
-      --edit-format "$AEGIS_EDIT_FORMAT" \
-      --message "
-$bootstrap
-
-$contract
-
-$continuity
-
-$grounding
-"
-  )
-}
-
-# =================================================
-# SUBSTRATE ROUTING
-# =================================================
-
-execute_substrate() {
-
-  case "$EXECUTION_ENGINE" in
-
-    raw)
-      run_raw_substrate
-      ;;
-
-    aider)
-      run_aider_substrate
-      ;;
-
-    *)
-      fatal "unknown_execution_engine: $EXECUTION_ENGINE"
-      ;;
-
-  esac
-}
-
-# =================================================
-# JSON VALIDATION
-# =================================================
-
-validate_json_payload() {
-
-  local payload="$1"
-
-  echo "$payload" | jq empty >/dev/null 2>&1 \
-    || fatal "invalid_json_payload"
-
-  local mode
-
-  mode="$(
-    echo "$payload" \
+  mode_identity="$(
+    echo "${artifact}" \
       | jq -r '.mode // empty'
   )"
 
-  [[ "$mode" == "$MODE_NAME" ]] \
-    || fatal "mode_identity_mismatch"
+  [[ "${mode_identity}" == "${AEGIS_MODE}" ]] \
+    || executor_fatal "artifact_mode_mismatch"
+
+  local execution_identity
+
+  execution_identity="$(
+    echo "${artifact}" \
+      | jq -r '.execution_id // empty'
+  )"
+
+  [[ "${execution_identity}" == "${AEGIS_EXECUTION_ID}" ]] \
+    || executor_fatal "artifact_execution_identity_mismatch"
 }
 
-# =================================================
+# =========================================================
+# EXECUTION
+# =========================================================
+
+execute_substrate() {
+
+  executor_log "Execution engine: ${AEGIS_EXECUTION_ENGINE}"
+
+  local grounding_payload
+  grounding_payload="$(build_grounding_payload)"
+
+  local artifact_output
+
+  case "${AEGIS_EXECUTION_ENGINE}" in
+
+    "raw")
+
+      artifact_output="$(
+        bash "${AEGIS_SUBSTRATE_SCRIPT}" \
+          "${OPENAI_MODEL_ANALYSIS}" \
+          "${AEGIS_SKILL_FILE}" \
+          "${grounding_payload}" \
+          "${AEGIS_CAPABILITY_PAYLOAD_PATH}"
+      )"
+
+      ;;
+
+    "aider")
+
+      executor_fatal "mutation_substrate_not_yet_hardened"
+
+      ;;
+
+    *)
+
+      executor_fatal "unsupported_execution_engine"
+
+      ;;
+  esac
+
+  validate_artifact "${artifact_output}"
+
+  executor_log "Payload validated successfully"
+
+  echo "${AEGIS_ARTIFACT_BEGIN_MARKER}"
+  echo "${artifact_output}"
+  echo "${AEGIS_ARTIFACT_END_MARKER}"
+}
+
+# =========================================================
 # MAIN
-# =================================================
+# =========================================================
 
 main() {
 
-  log "Materializing capability environment..."
+  validate_inputs
+
+  validate_execution_engine
+
+  validate_substrate
+
+  resolve_capability_envelope
+
+  remove_stale_execution_state
 
   materialize_capability_environment
 
-  log "Materializing capability payloads..."
-
   materialize_capability_payloads
 
-  validate_capability_payloads
-
-  log "Execution engine: $EXECUTION_ENGINE"
-
-  payload="$(
-    execute_substrate
-  )" || fatal "substrate_execution_failure"
-
-  [[ -n "$payload" ]] \
-    || fatal "empty_substrate_output"
-
-  validate_json_payload "$payload"
-
-  log "Payload validated successfully"
-
-  if [[ "$AEGIS_PROTOCOL_RUNTIME_OWNS_FRAMING" == "true" ]]; then
-
-    printf 'AEGIS_ARTIFACT_BEGIN\n'
-    printf '%s\n' "$payload"
-    printf 'AEGIS_ARTIFACT_END\n'
-
-  else
-
-    printf '%s\n' "$payload"
-
-  fi
+  execute_substrate
 }
 
-# =================================================
-# ENTRYPOINT
-# =================================================
-
-main
+main "$@"

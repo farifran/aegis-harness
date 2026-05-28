@@ -1,190 +1,345 @@
 #!/usr/bin/env bash
-# =================================================
+
+# =========================================================
 # AEGIS HARNESS — CAPABILITY MANIFEST GENERATOR
-# =================================================
+# =========================================================
 #
-# Purpose:
-# - materialize runtime-owned capability environments
-# - expose explicit capability routing
-# - transform declarative capability topology
-#   into operational capability environments
+# Version: 2.2
+# Layer: Capability Topology
+# Status: Hardened
 #
-# This script intentionally:
-# - remains deterministic
-# - remains mechanical
-# - avoids semantic reasoning
-# - avoids orchestration logic
+# Responsibilities:
 #
-# Runtime owns orchestration.
-# This script materializes capability environments.
+# - deterministic manifest generation
+# - capability topology materialization
+# - execution engine mapping
+# - capability provenance
+# - manifest integrity
+# - topology serialization
 #
-# =================================================
+# The manifest intentionally represents:
+#
+# - runtime-owned authority
+# - capability envelopes
+# - execution routing
+# - bounded execution topology
+#
+# =========================================================
+
 set -Eeuo pipefail
-# =================================================
-# INPUTS
-# =================================================
-MODE_NAME="${1:-}"
-OUTPUT_PATH="${2:-}"
-# =================================================
-# ROOT PATHS
-# =================================================
-ROOT_DIR="$(pwd)"
-CONFIG_FILE="$ROOT_DIR/.harness/config.sh"
-# =================================================
-# HELPERS
-# =================================================
-fatal() {
-  printf '[AEGIS][MANIFEST][FATAL] %s\n' "$1"
+
+# =========================================================
+# ROOT RESOLUTION
+# =========================================================
+
+readonly AEGIS_MANIFEST_ROOT="$(
+  cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd
+)"
+
+cd "${AEGIS_MANIFEST_ROOT}"
+
+# =========================================================
+# CONFIGURATION
+# =========================================================
+
+[[ -f ".harness/config.sh" ]] || {
+  echo "[AEGIS][MANIFEST][FATAL] missing_config" >&2
   exit 1
 }
-log() {
-  printf '[AEGIS][MANIFEST] %s\n' "$1"
+
+source ".harness/config.sh"
+
+# =========================================================
+# EXECUTION IDENTITY
+# =========================================================
+
+readonly AEGIS_MANIFEST_GENERATED_AT="$(
+  date -u +"%Y-%m-%dT%H:%M:%SZ"
+)"
+
+readonly AEGIS_MANIFEST_EXECUTION_ID="${AEGIS_EXECUTION_ID:-manifest-standalone}"
+
+# =========================================================
+# LOGGING
+# =========================================================
+
+manifest_log() {
+  echo "[AEGIS][MANIFEST] $*" >&2
 }
-# =================================================
+
+manifest_warn() {
+  echo "[AEGIS][MANIFEST][WARN] $*" >&2
+}
+
+manifest_fatal() {
+  echo "[AEGIS][MANIFEST][FATAL] $*" >&2
+  exit 1
+}
+
+# =========================================================
 # VALIDATION
-# =================================================
-[[ -n "$MODE_NAME" ]] \
-  || fatal "Missing mode name"
-[[ -n "$OUTPUT_PATH" ]] \
-  || fatal "Missing output path"
-[[ -f "$CONFIG_FILE" ]] \
-  || fatal "Missing config.sh"
-# =================================================
-# CONFIG LOAD
-# =================================================
-source "$CONFIG_FILE"
-# =================================================
-# MODE VALIDATION
-# =================================================
-validate_mode_exists() {
-  local found="false"
-  for mode in "${AEGIS_ALL_MODES[@]}"; do
-    if [[ "$mode" == "$MODE_NAME" ]]; then
-      found="true"
-      break
-    fi
-  done
-  [[ "$found" == "true" ]] \
-    || fatal "Unknown mode: $MODE_NAME"
+# =========================================================
+
+validate_environment() {
+
+  command -v jq >/dev/null 2>&1 \
+    || manifest_fatal "missing_jq"
+
+  command -v sha256sum >/dev/null 2>&1 \
+    || manifest_fatal "missing_sha256sum"
+
+  [[ "${#AEGIS_EXECUTION_ENGINES[@]}" -gt 0 ]] \
+    || manifest_fatal "missing_execution_engines"
+
+  [[ "${#AEGIS_CAPABILITY_HANDLERS[@]}" -gt 0 ]] \
+    || manifest_fatal "missing_capability_registry"
+
+  [[ "${#AEGIS_MODE_CAPABILITY_MAP[@]}" -gt 0 ]] \
+    || manifest_fatal "missing_mode_capability_map"
 }
-# =================================================
-# LOAD MODE TOPOLOGY
-# =================================================
-load_mode_capabilities() {
-  local capability_var="AEGIS_MODE_CAPABILITIES_${MODE_NAME}[@]"
-  MODE_CAPABILITIES=("${!capability_var:-}")
-  [[ "${#MODE_CAPABILITIES[@]}" -gt 0 ]] \
-    || fatal "Mode has no capability envelope"
-}
-load_execution_engine() {
-  local engine_var="AEGIS_MODE_EXECUTION_ENGINE_${MODE_NAME}"
-  MODE_EXECUTION_ENGINE="${!engine_var:-}"
-  [[ -n "$MODE_EXECUTION_ENGINE" ]] \
-    || fatal "Mode has no execution engine"
-}
-# =================================================
-# CAPABILITY HANDLER RESOLUTION
-# =================================================
-resolve_capability_handler() {
-  local capability="$1"
-  local normalized
-  normalized="$(
-    printf '%s' "$capability" \
-      | tr '.' '_' \
-      | tr '[:lower:]' '[:upper:]'
-  )"
-  local handler_var
-  handler_var="AEGIS_CAPABILITY_HANDLER_${normalized}"
-  local handler="${!handler_var:-}"
-  [[ -n "$handler" ]] \
-    || fatal "No handler mapping for capability: $capability"
-  printf '%s' "$handler"
-}
-# =================================================
-# CAPABILITY CLASSIFICATION
-# =================================================
-classify_capability() {
-  local capability="$1"
-  for readonly in "${AEGIS_READONLY_CAPABILITIES[@]}"; do
-    if [[ "$readonly" == "$capability" ]]; then
-      printf 'readonly'
-      return
-    fi
-  done
-  printf 'mutation'
-}
-# =================================================
-# CAPABILITY ENTRY EMISSION
-# =================================================
-emit_capability_entries() {
-  local first="true"
-  for capability in "${MODE_CAPABILITIES[@]}"; do
+
+validate_handler_registry() {
+
+  local capability
+
+  for capability in "${!AEGIS_CAPABILITY_HANDLERS[@]}"; do
+
     local handler
+    handler="${AEGIS_CAPABILITY_HANDLERS[$capability]}"
+
+    [[ -f "${handler}" ]] \
+      || manifest_fatal "missing_handler_file: ${handler}"
+
+  done
+}
+
+# =========================================================
+# CAPABILITY CLASSIFICATION
+# =========================================================
+
+classify_capability() {
+
+  local capability="$1"
+
+  case "${capability}" in
+
+    filesystem.*)
+      echo "readonly"
+      ;;
+
+    topology.*)
+      echo "readonly"
+      ;;
+
+    runtime.*)
+      echo "readonly"
+      ;;
+
+    git.diff|git.status)
+      echo "readonly"
+      ;;
+
+    *)
+      echo "unknown"
+      ;;
+  esac
+}
+
+# =========================================================
+# CAPABILITY ENVELOPE RESOLUTION
+# =========================================================
+
+resolve_mode_capabilities() {
+
+  local mode="$1"
+
+  local envelope_name
+  envelope_name="${AEGIS_MODE_CAPABILITY_MAP[$mode]:-}"
+
+  [[ -n "${envelope_name}" ]] \
+    || manifest_fatal "missing_capability_envelope: ${mode}"
+
+  declare -n RESOLVED_CAPABILITIES="${envelope_name}"
+
+  [[ "${#RESOLVED_CAPABILITIES[@]}" -gt 0 ]] \
+    || manifest_fatal "empty_capability_envelope: ${mode}"
+
+  printf '%s\n' "${RESOLVED_CAPABILITIES[@]}"
+}
+
+# =========================================================
+# MODE MANIFEST
+# =========================================================
+
+build_mode_manifest() {
+
+  local mode="$1"
+
+  local engine
+  engine="${AEGIS_EXECUTION_ENGINES[$mode]:-}"
+
+  [[ -n "${engine}" ]] \
+    || manifest_fatal "missing_execution_engine: ${mode}"
+
+  local capabilities_temp
+  capabilities_temp="$(mktemp)"
+
+  echo "[" > "${capabilities_temp}"
+
+  local first_capability="true"
+
+  while IFS= read -r capability; do
+
+    local handler
+    handler="${AEGIS_CAPABILITY_HANDLERS[$capability]:-}"
+
+    [[ -n "${handler}" ]] \
+      || manifest_fatal "missing_handler_for_capability: ${capability}"
+
     local classification
-    handler="$(resolve_capability_handler "$capability")"
-    classification="$(classify_capability "$capability")"
-    if [[ "$first" == "false" ]]; then
-      printf ',\n'
+    classification="$(classify_capability "${capability}")"
+
+    if [[ "${first_capability}" == "false" ]]; then
+      echo "," >> "${capabilities_temp}"
     fi
-    first="false"
-    cat <<EOF
-    {
-      "name": "$capability",
-      "handler": "$handler",
-      "classification": "$classification"
-    }
-EOF
+
+    first_capability="false"
+
+    jq -n \
+      --arg capability "${capability}" \
+      --arg handler "${handler}" \
+      --arg classification "${classification}" \
+      '{
+        capability: $capability,
+        classification: $classification,
+        handler: $handler
+      }' \
+      >> "${capabilities_temp}"
+
+  done < <(
+    resolve_mode_capabilities "${mode}"
+  )
+
+  echo "]" >> "${capabilities_temp}"
+
+  jq empty "${capabilities_temp}" \
+    >/dev/null 2>&1 \
+    || manifest_fatal "invalid_capability_manifest"
+
+  jq -n \
+    --arg mode "${mode}" \
+    --arg execution_engine "${engine}" \
+    --slurpfile capabilities "${capabilities_temp}" \
+    '{
+      mode: $mode,
+      execution_engine: $execution_engine,
+      capabilities: $capabilities[0]
+    }'
+
+  rm -f "${capabilities_temp}"
+}
+
+# =========================================================
+# MANIFEST HASH
+# =========================================================
+
+compute_manifest_hash() {
+
+  local manifest_content="$1"
+
+  echo "${manifest_content}" \
+    | sha256sum \
+    | awk '{print $1}'
+}
+
+# =========================================================
+# GLOBAL MANIFEST
+# =========================================================
+
+generate_manifest() {
+
+  local manifest_body
+  manifest_body="$(mktemp)"
+
+  echo "{" > "${manifest_body}"
+
+  echo "\"schema_version\":\"2.2\"," >> "${manifest_body}"
+
+  echo "\"runtime_model\":\"capability_grounded_execution\"," >> "${manifest_body}"
+
+  echo "\"generated_at\":\"${AEGIS_MANIFEST_GENERATED_AT}\"," >> "${manifest_body}"
+
+  echo "\"execution_id\":\"${AEGIS_MANIFEST_EXECUTION_ID}\"," >> "${manifest_body}"
+
+  echo "\"modes\":{" >> "${manifest_body}"
+
+  local first_mode="true"
+
+  local mode
+
+  for mode in "${!AEGIS_EXECUTION_ENGINES[@]}"; do
+
+    if [[ "${first_mode}" == "false" ]]; then
+      echo "," >> "${manifest_body}"
+    fi
+
+    first_mode="false"
+
+    echo "\"${mode}\":" >> "${manifest_body}"
+
+    build_mode_manifest "${mode}" \
+      >> "${manifest_body}"
+
   done
+
+  echo "}" >> "${manifest_body}"
+
+  echo "}" >> "${manifest_body}"
+
+  jq empty "${manifest_body}" \
+    >/dev/null 2>&1 \
+    || manifest_fatal "invalid_manifest_structure"
+
+  local manifest_content
+  manifest_content="$(cat "${manifest_body}")"
+
+  local manifest_hash
+  manifest_hash="$(
+    compute_manifest_hash "${manifest_content}"
+  )"
+
+  jq -n \
+    --arg schema_version "2.2" \
+    --arg runtime_model "capability_grounded_execution" \
+    --arg generated_at "${AEGIS_MANIFEST_GENERATED_AT}" \
+    --arg execution_id "${AEGIS_MANIFEST_EXECUTION_ID}" \
+    --arg manifest_hash "${manifest_hash}" \
+    --slurpfile manifest "${manifest_body}" \
+    '{
+      schema_version: $schema_version,
+      runtime_model: $runtime_model,
+      generated_at: $generated_at,
+      execution_id: $execution_id,
+      manifest_hash: $manifest_hash,
+      modes: $manifest[0].modes
+    }'
+
+  rm -f "${manifest_body}"
 }
-# =================================================
-# MANIFEST MATERIALIZATION
-# =================================================
-materialize_manifest() {
-  mkdir -p "$(dirname "$OUTPUT_PATH")"
-  cat > "$OUTPUT_PATH" <<EOF
-{
-  "schema_version": "1.0",
-  "mode": "$MODE_NAME",
-  "execution_engine": "$MODE_EXECUTION_ENGINE",
-  "grounding_model": "runtime_exposed_capabilities",
-  "repository_awareness": "capability_bound",
-  "continuity_model": "runtime_owned_ephemeral",
-  "authority_model": {
-    "runtime": "sovereign",
-    "executor": "protocol_vm",
-    "capabilities": "explicit_authority_surfaces",
-    "model": "bounded_cognition"
-  },
-  "capabilities": [
-$(emit_capability_entries)
-  ],
-  "protocol": {
-    "single_json_payload": true,
-    "runtime_owned_framing": true,
-    "non_conversational_execution": true
-  }
-}
-EOF
-}
-# =================================================
-# EXECUTION
-# =================================================
+
+# =========================================================
+# MAIN
+# =========================================================
+
 main() {
-  validate_mode_exists
-  load_mode_capabilities
-  load_execution_engine
-  log "Generating capability manifest..."
-  log "Mode: $MODE_NAME"
-  log "Execution engine: $MODE_EXECUTION_ENGINE"
-  log "Capabilities:"
-  for capability in "${MODE_CAPABILITIES[@]}"; do
-    log "  - $capability"
-  done
-  materialize_manifest
-  log "Manifest generated successfully"
-  log "Output: $OUTPUT_PATH"
+
+  manifest_log "Generating capability manifest..."
+
+  validate_environment
+
+  validate_handler_registry
+
+  generate_manifest
 }
-# =================================================
-# ENTRYPOINT
-# =================================================
-main
+
+main "$@"
