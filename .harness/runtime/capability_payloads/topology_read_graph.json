@@ -1,0 +1,248 @@
+{
+  "success": true,
+  "capability": "topology.read_graph",
+  "classification": "readonly",
+  "payload": {
+    "path": ".harness/architecture_graph.json",
+    "graph": {
+      "schema_version": "2.0",
+      "system": {
+        "name": "Aegis Harness",
+        "architecture_type": "bounded_capability_runtime",
+        "execution_model": "protocol_oriented",
+        "grounding_model": "runtime_exposed_capabilities",
+        "continuity_model": "ephemeral_runtime_state",
+        "persistence_model": "explicit_git_persistence"
+      },
+      "core_principles": [
+        "runtime_governs_execution",
+        "modes_produce_cognition",
+        "capabilities_bound_authority",
+        "grounding_is_explicit",
+        "continuity_is_ephemeral",
+        "persistence_is_explicit",
+        "protocol_enforcement_is_runtime_owned",
+        "repository_awareness_is_capability_bound"
+      ],
+      "runtime": {
+        "authority": "sovereign",
+        "responsibilities": [
+          "worktree_lifecycle",
+          "capability_environment_lifecycle",
+          "execution_orchestration",
+          "continuity_injection",
+          "continuity_promotion",
+          "protocol_topology_verification",
+          "capability_routing",
+          "cleanup",
+          "persistence_decisions"
+        ],
+        "forbidden": [
+          "semantic_reasoning",
+          "architectural_interpretation",
+          "cognitive_execution",
+          "implicit_authority_expansion"
+        ]
+      },
+      "executor": {
+        "type": "protocol_vm",
+        "responsibilities": [
+          "contract_loading",
+          "capability_manifest_loading",
+          "capability_environment_injection",
+          "execution_substrate_routing",
+          "payload_validation",
+          "mode_identity_validation",
+          "payload_normalization"
+        ],
+        "forbidden": [
+          "continuity_ownership",
+          "persistence_ownership",
+          "orchestration_ownership",
+          "semantic_inference",
+          "implicit_repository_grounding"
+        ]
+      },
+      "grounding": {
+        "model": "capability_grounded_execution",
+        "principles": [
+          "repository_access_is_explicit",
+          "capability_exposure_is_runtime_owned",
+          "grounding_is_not_prompt_inheritance",
+          "modes_consume_capability_surfaces"
+        ],
+        "forbidden": [
+          "implicit_repository_awareness",
+          "assistant_style_context_inheritance",
+          "hidden_continuity_assumptions"
+        ]
+      },
+      "capability_topology": {
+        "model": "runtime_owned_capability_surfaces",
+        "capability_root": "scripts/capabilities",
+        "capability_classes": {
+          "filesystem": {
+            "readonly": [
+              "filesystem.read",
+              "filesystem.list_tree",
+              "filesystem.search_symbol"
+            ]
+          },
+          "git": {
+            "readonly": [
+              "git.diff",
+              "git.status"
+            ]
+          },
+          "topology": {
+            "readonly": [
+              "topology.read_graph"
+            ]
+          },
+          "runtime": {
+            "readonly": [
+              "runtime.read_active_task"
+            ]
+          }
+        },
+        "future_mutation_capabilities": [
+          "filesystem.write",
+          "patch.apply",
+          "dependency.install"
+        ]
+      },
+      "execution_substrates": {
+        "raw": {
+          "type": "bounded_readonly_cognition",
+          "used_by": [
+            "discovery",
+            "forensics",
+            "validation",
+            "adversarial"
+          ]
+        },
+        "aider": {
+          "type": "bounded_mutation_substrate",
+          "used_by": [
+            "repair",
+            "optimize"
+          ]
+        }
+      },
+      "mode_topology": {
+        "analysis_modes": {
+          "discovery": {
+            "authority": "readonly",
+            "execution_engine": "raw",
+            "continuity_ownership": false,
+            "mutation_authority": false
+          },
+          "forensics": {
+            "authority": "readonly",
+            "execution_engine": "raw",
+            "continuity_ownership": false,
+            "mutation_authority": false
+          },
+          "validation": {
+            "authority": "readonly",
+            "execution_engine": "raw",
+            "continuity_ownership": false,
+            "mutation_authority": false
+          },
+          "adversarial": {
+            "authority": "readonly",
+            "execution_engine": "raw",
+            "continuity_ownership": false,
+            "mutation_authority": false
+          }
+        },
+        "mutation_modes": {
+          "repair": {
+            "authority": "bounded_mutation",
+            "execution_engine": "aider",
+            "continuity_ownership": false,
+            "mutation_authority": true
+          },
+          "optimize": {
+            "authority": "bounded_mutation",
+            "execution_engine": "aider",
+            "continuity_ownership": false,
+            "mutation_authority": true
+          }
+        }
+      },
+      "continuity_model": {
+        "type": "runtime_owned_ephemeral_state",
+        "runtime_state_files": [
+          ".harness/runtime/active_task.md",
+          ".harness/runtime/last_good_active_task.md"
+        ],
+        "principles": [
+          "continuity_is_explicit",
+          "continuity_is_runtime_owned",
+          "continuity_is_disposable",
+          "git_is_durable_persistence"
+        ],
+        "forbidden": [
+          "hidden_memory",
+          "assistant_continuity",
+          "implicit_state_inheritance"
+        ]
+      },
+      "protocol_model": {
+        "execution_model": "non_conversational",
+        "requirements": [
+          "single_json_payload",
+          "machine_parseable_output",
+          "mode_identity_validation",
+          "runtime_owned_framing"
+        ],
+        "rejected": [
+          "assistant_narration",
+          "acknowledgements",
+          "clarification_loops",
+          "conversational_drift",
+          "mixed_protocol_output"
+        ]
+      },
+      "containment_model": {
+        "execution_boundary": "disposable_git_worktree",
+        "containment_principles": [
+          "capability_bound_authority",
+          "explicit_mutation_surfaces",
+          "runtime_owned_cleanup",
+          "transient_execution_state"
+        ],
+        "forbidden": [
+          "cross_mode_state_inheritance",
+          "hidden_mutation",
+          "implicit_authority_expansion"
+        ]
+      },
+      "architectural_direction": {
+        "current_stage": "capability_runtime_transition",
+        "moving_away_from": [
+          "prompt_grounding",
+          "assistant_repository_inheritance",
+          "implicit_context_topology"
+        ],
+        "moving_toward": [
+          "runtime_exposed_capability_grounding",
+          "bounded_execution_environments",
+          "explicit_capability_surfaces",
+          "capability_oriented_execution"
+        ]
+      },
+      "final_operational_model": {
+        "runtime": "governs_execution",
+        "executor": "enforces_protocol",
+        "capabilities": "bound_authority",
+        "modes": "produce_bounded_cognition",
+        "grounding": "explicit_and_runtime_owned",
+        "continuity": "ephemeral",
+        "persistence": "explicit"
+      }
+    }
+  },
+  "error": null
+}

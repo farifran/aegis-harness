@@ -1,185 +1,283 @@
 #!/usr/bin/env bash
-
-source ~/.bashrc
-set -euo pipefail
-
+# =================================================
+# AEGIS HARNESS — RUNTIME AUTHORITY
+# =================================================
+#
+# Purpose:
+# - lifecycle orchestration
+# - capability environment authority
+# - disposable execution management
+# - runtime-owned continuity
+# - deterministic execution topology
+#
+# Runtime owns:
+# - orchestration
+# - continuity lifecycle
+# - capability exposure
+# - capability payload lifecycle
+# - sandbox lifecycle
+# - persistence decisions
+# - cleanup
+#
+# Runtime intentionally does NOT:
+# - reason semantically
+# - interpret architecture
+# - own cognition
+# - infer intent
+#
+# =================================================
+set -Eeuo pipefail
+# =================================================
+# ROOT RESOLUTION
+# =================================================
 ROOT_DIR="$(
-  cd "$(dirname "${BASH_SOURCE[0]}")" && pwd
+  cd "$(dirname "${BASH_SOURCE[0]}")" \
+  && pwd
 )"
-
-source "$ROOT_DIR/.harness/config.sh"
-
-RUNTIME_DIR="$ROOT_DIR/.harness/runtime"
-ACTIVE_TASK="$RUNTIME_DIR/active_task.md"
-WORKTREE_BASE="$ROOT_DIR/.harness/worktrees"
-
-CURRENT_WORKTREE_PATH=""
-
-fail() {
-  echo
-  echo "[AEGIS] $1" >&2
-  echo
+CONFIG_FILE="$ROOT_DIR/.harness/config.sh"
+EXECUTOR="$ROOT_DIR/scripts/execute_mode.sh"
+# =================================================
+# VALIDATION
+# =================================================
+[[ -f "$CONFIG_FILE" ]] \
+  || {
+    echo "[AEGIS][RUNTIME][FATAL] missing_config"
+    exit 1
+  }
+source "$CONFIG_FILE"
+# =================================================
+# HELPERS
+# =================================================
+log() {
+  printf '[AEGIS][RUNTIME] %s\n' "$1"
+}
+fatal() {
+  printf '[AEGIS][RUNTIME][FATAL] %s\n' "$1"
   exit 1
 }
-
-cleanup_worktree() {
-  local path="${1:-}"
-
-  [[ -n "$path" ]] || return 0
-
-  rm -rf "$path/.aider.tags.cache.v4" >/dev/null 2>&1 || true
-  rm -f "$path/.aider.chat.history.md" >/dev/null 2>&1 || true
-  rm -f "$path/.aider.input.history" >/dev/null 2>&1 || true
-
-  git worktree remove --force "$path" >/dev/null 2>&1 || true
+# =================================================
+# RUNTIME PATHS
+# =================================================
+RUNTIME_DIR="$ROOT_DIR/$AEGIS_RUNTIME_DIR"
+CAPABILITY_ENV_DIR="$ROOT_DIR/$AEGIS_CAPABILITY_ENV_DIR"
+CAPABILITY_PAYLOAD_DIR="$ROOT_DIR/$AEGIS_CAPABILITY_PAYLOAD_DIR"
+ACTIVE_TASK_FILE="$ROOT_DIR/$AEGIS_ACTIVE_TASK_FILE"
+LAST_GOOD_TASK_FILE="$ROOT_DIR/$AEGIS_LAST_GOOD_TASK_FILE"
+WORKTREE_ROOT="$ROOT_DIR/.harness/worktrees"
+# =================================================
+# SELF CONSISTENCY
+# =================================================
+validate_runtime_files() {
+  for file in "${AEGIS_REQUIRED_RUNTIME_FILES[@]}"; do
+    [[ -f "$ROOT_DIR/$file" ]] \
+      || fatal "missing_runtime_file: $file"
+  done
 }
-
-cleanup_global() {
-  rm -rf "$WORKTREE_BASE" >/dev/null 2>&1 || true
-
-  rm -rf "$ROOT_DIR/.aider.tags.cache.v4" >/dev/null 2>&1 || true
-  rm -f "$ROOT_DIR/.aider.chat.history.md" >/dev/null 2>&1 || true
-  rm -f "$ROOT_DIR/.aider.input.history" >/dev/null 2>&1 || true
-
+validate_runtime_directories() {
+  for dir in "${AEGIS_REQUIRED_RUNTIME_DIRECTORIES[@]}"; do
+    [[ -d "$ROOT_DIR/$dir" ]] \
+      || fatal "missing_runtime_directory: $dir"
+  done
+}
+validate_mode_contracts() {
+  local all_modes
+  all_modes=(
+    "${AEGIS_ANALYSIS_MODES[@]}"
+    "${AEGIS_MUTATION_MODES[@]}"
+  )
+  for mode in "${all_modes[@]}"; do
+    contract="$ROOT_DIR/.skills/$mode.md"
+    [[ -f "$contract" ]] \
+      || fatal "missing_mode_contract: $mode"
+  done
+}
+validate_executor_integrity() {
+  grep -q "CAPABILITY_PAYLOAD_DIR" "$EXECUTOR" \
+    || fatal "executor_missing_capability_payload_support"
+  grep -q "materialize_capability_payloads" "$EXECUTOR" \
+    || fatal "executor_missing_payload_materialization"
+  grep -q "validate_json_payload" "$EXECUTOR" \
+    || fatal "executor_missing_json_validation"
+}
+validate_runtime_topology() {
+  log "Validating runtime topology..."
+  validate_runtime_files
+  validate_runtime_directories
+  validate_mode_contracts
+  validate_executor_integrity
+}
+# =================================================
+# RUNTIME STATE
+# =================================================
+initialize_runtime_state() {
+  mkdir -p "$RUNTIME_DIR"
+  mkdir -p "$WORKTREE_ROOT"
+  mkdir -p "$CAPABILITY_ENV_DIR"
+  mkdir -p "$CAPABILITY_PAYLOAD_DIR"
+  touch "$ACTIVE_TASK_FILE"
+}
+# =================================================
+# CAPABILITY LIFECYCLE
+# =================================================
+reset_capability_state() {
+  rm -rf "$CAPABILITY_ENV_DIR"
+  rm -rf "$CAPABILITY_PAYLOAD_DIR"
+  mkdir -p "$CAPABILITY_ENV_DIR"
+  mkdir -p "$CAPABILITY_PAYLOAD_DIR"
+}
+validate_capability_payloads() {
+  [[ -d "$CAPABILITY_PAYLOAD_DIR" ]] \
+    || fatal "missing_capability_payload_directory"
+  payload_count="$(
+    find "$CAPABILITY_PAYLOAD_DIR" \
+      -name '*.json' \
+      | wc -l \
+      | tr -d ' '
+  )"
+  [[ "$payload_count" -gt 0 ]] \
+    || fatal "empty_capability_payload_directory"
+}
+# =================================================
+# WORKTREE MANAGEMENT
+# =================================================
+cleanup_stale_worktrees() {
   git worktree prune >/dev/null 2>&1 || true
 }
-
-cleanup_all() {
-  cleanup_worktree "${CURRENT_WORKTREE_PATH:-}"
-  cleanup_global
-}
-
-trap cleanup_all EXIT INT TERM
-
-validate_runtime_topology() {
-  local required_files=(
-    "$ROOT_DIR/AGENTS.md"
-    "$ROOT_DIR/.harness/config.sh"
-    "$ROOT_DIR/scripts/execute_mode.sh"
-    "$ROOT_DIR/.harness/architecture_graph.json"
-  )
-
-  local file
-
-  for file in "${required_files[@]}"
-  do
-    [[ -f "$file" ]] \
-      || fail "Missing runtime file: ${file#"$ROOT_DIR/"}"
-  done
-
-  [[ -n "${AEGIS_MODEL:-}" ]] \
-    || fail "Missing AEGIS_MODEL."
-
-  [[ -n "${AEGIS_EDIT_FORMAT:-}" ]] \
-    || fail "Missing AEGIS_EDIT_FORMAT."
-
-  [[ -n "${AEGIS_EXECUTION_TIMEOUT:-}" ]] \
-    || fail "Missing AEGIS_EXECUTION_TIMEOUT."
-
-  [[ "${AEGIS_EXECUTION_TIMEOUT}" =~ ^[0-9]+$ ]] \
-    || fail "Invalid execution timeout."
-
-  grep -q 'Execute immediately.' \
-    "$ROOT_DIR/scripts/execute_mode.sh" \
-    || fail "Invalid executor: missing coercion marker."
-
-  grep -q 'jq empty' \
-    "$ROOT_DIR/scripts/execute_mode.sh" \
-    || fail "Invalid executor: missing JSON validation."
-}
-
-mkdir -p "$WORKTREE_BASE"
-mkdir -p "$RUNTIME_DIR"
-
-validate_runtime_topology
-
-rm -f "$ACTIVE_TASK"
-
-for MODE in "${AEGIS_ANALYSIS_MODES[@]}"
-do
-  echo
-  echo "================================================="
-  echo "[AEGIS] Executing: $MODE"
-  echo "================================================="
-  echo
-
-  CURRENT_WORKTREE_PATH="$WORKTREE_BASE/$MODE"
-
-  rm -rf "$CURRENT_WORKTREE_PATH"
-
-  git worktree add \
+create_worktree() {
+  local mode="$1"
+  local worktree_path
+  worktree_path="$WORKTREE_ROOT/$mode"
+  git worktree remove \
     --force \
+    "$worktree_path" \
+    >/dev/null 2>&1 || true
+  rm -rf "$worktree_path"
+  git worktree prune >/dev/null 2>&1 || true
+  git worktree add \
     --detach \
-    "$CURRENT_WORKTREE_PATH" \
-    HEAD
-
-  if [[ -f "$ACTIVE_TASK" ]]
-  then
-    mkdir -p "$CURRENT_WORKTREE_PATH/.harness/runtime"
-
-    cp \
-      "$ACTIVE_TASK" \
-      "$CURRENT_WORKTREE_PATH/.harness/runtime/active_task.md"
-  fi
-
-  pushd "$CURRENT_WORKTREE_PATH" >/dev/null
-
-  chmod +x scripts/execute_mode.sh
-
-  ACTIVE_TASK_ARG=""
-
-  if [[ "$MODE" != "discovery" ]]
-  then
-    ACTIVE_TASK_ARG=".harness/runtime/active_task.md"
-  fi
-
-  set +e
-
-  OUTPUT="$(
-    bash scripts/execute_mode.sh \
-      ".skills/$MODE.md" \
-      "$MODE" \
-      "$ACTIVE_TASK_ARG" \
-      2>&1
+    "$worktree_path" \
+    HEAD >/dev/null
+  printf '%s\n' "$worktree_path"
+}
+destroy_worktree() {
+  local worktree_path="$1"
+  git worktree remove \
+    --force \
+    "$worktree_path" \
+    >/dev/null 2>&1 || true
+  rm -rf "$worktree_path"
+}
+# =================================================
+# EXECUTION
+# =================================================
+execute_mode() {
+  local mode="$1"
+  local worktree_path="$2"
+  local contract
+  contract="$ROOT_DIR/.skills/$mode.md"
+  log "Executing mode: $mode"
+  output="$(
+    AEGIS_WORKTREE_PATH="$worktree_path" \
+    bash "$EXECUTOR" \
+      "$contract" \
+      "$mode" \
+      "$ACTIVE_TASK_FILE"
   )"
-
-  EXIT_CODE=$?
-
-  set -e
-
-  popd >/dev/null
-
-  printf '%s\n' "$OUTPUT"
-
-  if [[ "$EXIT_CODE" -ne 0 ]]
-  then
-    echo
-    echo "[AEGIS] Mode failed: $MODE"
-    echo
-
-    exit 1
-  fi
-
-  if [[ "$MODE" == "discovery" ]]
-  then
-    cat > "$ACTIVE_TASK" <<EOF
-# ACTIVE TASK
-
-Discovery completed successfully.
-EOF
-  fi
-
-  cleanup_worktree "$CURRENT_WORKTREE_PATH"
-
-  CURRENT_WORKTREE_PATH=""
-
-  echo
-  echo "[AEGIS] Mode completed successfully."
-  echo
-done
-
-echo
-echo "================================================="
-echo "[AEGIS] Runtime completed successfully."
-echo "================================================="
-echo
+  printf '%s\n' "$output"
+}
+# =================================================
+# ARTIFACT VALIDATION
+# =================================================
+extract_artifact() {
+  sed -n '
+/AEGIS_ARTIFACT_BEGIN/,/AEGIS_ARTIFACT_END/p
+'
+}
+validate_artifact_presence() {
+  local artifact="$1"
+  [[ -n "$artifact" ]] \
+    || fatal "missing_artifact"
+}
+# =================================================
+# EXECUTOR FAILURE SURFACING
+# =================================================
+validate_executor_output() {
+  local output="$1"
+  echo "$output" \
+    | grep -q '\[AEGIS\]\[EXECUTOR\]\[FATAL\]' \
+    && fatal "executor_failure_detected"
+  echo "$output" \
+    | grep -q '\[AEGIS\]\[RAW\]\[FATAL\]' \
+    && fatal "raw_substrate_failure_detected"
+}
+# =================================================
+# CONTINUITY
+# =================================================
+promote_runtime_state() {
+  cp \
+    "$ACTIVE_TASK_FILE" \
+    "$LAST_GOOD_TASK_FILE"
+}
+# =================================================
+# CLEANUP
+# =================================================
+cleanup_transient_state() {
+  rm -rf "$CAPABILITY_ENV_DIR"
+  rm -rf "$CAPABILITY_PAYLOAD_DIR"
+  rm -f .aider.chat.history.md
+  rm -f .aider.input.history
+  rm -f .aider.tags.cache.v4
+}
+# =================================================
+# EXECUTION FLOW
+# =================================================
+run_mode_lifecycle() {
+  local mode="$1"
+  local worktree_path
+  local mode_output
+  local artifact
+  reset_capability_state
+  worktree_path="$(
+    create_worktree "$mode"
+  )"
+  [[ -d "$worktree_path" ]] \
+    || fatal "worktree_creation_failed"
+  mode_output="$(
+    execute_mode \
+      "$mode" \
+      "$worktree_path"
+  )"
+  printf '%s\n' "$mode_output"
+  validate_executor_output "$mode_output"
+  artifact="$(
+    printf '%s\n' "$mode_output" \
+      | extract_artifact
+  )"
+  validate_artifact_presence "$artifact"
+  validate_capability_payloads
+  destroy_worktree "$worktree_path"
+}
+# =================================================
+# MAIN
+# =================================================
+main() {
+  log "Initializing runtime..."
+  cleanup_stale_worktrees
+  validate_runtime_topology
+  initialize_runtime_state
+  for mode in "${AEGIS_ANALYSIS_MODES[@]}"; do
+    printf '\n'
+    printf '=================================================\n'
+    printf '[AEGIS] Executing: %s\n' "$mode"
+    printf '=================================================\n'
+    printf '\n'
+    run_mode_lifecycle "$mode"
+  done
+  promote_runtime_state
+  cleanup_transient_state
+  log "Runtime execution completed"
+}
+# =================================================
+# ENTRYPOINT
+# =================================================
+main

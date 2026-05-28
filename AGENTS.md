@@ -1,218 +1,478 @@
-# AEGIS HARNESS — SYSTEM SUMMARY
+AGENTS.md
 
-## Purpose
+AEGIS HARNESS — GOVERNANCE CONSTITUTION
 
-Aegis Harness is a bounded deterministic AI runtime.
+Purpose
 
-It separates:
-- cognition;
-- orchestration;
-- continuity;
-- persistence;
-- governance;
-- mutation authority.
+Aegis Harness is a bounded deterministic execution runtime for AI-assisted cognition and mutation.
 
-The system rejects:
-- hidden persistence;
-- implicit governance;
-- uncontrolled mutation;
-- autonomous authority;
-- conversational execution topology.
+The system exists to separate:
 
----
+* cognition;
+* orchestration;
+* continuity;
+* persistence;
+* mutation authority;
+* capability exposure.
 
-## Core Model
+The architecture intentionally rejects:
 
-The model is a bounded execution unit.
+* autonomous sovereignty;
+* hidden persistence;
+* implicit governance;
+* conversational execution topology;
+* uncontrolled mutation authority;
+* implicit repository inheritance.
+
+The runtime governs execution.
+
+The model produces bounded cognition.
+
+⸻
+
+Core Architectural Principle
+
+The core architectural principle is:
+
+Runtime governs.
+Modes reason.
+Executor enforces protocol.
+Capabilities bound authority.
+Persistence remains explicit.
+Continuity remains ephemeral.
+
+The system intentionally avoids:
+
+* hidden state inheritance;
+* assistant-style continuity;
+* implicit repository awareness;
+* prompt-only governance;
+* conversational execution semantics.
+
+Operational authority must remain:
+
+* explicit;
+* bounded;
+* mechanically observable;
+* runtime-owned.
+
+⸻
+
+Runtime Sovereignty
+
+The runtime is the sovereign operational authority.
 
 The runtime owns:
-- orchestration;
-- lifecycle control;
-- continuity management;
-- persistence decisions;
-- cleanup.
 
-Git is the only authoritative persistence layer.
+* lifecycle orchestration;
+* worktree isolation;
+* continuity injection;
+* continuity promotion;
+* cleanup;
+* execution sequencing;
+* capability routing;
+* capability exposure;
+* protocol topology verification;
+* persistence decisions.
 
-Sandbox state is transient and non-authoritative.
+The runtime intentionally does NOT:
 
----
+* reason semantically;
+* infer architectural intent;
+* interpret implementation meaning;
+* repair cognition;
+* autonomously redesign topology.
 
-## Operating Principle
+The runtime remains:
 
-Aegis prioritizes:
-- deterministic execution;
-- explicit authority;
-- observable behavior;
-- disposable execution environments;
-- mechanical protocol enforcement.
+* procedural;
+* deterministic;
+* mechanically coercive.
 
-The runtime is sovereign.
+⸻
 
-The model is bounded.
+Capability-Grounded Execution
 
----
+Aegis uses capability-grounded execution.
 
-## Topology
+Repository awareness must NOT be treated as implicit assistant inheritance.
 
-### `runtime_aegis.sh`
-Orchestrates the full runtime:
-- creates worktrees;
-- injects continuity when needed;
-- executes modes;
-- cleans up transient state;
-- removes disposable sandboxes.
+Repository access must instead become:
 
-### `scripts/execute_mode.sh`
-Executes one mode:
-- loads the mode contract;
-- builds the protocol message;
-- runs aider;
-- extracts sentinel-framed artifacts;
-- validates JSON;
-- validates mode match;
-- enforces protocol compliance.
+* explicit;
+* runtime-governed;
+* capability-bounded;
+* mechanically observable.
 
-### `.harness/config.sh`
-Central configuration:
-- model;
-- timeout;
-- mode lists;
-- edit authority.
+Modes consume explicit capability environments exposed by the runtime.
 
-### `AGENTS.md`
-Global runtime governance:
-- authority boundaries;
-- execution principles;
-- continuity model;
-- artifact model.
+The runtime owns:
 
-### `.skills/*.md`
-Mode contracts:
-- discovery;
-- forensics;
-- validation;
-- adversarial;
-- repair;
-- optimize.
+* capability exposure;
+* capability manifests;
+* capability routing;
+* capability boundaries.
 
----
+The model does not inherit unrestricted repository sovereignty.
 
-## Mode Model
+Grounding must evolve from:
 
-### Discovery
-Observation of:
-- runtime state;
-- repository topology;
-- execution structure;
-- orchestration behavior.
+* prompt/context inheritance;
+    toward:
+* explicit runtime-exposed capability surfaces.
 
-### Forensics
-Inspection of:
-- integrity;
-- inconsistencies;
-- mutation anomalies;
-- boundary violations.
+⸻
 
-### Validation
-Verification of:
-- execution correctness;
-- containment integrity;
-- promotion integrity;
-- policy compliance.
+Capability Topology
 
-### Adversarial
-Assessment of:
-- containment weaknesses;
-- escalation surfaces;
-- leakage risks;
-- orchestration weaknesses.
+Authority in Aegis is capability-based.
 
-### Repair
-Explicitly authorized bounded mutation.
+Modes do not self-authorize.
 
-### Optimize
-Explicitly authorized bounded optimization.
+The runtime exposes explicit capability envelopes.
 
----
+Capabilities may include:
 
-## Continuity
+* readonly repository access;
+* topology inspection;
+* git diff inspection;
+* bounded filesystem mutation;
+* patch generation;
+* patch application;
+* dependency graph inspection.
 
-Runtime continuity is ephemeral.
+Capabilities are:
 
-Current continuity is represented through:
-- `active_task.md`
+* runtime-owned interfaces;
+* bounded authority surfaces;
+* operational capability contracts.
 
-This file is:
-- runtime-owned;
-- disposable;
-- non-authoritative.
+Capabilities are NOT:
 
-Persistent history belongs to git.
+* assistant tools;
+* semantic helpers;
+* cognition owners.
 
----
+Modes consume capabilities.
 
-## Protocol
+The runtime governs capability exposure.
+
+This exists to prevent:
+
+* implicit authority;
+* uncontrolled mutation;
+* assistant-style overreach;
+* topology drift;
+* hidden repository sovereignty.
+
+⸻
+
+Cognition Model
+
+Modes are bounded cognition contracts.
+
+Modes:
+
+* inspect;
+* reason;
+* validate;
+* mutate bounded surfaces when authorized.
+
+Modes do NOT:
+
+* own continuity;
+* own orchestration;
+* own persistence;
+* own runtime lifecycle;
+* self-authorize capabilities;
+* inherit repository authority implicitly.
+
+Modes remain:
+
+* disposable;
+* execution-scoped;
+* bounded by capability environments.
+
+⸻
+
+Analysis Modes
+
+Analysis modes are readonly cognition topologies.
+
+Analysis modes include:
+
+* discovery;
+* forensics;
+* validation;
+* adversarial.
+
+These modes:
+
+* inspect observable state;
+* consume explicit readonly capabilities;
+* emit bounded payloads;
+* remain evidence-oriented;
+* avoid mutation authority.
+
+Analysis modes must:
+
+* avoid fabrication;
+* avoid speculative authority claims;
+* avoid hidden assumptions;
+* avoid conversational behavior;
+* avoid implicit repository assumptions.
+
+Analysis modes operate using:
+
+* readonly capabilities;
+* bounded runtime context;
+* explicit capability manifests;
+* protocol-enforced payload output.
+
+⸻
+
+Mutation Modes
+
+Mutation modes are bounded mutation topologies.
+
+Mutation modes include:
+
+* repair;
+* optimize.
+
+Mutation authority remains:
+
+* explicit;
+* capability-bound;
+* runtime-governed;
+* mechanically observable.
+
+Mutation modes may:
+
+* modify authorized surfaces;
+* generate bounded patches;
+* improve implementation structure;
+* repair explicitly scoped defects.
+
+Mutation modes must NOT:
+
+* redesign governance;
+* expand authority boundaries;
+* modify unauthorized surfaces;
+* self-authorize topology changes.
+
+Mutation authority must remain:
+
+* runtime-scoped;
+* capability-scoped;
+* operationally bounded.
+
+⸻
+
+Executor Role
+
+The executor is a protocol virtual machine.
+
+The executor:
+
+* loads contracts;
+* loads capability envelopes;
+* materializes capability environments;
+* exposes capability manifests;
+* invokes bounded execution substrates;
+* validates payload structure;
+* validates protocol integrity;
+* normalizes outputs.
+
+The executor intentionally does NOT:
+
+* interpret semantics;
+* own orchestration;
+* own continuity;
+* own persistence;
+* infer intent;
+* inherit repository awareness implicitly.
+
+The executor enforces:
+
+* deterministic protocol behavior;
+* bounded payload structure;
+* non-conversational execution;
+* capability-constrained execution topology.
+
+⸻
+
+Protocol Model
 
 Execution is protocol-oriented, not conversational.
 
-The runtime expects:
-- immediate execution;
-- sentinel-framed artifacts;
-- schema compliance;
-- no acknowledgements;
-- no explanations;
-- no conversational drift.
+The runtime rejects:
 
-Artifacts must be machine-readable and bounded.
+* acknowledgements;
+* assistant-style narration;
+* clarification loops;
+* conversational drift;
+* prose outside protocol boundaries.
 
----
+Structured payloads are mechanically validated.
 
-## Current Strengths
+Payloads must:
 
-The system already has:
-- explicit authority separation;
-- deterministic lifecycle;
-- disposable sandboxing;
-- centralized configuration;
-- protocol hardening;
-- bounded mode contracts;
-- machine-validated artifacts.
+* be machine-parseable;
+* remain bounded;
+* remain deterministic;
+* contain valid mode identity.
 
----
+The runtime owns:
 
-## Current Limits
+* framing;
+* payload acceptance;
+* protocol enforcement.
 
-The system still does not yet include:
-- checkpoint recovery topology;
-- artifact schema centralization;
-- runtime integrity hashing;
-- rollback orchestration;
-- recovery promotion logic.
+The model does not own protocol framing authority.
 
-Those are deferred until the current runtime is fully stabilized.
+⸻
 
----
+Grounding Model
 
-## Current Priority
+Grounding must remain:
 
-The current priority is:
-- remove redundancy;
-- reduce verbosity;
-- prevent protocol drift;
-- preserve KISS;
-- harden operational determinism;
-- keep authority boundaries explicit.
+* explicit;
+* capability-oriented;
+* runtime-governed;
+* mechanically observable.
 
----
+The system intentionally avoids relying on:
 
-## Final Position
+* implicit assistant memory;
+* unrestricted repository awareness;
+* conversational continuity inheritance;
+* prompt-only grounding.
 
-Aegis Harness is not a general autonomous agent framework.
+The preferred direction is:
 
-It is a bounded runtime protocol for:
-- controlled cognition;
-- explicit authority;
-- disposable execution;
-- deterministic validation;
-- governed persistence.
+* runtime-exposed structural capabilities;
+* bounded topology access;
+* explicit capability manifests;
+* capability-oriented repository inspection.
+
+Grounding should become:
+
+* environment-oriented;
+    not:
+* prompt-oriented.
+
+⸻
+
+Persistence Model
+
+Persistence remains explicit.
+
+Git is the durable persistence layer.
+
+Runtime continuity is ephemeral.
+
+Transient runtime state may include:
+
+* active task continuity;
+* disposable worktrees;
+* transient execution artifacts;
+* capability manifests;
+* capability environments.
+
+Transient runtime state must remain:
+
+* disposable;
+* runtime-owned;
+* non-authoritative.
+
+The runtime decides:
+
+* what survives;
+* what is promoted;
+* what is discarded.
+
+⸻
+
+Disposable Execution
+
+All execution occurs inside disposable isolated worktrees.
+
+This exists to:
+
+* isolate mutations;
+* isolate cognition;
+* isolate capability environments;
+* prevent hidden continuity;
+* prevent uncontrolled residue inheritance;
+* preserve deterministic lifecycle behavior.
+
+Disposable execution is a foundational containment mechanism.
+
+Containment must not depend solely on prompt obedience.
+
+⸻
+
+Structural Philosophy
+
+Aegis prioritizes:
+
+* runtime sovereignty;
+* capability topology;
+* bounded cognition;
+* deterministic execution;
+* explicit authority;
+* mechanical validation;
+* operational simplicity.
+
+The architecture intentionally avoids:
+
+* autonomous orchestration;
+* hidden memory systems;
+* assistant sovereignty;
+* implicit mutation authority;
+* unrestricted repository inheritance;
+* premature orchestration complexity.
+
+Complexity is treated as operational risk.
+
+⸻
+
+Architectural Direction
+
+The intended long-term direction is:
+
+* runtime-first architecture;
+* capability-oriented execution;
+* explicit structural grounding;
+* bounded readonly cognition;
+* bounded mutation substrates;
+* protocol-level coercion;
+* disposable cognition execution.
+
+The system should evolve toward:
+
+* explicit capability exposure;
+    rather than:
+* implicit assistant-style repository awareness.
+
+The runtime defines topology.
+
+Capabilities define authority.
+
+The model consumes bounded execution environments.
+
+Tools do not define topology.
+
+⸻
+
+Final Principle
+
+The final operational principle of Aegis is:
+
+Modes produce cognition.
+Runtime governs execution.
+Capabilities bound authority.
+Grounding remains explicit.
+Persistence remains explicit.
+Continuity remains ephemeral.
