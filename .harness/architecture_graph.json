@@ -1,11 +1,10 @@
 {
   "schema_version": "3.0",
-  "topology_version": "2.0",
+  "topology_version": "2.1",
   "constitutional_layer": "layer_1",
   "constitutional_status": "active",
   "compatibility_class": "runtime_capability_topology",
   "change_policy": "frozen_by_default",
-
   "system": {
     "name": "Aegis Harness",
     "architecture_type": "bounded_capability_runtime",
@@ -15,7 +14,6 @@
     "persistence_model": "explicit_git_persistence",
     "authority_model": "runtime_sovereignty"
   },
-
   "constitutional_principles": [
     "runtime_governs_execution",
     "capabilities_bound_authority",
@@ -25,9 +23,9 @@
     "execution_is_protocol_oriented",
     "topology_is_observable",
     "cognition_is_bounded",
-    "repository_awareness_is_capability_bounded"
+    "repository_awareness_is_capability_bounded",
+    "epistemic_handover_is_explicit"
   ],
-
   "runtime": {
     "authority": "sovereign",
     "classification": "runtime_owned",
@@ -39,7 +37,8 @@
       "execution_routing",
       "protocol_enforcement",
       "artifact_validation",
-      "continuity_injection",
+      "epistemic_handover_materialization",
+      "epistemic_handover_promotion",
       "continuity_promotion",
       "cleanup",
       "capability_routing",
@@ -53,7 +52,6 @@
       "topology_self_redefinition"
     ]
   },
-
   "executor": {
     "type": "protocol_virtual_machine",
     "classification": "bounded_execution_orchestrator",
@@ -76,20 +74,18 @@
       "runtime_authority_override"
     ]
   },
-
   "grounding": {
     "model": "capability_grounded_execution",
     "classification": "runtime_materialized_operational_evidence",
-
     "principles": [
       "repository_access_is_explicit",
       "grounding_is_runtime_exposed",
       "capability_payloads_are_authoritative",
       "repository_awareness_is_not_implicit",
       "grounding_is_observable",
-      "grounding_is_mechanically_materialized"
+      "grounding_is_mechanically_materialized",
+      "epistemic_handover_is_incomplete_attention"
     ],
-
     "forbidden": [
       "assistant_style_repository_inheritance",
       "hidden_repository_visibility",
@@ -98,16 +94,13 @@
       "hidden_operational_memory"
     ]
   },
-
   "capability_topology": {
     "model": "runtime_owned_capability_surfaces",
     "capability_root": "scripts/capabilities",
-
     "classification": {
       "readonly": "analysis_surface",
       "bounded_mutation": "mutation_surface"
     },
-
     "capability_classes": {
       "filesystem": {
         "readonly": [
@@ -116,27 +109,23 @@
           "filesystem.search_symbol"
         ]
       },
-
       "git": {
         "readonly": [
           "git.diff",
           "git.status"
         ]
       },
-
       "topology": {
         "readonly": [
           "topology.read_graph"
         ]
       },
-
       "runtime": {
         "readonly": [
-          "runtime.read_active_task"
+          "runtime.read_epistemic_handover"
         ]
       }
     },
-
     "future_extension_surfaces": [
       "filesystem.write",
       "patch.apply",
@@ -145,11 +134,9 @@
       "artifact.promote"
     ]
   },
-
   "mode_topology": {
     "analysis_modes": {
       "classification": "readonly_cognition",
-
       "modes": {
         "discovery": {
           "authority": "readonly",
@@ -158,7 +145,6 @@
           "continuity_ownership": false,
           "grounding_model": "capability_payloads"
         },
-
         "forensics": {
           "authority": "readonly",
           "execution_engine": "raw",
@@ -166,7 +152,6 @@
           "continuity_ownership": false,
           "grounding_model": "capability_payloads"
         },
-
         "validation": {
           "authority": "readonly",
           "execution_engine": "raw",
@@ -174,7 +159,6 @@
           "continuity_ownership": false,
           "grounding_model": "capability_payloads"
         },
-
         "adversarial": {
           "authority": "readonly",
           "execution_engine": "raw",
@@ -184,10 +168,8 @@
         }
       }
     },
-
     "mutation_modes": {
       "classification": "bounded_mutation_cognition",
-
       "modes": {
         "repair": {
           "authority": "bounded_mutation",
@@ -196,7 +178,6 @@
           "continuity_ownership": false,
           "grounding_model": "capability_payloads"
         },
-
         "optimize": {
           "authority": "bounded_mutation",
           "execution_engine": "aider",
@@ -207,7 +188,6 @@
       }
     }
   },
-
   "execution_substrates": {
     "raw": {
       "classification": "bounded_readonly_cognition",
@@ -217,7 +197,6 @@
         "validation",
         "adversarial"
       ],
-
       "properties": [
         "json_only_output",
         "provider_bounded",
@@ -226,14 +205,12 @@
         "runtime_grounded"
       ]
     },
-
     "aider": {
       "classification": "bounded_mutation_substrate",
       "used_by": [
         "repair",
         "optimize"
       ],
-
       "properties": [
         "bounded_mutation",
         "patch_oriented",
@@ -242,22 +219,18 @@
       ]
     }
   },
-
   "continuity_model": {
     "classification": "runtime_owned_ephemeral_state",
-
     "runtime_state_files": [
-      ".harness/runtime/active_task.md",
-      ".harness/runtime/last_good_active_task.md"
+      ".harness/runtime/epistemic_handover.json",
+      ".harness/runtime/last_good_epistemic_handover.json"
     ],
-
     "principles": [
       "continuity_is_explicit",
       "continuity_is_runtime_owned",
       "continuity_is_disposable",
       "git_is_durable_persistence"
     ],
-
     "forbidden": [
       "assistant_memory",
       "hidden_persistence",
@@ -265,10 +238,49 @@
       "cross_execution_memory"
     ]
   },
-
+  "epistemic_handover_model": {
+    "classification": "runtime_owned_epistemic_attention",
+    "handover_file": ".harness/runtime/epistemic_handover.json",
+    "last_good_handover_file": ".harness/runtime/last_good_epistemic_handover.json",
+    "purpose": [
+      "observations_incomplete",
+      "areas_not_inspected",
+      "evidence_insufficient",
+      "limitations_observed"
+    ],
+    "principles": [
+      "handover_is_explicit",
+      "handover_is_runtime_owned",
+      "handover_is_ephemeral",
+      "handover_is_guidance_not_truth",
+      "handover_is_not_memory"
+    ],
+    "allowed_content": [
+      "incomplete_observations",
+      "uninspected_areas",
+      "insufficient_evidence",
+      "observed_limitations"
+    ],
+    "forbidden_content": [
+      "hypotheses",
+      "conclusions",
+      "causal_claims",
+      "recommendations",
+      "interpretations",
+      "redesign",
+      "severity_judgments",
+      "hidden_reasoning_chains"
+    ],
+    "consumers": [
+      "forensics",
+      "repair",
+      "optimize",
+      "adversarial",
+      "validation"
+    ]
+  },
   "protocol_model": {
     "execution_model": "non_conversational",
-
     "requirements": [
       "single_json_artifact",
       "machine_parseable_output",
@@ -276,7 +288,6 @@
       "artifact_validation",
       "mode_identity_validation"
     ],
-
     "rejected": [
       "assistant_narration",
       "clarification_loops",
@@ -285,10 +296,8 @@
       "implicit_execution_state"
     ]
   },
-
   "containment_model": {
     "execution_boundary": "disposable_worktree",
-
     "principles": [
       "capability_bound_authority",
       "runtime_owned_cleanup",
@@ -296,7 +305,6 @@
       "transient_execution_state",
       "isolated_execution_surface"
     ],
-
     "forbidden": [
       "cross_mode_state_inheritance",
       "hidden_mutation",
@@ -304,28 +312,26 @@
       "persistent_runtime_residue"
     ]
   },
-
   "surface_classification": {
     "authoritative": [
       "AGENTS.md",
       ".harness/architecture_graph.json",
       ".harness/config.sh"
     ],
-
     "derived": [
       "README.md",
       "summary.md",
       "operator_docs",
       "onboarding_material"
     ],
-
     "transient": [
+      ".harness/runtime/epistemic_handover.json",
+      ".harness/runtime/last_good_epistemic_handover.json",
       ".harness/runtime/capability_env",
       ".harness/runtime/capability_payloads",
       ".harness/worktrees"
     ]
   },
-
   "governance": {
     "precedence_order": [
       "AGENTS.md",
@@ -336,10 +342,8 @@
       "README.md",
       "summary.md"
     ],
-
     "change_governance": {
       "default_state": "frozen",
-
       "reopen_conditions": [
         "runtime_sovereignty_change",
         "authority_topology_change",
@@ -347,7 +351,6 @@
         "protocol_governance_change"
       ]
     },
-
     "deprecation_policy": [
       "active",
       "deprecated",
@@ -355,7 +358,6 @@
       "removed"
     ]
   },
-
   "constitutional_states": {
     "proven": [
       "runtime_external_to_execution_surface",
@@ -364,38 +366,35 @@
       "readonly_analysis_topology",
       "protocol_oriented_execution"
     ],
-
     "intended": [
       "bounded_mutation_hardening",
       "capability_coercion",
       "payload_provenance_tracking",
       "schema_strict_mode_validation"
     ],
-
     "deferred": [
       "advanced_capability_sandboxing",
       "cross_provider_protocol_normalization",
       "distributed_runtime_execution"
     ]
   },
-
   "architectural_direction": {
     "moving_away_from": [
       "assistant_repository_inheritance",
       "prompt_oriented_execution",
       "implicit_context_topology",
-      "hidden_continuity"
+      "hidden_continuity",
+      "active_task_as_cognitive_memory"
     ],
-
     "moving_toward": [
       "runtime_exposed_capability_grounding",
       "capability_oriented_execution",
       "bounded_execution_surfaces",
       "runtime_governed_cognition",
-      "mechanically_observable_authority"
+      "mechanically_observable_authority",
+      "explicit_epistemic_handover"
     ]
   },
-
   "constitutional_invariants": [
     "runtime_remains_sovereign",
     "authority_remains_explicit",
@@ -405,6 +404,7 @@
     "execution_remains_protocol_oriented",
     "capabilities_remain_bounded",
     "topology_remains_observable",
-    "mutation_remains_runtime_governed"
+    "mutation_remains_runtime_governed",
+    "epistemic_handover_remains_guidance_only"
   ]
 }

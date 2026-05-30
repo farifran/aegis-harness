@@ -4,29 +4,31 @@
 # AEGIS HARNESS — RAW COGNITION SUBSTRATE
 # =========================================================
 #
-# Version: 2.2
-# Layer: Bounded Cognition Substrate
-# Status: Hardened
+# Version: 2.9
+# Layer: Raw Analysis Substrate
+# Status: Grounding Selective
 #
 # Responsibilities:
 #
 # - bounded cognition execution
 # - provider interaction
-# - strict protocol coercion
-# - JSON-only cognition output
-# - capability-grounded execution
-# - deterministic extraction
-# - provider failure classification
-# - timeout handling
-# - retry handling
+# - capability-grounded prompt assembly
+# - selective payload exposure
+# - payload aggregation
+# - grounding budget enforcement
+# - bounded evidence assembly
+# - truncation policy enforcement
+# - protocol coercion
+# - deterministic artifact extraction
 #
-# The substrate intentionally does NOT:
+# This substrate intentionally:
 #
-# - own orchestration
-# - own continuity
-# - own persistence
-# - own topology
-# - inherit repository awareness
+# - consumes only runtime-selected grounding payloads;
+# - avoids full payload-directory scanning;
+# - avoids assistant topology;
+# - avoids hidden continuity;
+# - emits only bounded protocol payloads;
+# - treats the model as a JSON payload generator.
 #
 # =========================================================
 
@@ -57,476 +59,523 @@ source ".harness/config.sh"
 # INPUTS
 # =========================================================
 
-readonly AEGIS_PROVIDER_MODEL="${1:?missing_provider_model}"
-
-readonly AEGIS_SKILL_FILE="${2:?missing_skill_file}"
-
-readonly AEGIS_GROUNDING_PAYLOAD="${3:?missing_grounding_payload}"
-
-readonly AEGIS_CAPABILITY_PAYLOAD_DIR_INPUT="${4:?missing_capability_payload_dir}"
-
-# =========================================================
-# EXECUTION IDENTITY
-# =========================================================
-
-readonly AEGIS_SUBSTRATE_EXECUTION_ID="${AEGIS_EXECUTION_ID:-unknown}"
-
-readonly AEGIS_SUBSTRATE_EXECUTION_TIMESTAMP="${AEGIS_EXECUTION_TIMESTAMP:-unknown}"
+readonly MODEL="${1:-}"
+readonly SKILL_FILE="${2:-}"
+readonly CAPABILITY_MANIFEST="${3:-}"
+readonly CAPABILITY_PAYLOAD_DIR="${4:-}"
 
 # =========================================================
 # LOGGING
 # =========================================================
 
-substrate_log() {
+raw_log() {
   echo "[AEGIS][RAW] $*" >&2
 }
 
-substrate_warn() {
+raw_warn() {
   echo "[AEGIS][RAW][WARN] $*" >&2
 }
 
-substrate_fatal() {
+raw_fatal() {
   echo "[AEGIS][RAW][FATAL] $*" >&2
   exit 1
 }
 
 # =========================================================
-# TEMPFILES
+# VALIDATION
 # =========================================================
 
-declare -a AEGIS_SUBSTRATE_TEMPFILES=()
+validate_raw_substrate_inputs() {
 
-register_tempfile() {
+  [[ -n "${MODEL}" ]] \
+    || raw_fatal "missing_model"
 
-  local tempfile_path="$1"
+  [[ -f "${SKILL_FILE}" ]] \
+    || raw_fatal "missing_skill_file"
 
-  AEGIS_SUBSTRATE_TEMPFILES+=("${tempfile_path}")
+  [[ -n "${CAPABILITY_MANIFEST}" ]] \
+    || raw_fatal "missing_capability_manifest"
+
+  [[ -d "${CAPABILITY_PAYLOAD_DIR}" ]] \
+    || raw_fatal "missing_capability_payload_directory"
+
+  [[ -n "${OPENAI_API_KEY:-}" ]] \
+    || raw_fatal "missing_provider_api_key"
+
+  [[ -n "${OPENAI_API_BASE:-}" ]] \
+    || raw_fatal "missing_provider_api_base"
+
+  [[ -n "${AEGIS_EXECUTION_ID:-}" ]] \
+    || raw_fatal "missing_execution_id"
+
+  [[ -n "${AEGIS_EXECUTION_TIMESTAMP:-}" ]] \
+    || raw_fatal "missing_execution_timestamp"
+
+  [[ -n "${AEGIS_MODE:-}" ]] \
+    || raw_fatal "missing_execution_mode"
+
+  [[ -n "${AEGIS_GROUNDING_MAX_TOTAL_BYTES:-}" ]] \
+    || raw_fatal "missing_grounding_budget"
+
+  [[ -n "${AEGIS_GROUNDING_MAX_PAYLOAD_BYTES:-}" ]] \
+    || raw_fatal "missing_payload_budget"
+
+  [[ -n "${AEGIS_PROVIDER_RESPONSE_TIMEOUT:-}" ]] \
+    || raw_fatal "missing_response_timeout"
+
+  [[ -n "${AEGIS_PROVIDER_CONNECT_TIMEOUT:-}" ]] \
+    || raw_fatal "missing_connect_timeout"
+
+  [[ -n "${AEGIS_PROVIDER_MAX_RETRIES:-}" ]] \
+    || raw_fatal "missing_retry_configuration"
+
+  [[ -n "${AEGIS_SELECTED_GROUNDING_PAYLOADS:-}" ]] \
+    || raw_fatal "missing_selected_grounding_payloads"
+
+  echo "${AEGIS_SELECTED_GROUNDING_PAYLOADS}" \
+    | jq -e 'type == "array"' \
+      >/dev/null 2>&1 \
+    || raw_fatal "invalid_selected_grounding_payloads"
+
+  mapfile -t SELECTED_GROUNDING_PAYLOAD_PATHS < <(
+    echo "${AEGIS_SELECTED_GROUNDING_PAYLOADS}" \
+      | jq -r '.[]'
+  )
+
+  [[ "${#SELECTED_GROUNDING_PAYLOAD_PATHS[@]}" -gt 0 ]] \
+    || raw_fatal "empty_selected_grounding_payloads"
+
+  declare -p AEGIS_MODE_GROUNDING_PROFILE >/dev/null 2>&1 \
+    || raw_fatal "missing_grounding_profile_registry"
 }
 
 # =========================================================
-# CLEANUP
+# TEMP FILES
 # =========================================================
 
-cleanup_substrate() {
+TMP_SYSTEM_PROMPT_FILE="$(
+  mktemp
+)"
+
+TMP_MANIFEST_RAW_FILE="$(
+  mktemp
+)"
+
+TMP_MANIFEST_FILE="$(
+  mktemp
+)"
+
+TMP_CAPABILITY_CONTEXT_FILE="$(
+  mktemp
+)"
+
+TMP_REQUEST_FILE="$(
+  mktemp
+)"
+
+TMP_RESPONSE_FILE="$(
+  mktemp
+)"
+
+cleanup_raw_substrate() {
 
   set +e
 
-  local tempfile_path
-
-  for tempfile_path in "${AEGIS_SUBSTRATE_TEMPFILES[@]:-}"; do
-
-    [[ -f "${tempfile_path}" ]] || continue
-
-    rm -f "${tempfile_path}" \
-      >/dev/null 2>&1 || true
-  done
+  rm -f \
+    "${TMP_SYSTEM_PROMPT_FILE}" \
+    "${TMP_MANIFEST_RAW_FILE}" \
+    "${TMP_MANIFEST_FILE}" \
+    "${TMP_CAPABILITY_CONTEXT_FILE}" \
+    "${TMP_REQUEST_FILE}" \
+    "${TMP_RESPONSE_FILE}" \
+    >/dev/null 2>&1 || true
 
   set -e
 }
 
-trap cleanup_substrate EXIT
-trap 'substrate_warn "Interrupted"; exit 130' INT TERM
+trap cleanup_raw_substrate EXIT
+trap 'raw_warn "Interrupted"; exit 130' INT TERM
 
 # =========================================================
-# VALIDATION
+# UTILITY HELPERS
 # =========================================================
 
-validate_environment() {
+truncate_file_bytes() {
 
-  local required_commands=(
-    jq
-    curl
-  )
+  local input_file="$1"
+  local max_bytes="$2"
+  local output_file="$3"
 
-  local command_name
+  local current_size
+  current_size="$(
+    wc -c < "${input_file}"
+  )"
 
-  for command_name in "${required_commands[@]}"; do
+  if [[ "${current_size}" -le "${max_bytes}" ]]; then
+    cat "${input_file}" > "${output_file}"
+    return
+  fi
 
-    command -v "${command_name}" \
-      >/dev/null 2>&1 \
-      || substrate_fatal "missing_dependency: ${command_name}"
-
-  done
-
-  local required_provider_vars=(
-    OPENAI_API_KEY
-    OPENAI_API_BASE
-  )
-
-  local provider_var
-
-  for provider_var in "${required_provider_vars[@]}"; do
-
-    [[ -n "${!provider_var:-}" ]] \
-      || substrate_fatal "missing_provider_variable: ${provider_var}"
-
-  done
-
-  [[ -f "${AEGIS_SKILL_FILE}" ]] \
-    || substrate_fatal "missing_skill_file"
-
-  [[ -d "${AEGIS_CAPABILITY_PAYLOAD_DIR_INPUT}" ]] \
-    || substrate_fatal "missing_capability_payload_directory"
-
-  [[ -n "${AEGIS_RAW_SUBSTRATE_TIMEOUT_SECONDS:-}" ]] \
-    || substrate_fatal "missing_timeout_configuration"
-
-  [[ -n "${AEGIS_RAW_SUBSTRATE_TEMPERATURE:-}" ]] \
-    || substrate_fatal "missing_temperature_configuration"
-
-  [[ -n "${AEGIS_PROVIDER_MAX_RETRIES:-}" ]] \
-    || substrate_fatal "missing_retry_configuration"
+  head -c "${max_bytes}" "${input_file}" > "${output_file}"
+  printf '\n[AEGIS][TRUNCATED]\n' >> "${output_file}"
 }
 
-validate_grounding_payload() {
+render_bounded_payload_section() {
 
-  echo "${AEGIS_GROUNDING_PAYLOAD}" \
-    | jq empty \
-    >/dev/null 2>&1 \
-    || substrate_fatal "invalid_grounding_payload"
-}
+  local payload_path="$1"
+  local section_file="$2"
 
-# =========================================================
-# SKILL CONTRACT
-# =========================================================
+  local payload_name
+  payload_name="$(basename "${payload_path}")"
 
-load_skill_contract() {
+  local compact_file
+  compact_file="$(
+    mktemp
+  )"
 
-  cat "${AEGIS_SKILL_FILE}"
-}
+  if jq -c . "${payload_path}" > "${compact_file}" 2>/dev/null; then
+    :
+  else
+    cat "${payload_path}" > "${compact_file}"
+  fi
 
-# =========================================================
-# CAPABILITY PAYLOAD BUNDLE
-# =========================================================
+  local payload_size
+  payload_size="$(
+    wc -c < "${compact_file}"
+  )"
 
-load_capability_payloads() {
+  if [[ "${payload_size}" -gt "${AEGIS_GROUNDING_MAX_PAYLOAD_BYTES}" ]]; then
+    truncate_file_bytes \
+      "${compact_file}" \
+      "${AEGIS_GROUNDING_MAX_PAYLOAD_BYTES}" \
+      "${compact_file}.bounded"
+    mv "${compact_file}.bounded" "${compact_file}"
+  fi
 
-  local payload_bundle
-  payload_bundle="$(mktemp)"
+  {
+    echo "--- PAYLOAD: ${payload_name} ---"
+    echo "SOURCE: ${payload_path}"
+    echo
+    cat "${compact_file}"
+    echo
+  } > "${section_file}"
 
-  register_tempfile "${payload_bundle}"
-
-  echo "{" > "${payload_bundle}"
-
-  local first_payload="true"
-
-  while IFS= read -r payload_file; do
-
-    [[ -f "${payload_file}" ]] || continue
-
-    jq empty "${payload_file}" \
-      >/dev/null 2>&1 \
-      || substrate_fatal "invalid_capability_payload"
-
-    local payload_key
-    payload_key="$(basename "${payload_file}" .json)"
-
-    if [[ "${first_payload}" == "false" ]]; then
-      echo "," >> "${payload_bundle}"
-    fi
-
-    first_payload="false"
-
-    echo "\"${payload_key}\":" >> "${payload_bundle}"
-
-    cat "${payload_file}" >> "${payload_bundle}"
-
-  done < <(
-    find "${AEGIS_CAPABILITY_PAYLOAD_DIR_INPUT}" \
-      -type f \
-      -name "*.json" \
-      | sort
-  )
-
-  echo "}" >> "${payload_bundle}"
-
-  jq empty "${payload_bundle}" \
-    >/dev/null 2>&1 \
-    || substrate_fatal "invalid_payload_bundle"
-
-  cat "${payload_bundle}"
+  rm -f "${compact_file}" >/dev/null 2>&1 || true
 }
 
 # =========================================================
-# PROMPT CONSTRUCTION
+# PROMPT ASSEMBLY
 # =========================================================
 
-build_provider_prompt() {
+assemble_system_prompt() {
 
-  local skill_contract
-  skill_contract="$(load_skill_contract)"
+  cat > "${TMP_SYSTEM_PROMPT_FILE}" <<EOF
+You are executing inside Aegis Harness.
 
-  local capability_payloads
-  capability_payloads="$(load_capability_payloads)"
+Mode:
+${AEGIS_MODE}
 
-  local prompt_file
-  prompt_file="$(mktemp)"
-
-  register_tempfile "${prompt_file}"
-
-  cat > "${prompt_file}" <<EOF
-You are operating as a bounded cognition substrate inside Aegis Harness.
-
-Execution constraints:
-- protocol-oriented
-- non-conversational
-- capability-grounded
-- JSON-only output
+Execution model:
+- protocol oriented
 - bounded cognition
-- deterministic execution
+- capability grounded
+- runtime governed
+- evidence bounded
+- selective grounding only
 
-You MUST:
-- emit ONLY valid JSON
-- emit EXACTLY one JSON object
+You must:
+- consume only runtime-selected evidence
+- avoid assumptions
+- avoid hidden repository inheritance
+- avoid architecture redesign
+- emit only JSON
+- remain bounded
+
+You must emit:
+
+${AEGIS_ARTIFACT_BEGIN_MARKER}
+<json>
+${AEGIS_ARTIFACT_END_MARKER}
+
+The payload MUST:
+- be valid JSON
+- contain the correct mode
+- avoid prose
 - avoid markdown
 - avoid explanations
-- avoid prose outside JSON
-- avoid conversational behavior
-
-You do NOT possess:
-- repository sovereignty
-- implicit repository awareness
-- hidden memory
-- orchestration authority
-- continuity ownership
 
 Execution identity:
-- execution_id: ${AEGIS_SUBSTRATE_EXECUTION_ID}
-- execution_timestamp: ${AEGIS_SUBSTRATE_EXECUTION_TIMESTAMP}
+${AEGIS_EXECUTION_ID}
 
-Grounding payload:
-${AEGIS_GROUNDING_PAYLOAD}
-
-Capability payloads:
-${capability_payloads}
-
-Skill contract:
-${skill_contract}
-
-Return ONLY one valid JSON object.
+Execution timestamp:
+${AEGIS_EXECUTION_TIMESTAMP}
 EOF
-
-  cat "${prompt_file}"
 }
 
 # =========================================================
-# PROVIDER REQUEST
+# MANIFEST BOUNDING
 # =========================================================
 
-execute_provider_request() {
+assemble_bounded_manifest() {
 
-  local provider_prompt="$1"
+  printf '%s\n' \
+    "${CAPABILITY_MANIFEST}" \
+    > "${TMP_MANIFEST_RAW_FILE}"
 
-  local request_body
-  request_body="$(mktemp)"
+  jq -c \
+    --arg mode "${AEGIS_MODE}" \
+    '{
+      schema_version: .schema_version,
+      runtime_model: .runtime_model,
+      generated_at: .generated_at,
+      execution_id: .execution_id,
+      manifest_hash: .manifest_hash,
+      mode: $mode,
+      execution_engine: .modes[$mode].execution_engine,
+      capabilities: .modes[$mode].capabilities
+    }' \
+    "${TMP_MANIFEST_RAW_FILE}" \
+    > "${TMP_MANIFEST_FILE}"
 
-  register_tempfile "${request_body}"
+  truncate_file_bytes \
+    "${TMP_MANIFEST_FILE}" \
+    "${AEGIS_GROUNDING_MAX_MANIFEST_BYTES}" \
+    "${TMP_MANIFEST_FILE}.bounded"
+
+  mv "${TMP_MANIFEST_FILE}.bounded" "${TMP_MANIFEST_FILE}"
+}
+
+# =========================================================
+# SELECTIVE PAYLOAD EXPOSURE
+# =========================================================
+
+assemble_bounded_capability_context() {
+
+  {
+    echo "=== SKILL CONTRACT ==="
+    echo
+    cat "${SKILL_FILE}"
+
+    echo
+    echo "=== SELECTED CAPABILITY MANIFEST ==="
+    echo
+    cat "${TMP_MANIFEST_FILE}"
+
+    echo
+    echo "=== SELECTED GROUNDING PAYLOADS ==="
+    echo
+    printf 'Selected payload count: %s\n' "${#SELECTED_GROUNDING_PAYLOAD_PATHS[@]}"
+    echo
+  } > "${TMP_CAPABILITY_CONTEXT_FILE}"
+
+  local payload_count=0
+  local payload_path
+  local section_file
+  local total_bytes
+
+  for payload_path in "${SELECTED_GROUNDING_PAYLOAD_PATHS[@]}"; do
+
+    [[ -f "${payload_path}" ]] \
+      || raw_fatal "missing_selected_payload: ${payload_path}"
+
+    [[ "${payload_path}" == "${CAPABILITY_PAYLOAD_DIR}/"* ]] \
+      || raw_fatal "selected_payload_out_of_scope: ${payload_path}"
+
+    payload_count=$((payload_count + 1))
+
+    if [[ "${payload_count}" -gt "${AEGIS_GROUNDING_MAX_FILES}" ]]; then
+      {
+        echo
+        echo "[AEGIS][GROUNDING_LIMIT_REACHED]"
+      } >> "${TMP_CAPABILITY_CONTEXT_FILE}"
+      break
+    fi
+
+    section_file="$(
+      mktemp
+    )"
+
+    render_bounded_payload_section \
+      "${payload_path}" \
+      "${section_file}"
+
+    cat "${section_file}" >> "${TMP_CAPABILITY_CONTEXT_FILE}"
+    echo >> "${TMP_CAPABILITY_CONTEXT_FILE}"
+
+    rm -f "${section_file}" >/dev/null 2>&1 || true
+
+    total_bytes="$(
+      wc -c < "${TMP_CAPABILITY_CONTEXT_FILE}"
+    )"
+
+    if [[ "${total_bytes}" -ge "${AEGIS_GROUNDING_MAX_TOTAL_BYTES}" ]]; then
+      {
+        echo
+        echo "[AEGIS][TOTAL_GROUNDING_BUDGET_REACHED]"
+      } >> "${TMP_CAPABILITY_CONTEXT_FILE}"
+      break
+    fi
+  done
+
+  raw_log "Grounding size bytes: $(wc -c < "${TMP_CAPABILITY_CONTEXT_FILE}")"
+}
+
+# =========================================================
+# REQUEST ASSEMBLY
+# =========================================================
+
+assemble_provider_request() {
 
   jq -n \
-    --arg model "${AEGIS_PROVIDER_MODEL}" \
-    --arg content "${provider_prompt}" \
+    --arg model "${MODEL}" \
+    --rawfile system_prompt "${TMP_SYSTEM_PROMPT_FILE}" \
+    --rawfile capability_context "${TMP_CAPABILITY_CONTEXT_FILE}" \
     --argjson temperature "${AEGIS_RAW_SUBSTRATE_TEMPERATURE}" \
-    '{
+    '
+    {
       model: $model,
       temperature: $temperature,
       messages: [
         {
+          role: "system",
+          content: $system_prompt
+        },
+        {
           role: "user",
-          content: $content
+          content: $capability_context
         }
       ]
-    }' \
-    > "${request_body}"
+    }
+    ' > "${TMP_REQUEST_FILE}"
 
-  local provider_response
-  provider_response="$(mktemp)"
+  raw_log "Request size bytes: $(wc -c < "${TMP_REQUEST_FILE}")"
+}
 
-  register_tempfile "${provider_response}"
+# =========================================================
+# PROVIDER EXECUTION
+# =========================================================
 
-  local retry_count=0
+execute_provider_request() {
 
-  while true; do
+  raw_log "Executing raw cognition substrate..."
 
-    local http_status
+  local attempt=1
+  local http_code
+  local error_message
 
-    http_status="$(
+  while [[ "${attempt}" -le "${AEGIS_PROVIDER_MAX_RETRIES}" ]]; do
+
+    http_code="$(
       curl \
         --silent \
         --show-error \
         --connect-timeout "${AEGIS_PROVIDER_CONNECT_TIMEOUT}" \
         --max-time "${AEGIS_PROVIDER_RESPONSE_TIMEOUT}" \
-        -o "${provider_response}" \
-        -w "%{http_code}" \
+        --output "${TMP_RESPONSE_FILE}" \
+        --write-out "%{http_code}" \
         -X POST \
         "${OPENAI_API_BASE}/chat/completions" \
         -H "Authorization: Bearer ${OPENAI_API_KEY}" \
         -H "Content-Type: application/json" \
-        -d @"${request_body}"
+        --data @"${TMP_REQUEST_FILE}"
     )"
 
-    [[ "${http_status}" == "200" ]] && break
+    case "${http_code}" in
 
-    case "${http_status}" in
-
-      "401")
-        cat "${provider_response}" >&2
-        substrate_fatal "provider_authentication_failure"
+      200)
+        return 0
         ;;
 
-      "429")
-        substrate_warn "provider_rate_limited"
+      401|403)
+        cat "${TMP_RESPONSE_FILE}" >&2 || true
+        raw_fatal "provider_authentication_failure"
         ;;
 
-      "500"|"502"|"503"|"504")
-        substrate_warn "provider_transient_failure"
+      400)
+        error_message="$(
+          jq -r '.error.message // empty' "${TMP_RESPONSE_FILE}" 2>/dev/null || true
+        )"
+
+        if [[ "${error_message}" == *"maximum context length"* ]]; then
+          cat "${TMP_RESPONSE_FILE}" >&2 || true
+          raw_fatal "provider_context_length_exceeded"
+        fi
+
+        cat "${TMP_RESPONSE_FILE}" >&2 || true
+        raw_fatal "provider_http_failure"
+        ;;
+
+      429|500|502|503|504)
+        raw_warn "provider_transient_failure"
+
+        attempt=$((attempt + 1))
+
+        sleep "${AEGIS_PROVIDER_RETRY_DELAY}"
         ;;
 
       *)
-        cat "${provider_response}" >&2
-        substrate_fatal "provider_http_failure"
+        cat "${TMP_RESPONSE_FILE}" >&2 || true
+        raw_fatal "provider_http_failure"
         ;;
+
     esac
-
-    retry_count=$((retry_count + 1))
-
-    [[ "${retry_count}" -lt "${AEGIS_PROVIDER_MAX_RETRIES}" ]] \
-      || substrate_fatal "provider_retry_limit_exceeded"
-
-    sleep "${AEGIS_PROVIDER_RETRY_DELAY}"
   done
 
-  jq empty "${provider_response}" \
-    >/dev/null 2>&1 \
-    || substrate_fatal "provider_response_not_json"
+  raw_fatal "provider_retry_limit_exceeded"
+}
 
-  cat "${provider_response}"
+# =========================================================
+# RESPONSE EXTRACTION
+# =========================================================
+
+extract_provider_content() {
+
+  jq -r '
+    .choices[0].message.content // empty
+  ' "${TMP_RESPONSE_FILE}"
 }
 
 # =========================================================
 # ARTIFACT EXTRACTION
 # =========================================================
 
-extract_json_object() {
+extract_artifact_payload() {
 
-  local raw_content="$1"
-
-  local normalized_content
-
-  normalized_content="$(
-    echo "${raw_content}" \
-      | tr -d '\r'
+  local provider_content
+  provider_content="$(
+    extract_provider_content
   )"
 
-  #
-  # Attempt direct JSON parse first.
-  #
-
-  if echo "${normalized_content}" | jq empty >/dev/null 2>&1; then
-    echo "${normalized_content}"
-    return
-  fi
-
-  #
-  # Extract first JSON object heuristically.
-  #
-
-  local extracted_json
-
-  extracted_json="$(
-    echo "${normalized_content}" \
-      | grep -o '{.*}' \
-      | head -n 1
-  )"
-
-  [[ -n "${extracted_json}" ]] \
-    || substrate_fatal "json_payload_extraction_failure"
-
-  echo "${extracted_json}" \
-    | jq empty \
-    >/dev/null 2>&1 \
-    || substrate_fatal "invalid_extracted_json"
-
-  echo "${extracted_json}"
-}
-
-extract_artifact_json() {
-
-  local provider_response="$1"
-
-  local extracted_content
-
-  extracted_content="$(
-    echo "${provider_response}" \
-      | jq -r '.choices[0].message.content // empty'
-  )"
-
-  [[ -n "${extracted_content}" ]] \
-    || substrate_fatal "empty_provider_content"
-
-  extract_json_object "${extracted_content}"
-}
-
-# =========================================================
-# ARTIFACT VALIDATION
-# =========================================================
-
-validate_artifact() {
-
-  local artifact="$1"
-
-  echo "${artifact}" \
-    | jq empty \
-    >/dev/null 2>&1 \
-    || substrate_fatal "invalid_artifact"
-
-  local mode_field
-
-  mode_field="$(
-    echo "${artifact}" \
-      | jq -r '.mode // empty'
-  )"
-
-  [[ -n "${mode_field}" ]] \
-    || substrate_fatal "missing_mode_field"
-
-  local execution_id_field
-
-  execution_id_field="$(
-    echo "${artifact}" \
-      | jq -r '.execution_id // empty'
-  )"
-
-  [[ -n "${execution_id_field}" ]] \
-    || substrate_fatal "missing_execution_id"
-
-  [[ "${execution_id_field}" == "${AEGIS_SUBSTRATE_EXECUTION_ID}" ]] \
-    || substrate_fatal "execution_identity_mismatch"
-}
-
-# =========================================================
-# EXECUTION
-# =========================================================
-
-execute_cognition() {
-
-  substrate_log "Executing raw cognition substrate..."
-
-  local provider_prompt
-  provider_prompt="$(build_provider_prompt)"
-
-  local provider_response
-  provider_response="$(
-    execute_provider_request "${provider_prompt}"
-  )"
+  [[ -n "${provider_content}" ]] \
+    || raw_fatal "empty_provider_response"
 
   local artifact
   artifact="$(
-    extract_artifact_json "${provider_response}"
+    echo "${provider_content}" \
+      | sed -n \
+          "/${AEGIS_ARTIFACT_BEGIN_MARKER}/,/${AEGIS_ARTIFACT_END_MARKER}/p"
   )"
 
-  validate_artifact "${artifact}"
+  [[ -n "${artifact}" ]] \
+    || raw_fatal "missing_artifact_markers"
 
-  echo "${artifact}"
+  local artifact_payload
+  artifact_payload="$(
+    echo "${artifact}" \
+      | sed '1d;$d'
+  )"
+
+  [[ -n "${artifact_payload}" ]] \
+    || raw_fatal "empty_artifact_payload"
+
+  echo "${artifact_payload}" \
+    | jq empty \
+      >/dev/null 2>&1 \
+      || raw_fatal "artifact_not_json"
+
+  echo "${AEGIS_ARTIFACT_BEGIN_MARKER}"
+  echo "${artifact_payload}"
+  echo "${AEGIS_ARTIFACT_END_MARKER}"
 }
 
 # =========================================================
@@ -535,11 +584,13 @@ execute_cognition() {
 
 main() {
 
-  validate_environment
-
-  validate_grounding_payload
-
-  execute_cognition
+  validate_raw_substrate_inputs
+  assemble_system_prompt
+  assemble_bounded_manifest
+  assemble_bounded_capability_context
+  assemble_provider_request
+  execute_provider_request
+  extract_artifact_payload
 }
 
 main "$@"

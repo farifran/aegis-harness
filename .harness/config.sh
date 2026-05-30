@@ -4,7 +4,7 @@
 # AEGIS HARNESS — OPERATIONAL TOPOLOGY CONFIGURATION
 # =========================================================
 #
-# Version: 2.3
+# Version: 2.9
 # Layer: Constitutional Runtime Topology
 # Status: Hardened
 #
@@ -12,28 +12,16 @@
 #
 # - runtime topology source
 # - capability registry
+# - capability contracts
 # - execution engine registry
 # - provider operational policy
 # - substrate defaults
 # - protocol constants
-# - deterministic runtime defaults
-# - operational hardening defaults
-#
-# This file intentionally acts as:
-#
-# - declarative runtime topology;
-# - centralized execution registry;
-# - capability authority registry;
-# - substrate configuration source;
-# - provider policy source.
-#
-# This file intentionally avoids:
-#
-# - runtime lifecycle logic;
-# - execution orchestration logic;
-# - substrate implementation;
-# - capability implementation;
-# - provider-specific runtime logic.
+# - cleanup policy
+# - grounding budgets
+# - evidence exposure policy
+# - mode grounding profiles
+# - filesystem pruning policy
 #
 # =========================================================
 
@@ -50,7 +38,7 @@ readonly AEGIS_ROOT_DIR="$(
 # =========================================================
 
 export AEGIS_SYSTEM_NAME="Aegis Harness"
-export AEGIS_SYSTEM_VERSION="2.3"
+export AEGIS_SYSTEM_VERSION="2.9"
 
 export AEGIS_ARCHITECTURE_MODEL="bounded_capability_runtime"
 export AEGIS_EXECUTION_MODEL="protocol_oriented"
@@ -80,11 +68,6 @@ export AEGIS_ARTIFACT_END_MARKER="AEGIS_ARTIFACT_END"
 # PROVIDER DEFAULTS
 # =========================================================
 
-#
-# Provider credentials remain environment-owned.
-# Defaults are intentionally explicit and minimal.
-#
-
 : "${OPENAI_API_BASE:=https://integrate.api.nvidia.com/v1}"
 : "${OPENAI_MODEL_ANALYSIS:=meta/llama-3.3-70b-instruct}"
 : "${OPENAI_MODEL_MUTATION:=meta/llama-3.3-70b-instruct}"
@@ -96,10 +79,6 @@ export OPENAI_MODEL_MUTATION
 # =========================================================
 # RAW SUBSTRATE POLICY
 # =========================================================
-
-#
-# Raw substrate is the analysis-only cognition path.
-#
 
 : "${AEGIS_RAW_SUBSTRATE_TEMPERATURE:=0}"
 : "${AEGIS_RAW_SUBSTRATE_TIMEOUT_SECONDS:=120}"
@@ -113,11 +92,6 @@ export AEGIS_RAW_SUBSTRATE_MAX_RETRIES
 # PROVIDER POLICY
 # =========================================================
 
-#
-# Provider policy is separate from substrate policy.
-# This allows classification of connectivity vs response failures.
-#
-
 : "${AEGIS_PROVIDER_MAX_RETRIES:=3}"
 : "${AEGIS_PROVIDER_RETRY_DELAY:=2}"
 : "${AEGIS_PROVIDER_CONNECT_TIMEOUT:=15}"
@@ -127,20 +101,6 @@ export AEGIS_PROVIDER_MAX_RETRIES
 export AEGIS_PROVIDER_RETRY_DELAY
 export AEGIS_PROVIDER_CONNECT_TIMEOUT
 export AEGIS_PROVIDER_RESPONSE_TIMEOUT
-
-# =========================================================
-# PAYLOAD GROUNDING DEFAULTS
-# =========================================================
-
-: "${AEGIS_DISCOVERY_SYMBOL_QUERY:=AEGIS}"
-: "${AEGIS_FORENSICS_SYMBOL_QUERY:=runtime}"
-: "${AEGIS_VALIDATION_SYMBOL_QUERY:=protocol}"
-: "${AEGIS_ADVERSARIAL_SYMBOL_QUERY:=authority}"
-
-export AEGIS_DISCOVERY_SYMBOL_QUERY
-export AEGIS_FORENSICS_SYMBOL_QUERY
-export AEGIS_VALIDATION_SYMBOL_QUERY
-export AEGIS_ADVERSARIAL_SYMBOL_QUERY
 
 # =========================================================
 # CLEANUP POLICY
@@ -155,15 +115,55 @@ export AEGIS_RUNTIME_REMOVE_CAPABILITY_ENV
 export AEGIS_RUNTIME_REMOVE_CAPABILITY_PAYLOADS
 
 # =========================================================
+# GROUNDING BUDGETS
+# =========================================================
+
+: "${AEGIS_GROUNDING_MAX_FILES:=25}"
+: "${AEGIS_GROUNDING_MAX_PAYLOAD_BYTES:=200000}"
+: "${AEGIS_GROUNDING_MAX_TOTAL_BYTES:=1500000}"
+: "${AEGIS_GROUNDING_MAX_TREE_LINES:=300}"
+: "${AEGIS_GROUNDING_MAX_MATCH_LINES:=100}"
+: "${AEGIS_GROUNDING_MAX_READ_BYTES:=50000}"
+: "${AEGIS_GROUNDING_MAX_GRAPH_BYTES:=100000}"
+: "${AEGIS_GROUNDING_MAX_ACTIVE_TASK_BYTES:=25000}"
+: "${AEGIS_GROUNDING_MAX_MANIFEST_BYTES:=75000}"
+
+export AEGIS_GROUNDING_MAX_FILES
+export AEGIS_GROUNDING_MAX_PAYLOAD_BYTES
+export AEGIS_GROUNDING_MAX_TOTAL_BYTES
+export AEGIS_GROUNDING_MAX_TREE_LINES
+export AEGIS_GROUNDING_MAX_MATCH_LINES
+export AEGIS_GROUNDING_MAX_READ_BYTES
+export AEGIS_GROUNDING_MAX_GRAPH_BYTES
+export AEGIS_GROUNDING_MAX_ACTIVE_TASK_BYTES
+export AEGIS_GROUNDING_MAX_MANIFEST_BYTES
+
+# =========================================================
+# CAPABILITY DEFAULTS
+# =========================================================
+
+: "${AEGIS_LIST_TREE_MAX_DEPTH:=4}"
+: "${AEGIS_SEARCH_SYMBOL_CONTEXT_LINES:=2}"
+
+export AEGIS_LIST_TREE_MAX_DEPTH
+export AEGIS_SEARCH_SYMBOL_CONTEXT_LINES
+
+# =========================================================
+# FILESYSTEM PRUNE POLICY
+# =========================================================
+
+declare -ar AEGIS_FILESYSTEM_PRUNE_PATHS=(
+  "node_modules"
+  ".git"
+  ".harness/worktrees"
+  ".harness/runtime"
+)
+
+export AEGIS_FILESYSTEM_PRUNE_PATHS
+
+# =========================================================
 # EXECUTION ENGINES
 # =========================================================
-#
-# IMPORTANT:
-# Bash arrays MUST NOT use export.
-#
-# Arrays are not exportable and are validated
-# with declare -p by the runtime.
-#
 
 declare -Ar AEGIS_EXECUTION_ENGINES=(
   ["discovery"]="raw"
@@ -197,7 +197,7 @@ declare -ar AEGIS_MUTATION_CAPABILITIES=(
 )
 
 # =========================================================
-# MODE → ENVELOPE MAP
+# MODE → CAPABILITY ENVELOPE
 # =========================================================
 
 declare -Ar AEGIS_MODE_CAPABILITY_MAP=(
@@ -236,6 +236,81 @@ declare -Ar AEGIS_CAPABILITY_CLASSIFICATION=(
   ["topology.read_graph"]="readonly"
   ["runtime.read_active_task"]="readonly"
 )
+
+# =========================================================
+# CAPABILITY INVOCATION CONTRACTS
+# =========================================================
+
+declare -Ar AEGIS_CAPABILITY_ARGUMENTS=(
+  ["filesystem.list_tree"]="."
+  ["filesystem.read"]="AGENTS.md"
+  ["filesystem.search_symbol"]="AEGIS"
+  ["topology.read_graph"]=".harness/architecture_graph.json"
+  ["runtime.read_active_task"]="${AEGIS_ACTIVE_TASK_FILE}"
+  ["git.diff"]="HEAD~1"
+  ["git.status"]="."
+)
+
+# =========================================================
+# MODE GROUNDING PROFILES
+# =========================================================
+
+declare -Ar AEGIS_MODE_GROUNDING_PROFILE=(
+  ["discovery"]="AEGIS_DISCOVERY_GROUNDING"
+  ["forensics"]="AEGIS_FORENSICS_GROUNDING"
+  ["validation"]="AEGIS_VALIDATION_GROUNDING"
+  ["adversarial"]="AEGIS_ADVERSARIAL_GROUNDING"
+  ["repair"]="AEGIS_REPAIR_GROUNDING"
+  ["optimize"]="AEGIS_OPTIMIZE_GROUNDING"
+)
+
+declare -ar AEGIS_DISCOVERY_GROUNDING=(
+  "topology.read_graph"
+)
+
+declare -ar AEGIS_FORENSICS_GROUNDING=(
+  "topology.read_graph"
+  "filesystem.search_symbol"
+  "runtime.read_active_task"
+)
+
+declare -ar AEGIS_VALIDATION_GROUNDING=(
+  "topology.read_graph"
+  "runtime.read_active_task"
+)
+
+declare -ar AEGIS_ADVERSARIAL_GROUNDING=(
+  "topology.read_graph"
+  "filesystem.search_symbol"
+)
+
+declare -ar AEGIS_REPAIR_GROUNDING=(
+  "filesystem.search_symbol"
+  "runtime.read_active_task"
+  "git.diff"
+  "git.status"
+)
+
+declare -ar AEGIS_OPTIMIZE_GROUNDING=(
+  "filesystem.search_symbol"
+  "runtime.read_active_task"
+  "git.diff"
+  "git.status"
+)
+
+# =========================================================
+# DISCOVERY DEFAULTS
+# =========================================================
+
+: "${AEGIS_DISCOVERY_SYMBOL_QUERY:=AEGIS}"
+: "${AEGIS_FORENSICS_SYMBOL_QUERY:=runtime}"
+: "${AEGIS_VALIDATION_SYMBOL_QUERY:=protocol}"
+: "${AEGIS_ADVERSARIAL_SYMBOL_QUERY:=authority}"
+
+export AEGIS_DISCOVERY_SYMBOL_QUERY
+export AEGIS_FORENSICS_SYMBOL_QUERY
+export AEGIS_VALIDATION_SYMBOL_QUERY
+export AEGIS_ADVERSARIAL_SYMBOL_QUERY
 
 # =========================================================
 # GOVERNANCE FLAGS
@@ -280,22 +355,6 @@ declare -a AEGIS_DEFERRED_SURFACES=(
 )
 
 # =========================================================
-# EXTENSION SURFACES
-# =========================================================
-
-declare -a AEGIS_FUTURE_CAPABILITY_CLASSES=(
-  "dependency"
-  "artifact"
-  "policy"
-  "validation"
-)
-
-declare -a AEGIS_FUTURE_SUBSTRATES=(
-  "sandboxed_raw"
-  "bounded_codegen"
-)
-
-# =========================================================
 # VALIDATION HELPERS
 # =========================================================
 
@@ -332,6 +391,24 @@ validate_provider_configuration() {
   }
 }
 
+validate_grounding_policy() {
+
+  [[ "${AEGIS_GROUNDING_MAX_TOTAL_BYTES}" -gt 0 ]] || {
+    echo "[AEGIS][CONFIG][FATAL] invalid_grounding_total_budget" >&2
+    return 1
+  }
+
+  [[ "${AEGIS_GROUNDING_MAX_FILES}" -gt 0 ]] || {
+    echo "[AEGIS][CONFIG][FATAL] invalid_grounding_file_budget" >&2
+    return 1
+  }
+
+  [[ "${AEGIS_GROUNDING_MAX_PAYLOAD_BYTES}" -gt 0 ]] || {
+    echo "[AEGIS][CONFIG][FATAL] invalid_grounding_payload_budget" >&2
+    return 1
+  }
+}
+
 validate_capability_registry() {
 
   local capability
@@ -340,6 +417,11 @@ validate_capability_registry() {
 
     [[ -n "${AEGIS_CAPABILITY_HANDLERS[$capability]:-}" ]] || {
       echo "[AEGIS][CONFIG][FATAL] unregistered_capability_handler: ${capability}" >&2
+      return 1
+    }
+
+    [[ -n "${AEGIS_CAPABILITY_ARGUMENTS[$capability]:-}" ]] || {
+      echo "[AEGIS][CONFIG][FATAL] missing_capability_argument_contract: ${capability}" >&2
       return 1
     }
 
@@ -352,14 +434,53 @@ validate_capability_registry() {
       return 1
     }
 
+    [[ -n "${AEGIS_CAPABILITY_ARGUMENTS[$capability]:-}" ]] || {
+      echo "[AEGIS][CONFIG][FATAL] missing_capability_argument_contract: ${capability}" >&2
+      return 1
+    }
+
   done
+}
+
+validate_grounding_profiles() {
+
+  local mode
+  local profile_name
+
+  for mode in "${!AEGIS_MODE_GROUNDING_PROFILE[@]}"; do
+
+    profile_name="${AEGIS_MODE_GROUNDING_PROFILE[$mode]}"
+
+    declare -p "${profile_name}" >/dev/null 2>&1 || {
+      echo "[AEGIS][CONFIG][FATAL] missing_grounding_profile_array: ${profile_name}" >&2
+      return 1
+    }
+
+    declare -n profile_ref="${profile_name}"
+
+    [[ "${#profile_ref[@]}" -gt 0 ]] || {
+      echo "[AEGIS][CONFIG][FATAL] empty_grounding_profile_array: ${profile_name}" >&2
+      return 1
+    }
+
+  done
+}
+
+validate_filesystem_prune_policy() {
+
+  [[ "${#AEGIS_FILESYSTEM_PRUNE_PATHS[@]}" -gt 0 ]] || {
+    echo "[AEGIS][CONFIG][FATAL] empty_filesystem_prune_policy" >&2
+    return 1
+  }
 }
 
 validate_aegis_configuration() {
 
   validate_provider_configuration || return 1
-
+  validate_grounding_policy || return 1
   validate_capability_registry || return 1
+  validate_grounding_profiles || return 1
+  validate_filesystem_prune_policy || return 1
 }
 
 # =========================================================

@@ -4,7 +4,7 @@
 # AEGIS HARNESS — CAPABILITY MANIFEST GENERATOR
 # =========================================================
 #
-# Version: 2.2
+# Version: 2.8
 # Layer: Capability Topology
 # Status: Hardened
 #
@@ -13,6 +13,7 @@
 # - deterministic manifest generation
 # - capability topology materialization
 # - execution engine mapping
+# - grounding profile mapping
 # - capability provenance
 # - manifest integrity
 # - topology serialization
@@ -21,6 +22,7 @@
 #
 # - runtime-owned authority
 # - capability envelopes
+# - grounding profiles
 # - execution routing
 # - bounded execution topology
 #
@@ -88,20 +90,25 @@ validate_environment() {
   command -v sha256sum >/dev/null 2>&1 \
     || manifest_fatal "missing_sha256sum"
 
-  [[ "${#AEGIS_EXECUTION_ENGINES[@]}" -gt 0 ]] \
+  declare -p AEGIS_EXECUTION_ENGINES >/dev/null 2>&1 \
     || manifest_fatal "missing_execution_engines"
 
-  [[ "${#AEGIS_CAPABILITY_HANDLERS[@]}" -gt 0 ]] \
+  declare -p AEGIS_MODE_CAPABILITY_MAP >/dev/null 2>&1 \
+    || manifest_fatal "missing_mode_capability_map"
+
+  declare -p AEGIS_CAPABILITY_HANDLERS >/dev/null 2>&1 \
     || manifest_fatal "missing_capability_registry"
 
-  [[ "${#AEGIS_MODE_CAPABILITY_MAP[@]}" -gt 0 ]] \
-    || manifest_fatal "missing_mode_capability_map"
+  declare -p AEGIS_CAPABILITY_CLASSIFICATION >/dev/null 2>&1 \
+    || manifest_fatal "missing_capability_classification_registry"
+
+  declare -p AEGIS_MODE_GROUNDING_PROFILE >/dev/null 2>&1 \
+    || manifest_fatal "missing_grounding_profile_registry"
 }
 
 validate_handler_registry() {
 
   local capability
-
   for capability in "${!AEGIS_CAPABILITY_HANDLERS[@]}"; do
 
     local handler
@@ -109,222 +116,206 @@ validate_handler_registry() {
 
     [[ -f "${handler}" ]] \
       || manifest_fatal "missing_handler_file: ${handler}"
+  done
+}
 
+validate_grounding_profiles() {
+
+  local mode
+  local profile_name
+
+  for mode in "${!AEGIS_MODE_GROUNDING_PROFILE[@]}"; do
+
+    profile_name="${AEGIS_MODE_GROUNDING_PROFILE[$mode]}"
+
+    declare -p "${profile_name}" >/dev/null 2>&1 || {
+      manifest_fatal "missing_grounding_profile_array: ${profile_name}"
+    }
+
+    declare -n profile_ref="${profile_name}"
+
+    [[ "${#profile_ref[@]}" -gt 0 ]] || {
+      manifest_fatal "empty_grounding_profile_array: ${profile_name}"
+    }
   done
 }
 
 # =========================================================
-# CAPABILITY CLASSIFICATION
+# HELPERS
 # =========================================================
 
-classify_capability() {
-
-  local capability="$1"
-
-  case "${capability}" in
-
-    filesystem.*)
-      echo "readonly"
-      ;;
-
-    topology.*)
-      echo "readonly"
-      ;;
-
-    runtime.*)
-      echo "readonly"
-      ;;
-
-    git.diff|git.status)
-      echo "readonly"
-      ;;
-
-    *)
-      echo "unknown"
-      ;;
-  esac
+sorted_mode_names() {
+  printf '%s\n' "${!AEGIS_EXECUTION_ENGINES[@]}" | sort
 }
 
-# =========================================================
-# CAPABILITY ENVELOPE RESOLUTION
-# =========================================================
+build_capabilities_json() {
 
-resolve_mode_capabilities() {
+  local capability_list_name="$1"
 
-  local mode="$1"
+  declare -n capability_ref="${capability_list_name}"
 
-  local envelope_name
-  envelope_name="${AEGIS_MODE_CAPABILITY_MAP[$mode]:-}"
+  local tmp_caps_file
+  tmp_caps_file="$(mktemp)"
 
-  [[ -n "${envelope_name}" ]] \
-    || manifest_fatal "missing_capability_envelope: ${mode}"
-
-  declare -n RESOLVED_CAPABILITIES="${envelope_name}"
-
-  [[ "${#RESOLVED_CAPABILITIES[@]}" -gt 0 ]] \
-    || manifest_fatal "empty_capability_envelope: ${mode}"
-
-  printf '%s\n' "${RESOLVED_CAPABILITIES[@]}"
-}
-
-# =========================================================
-# MODE MANIFEST
-# =========================================================
-
-build_mode_manifest() {
-
-  local mode="$1"
-
-  local engine
-  engine="${AEGIS_EXECUTION_ENGINES[$mode]:-}"
-
-  [[ -n "${engine}" ]] \
-    || manifest_fatal "missing_execution_engine: ${mode}"
-
-  local capabilities_temp
-  capabilities_temp="$(mktemp)"
-
-  echo "[" > "${capabilities_temp}"
-
-  local first_capability="true"
-
-  while IFS= read -r capability; do
+  local capability
+  for capability in "${capability_ref[@]}"; do
 
     local handler
+    local classification
+    local argument_contract
+
     handler="${AEGIS_CAPABILITY_HANDLERS[$capability]:-}"
+    classification="${AEGIS_CAPABILITY_CLASSIFICATION[$capability]:-unknown}"
+    argument_contract="${AEGIS_CAPABILITY_ARGUMENTS[$capability]:-}"
 
     [[ -n "${handler}" ]] \
       || manifest_fatal "missing_handler_for_capability: ${capability}"
 
-    local classification
-    classification="$(classify_capability "${capability}")"
-
-    if [[ "${first_capability}" == "false" ]]; then
-      echo "," >> "${capabilities_temp}"
-    fi
-
-    first_capability="false"
-
     jq -n \
       --arg capability "${capability}" \
-      --arg handler "${handler}" \
       --arg classification "${classification}" \
+      --arg handler "${handler}" \
+      --arg argument_contract "${argument_contract}" \
       '{
         capability: $capability,
         classification: $classification,
-        handler: $handler
-      }' \
-      >> "${capabilities_temp}"
+        handler: $handler,
+        argument_contract: $argument_contract
+      }' >> "${tmp_caps_file}"
+  done
 
-  done < <(
-    resolve_mode_capabilities "${mode}"
-  )
+  jq -s '.' "${tmp_caps_file}"
+  rm -f "${tmp_caps_file}" >/dev/null 2>&1 || true
+}
 
-  echo "]" >> "${capabilities_temp}"
+build_grounding_capabilities_json() {
 
-  jq empty "${capabilities_temp}" \
-    >/dev/null 2>&1 \
-    || manifest_fatal "invalid_capability_manifest"
+  local grounding_list_name="$1"
+
+  declare -n grounding_ref="${grounding_list_name}"
+
+  printf '%s\n' "${grounding_ref[@]}" | jq -R . | jq -s '.'
+}
+
+build_mode_object() {
+
+  local mode="$1"
+
+  local engine
+  local envelope_name
+  local grounding_profile_name
+  local capabilities_json
+  local grounding_capabilities_json
+
+  engine="${AEGIS_EXECUTION_ENGINES[$mode]:-}"
+  [[ -n "${engine}" ]] \
+    || manifest_fatal "missing_execution_engine: ${mode}"
+
+  envelope_name="${AEGIS_MODE_CAPABILITY_MAP[$mode]:-}"
+  [[ -n "${envelope_name}" ]] \
+    || manifest_fatal "missing_capability_envelope: ${mode}"
+
+  grounding_profile_name="${AEGIS_MODE_GROUNDING_PROFILE[$mode]:-}"
+  [[ -n "${grounding_profile_name}" ]] \
+    || manifest_fatal "missing_grounding_profile: ${mode}"
+
+  capabilities_json="$(
+    build_capabilities_json "${envelope_name}"
+  )"
+
+  grounding_capabilities_json="$(
+    build_grounding_capabilities_json "${grounding_profile_name}"
+  )"
 
   jq -n \
     --arg mode "${mode}" \
     --arg execution_engine "${engine}" \
-    --slurpfile capabilities "${capabilities_temp}" \
+    --arg capability_envelope "${envelope_name}" \
+    --arg grounding_profile "${grounding_profile_name}" \
+    --argjson capabilities "${capabilities_json}" \
+    --argjson grounding_capabilities "${grounding_capabilities_json}" \
     '{
       mode: $mode,
       execution_engine: $execution_engine,
-      capabilities: $capabilities[0]
+      capability_envelope: $capability_envelope,
+      grounding_profile: $grounding_profile,
+      capabilities: $capabilities,
+      grounding_capabilities: $grounding_capabilities
     }'
-
-  rm -f "${capabilities_temp}"
 }
 
-# =========================================================
-# MANIFEST HASH
-# =========================================================
+build_modes_object() {
+
+  local modes_json='{}'
+  local mode
+  local mode_object
+
+  while IFS= read -r mode; do
+
+    mode_object="$(
+      build_mode_object "${mode}"
+    )"
+
+    modes_json="$(
+      jq -n \
+        --argjson acc "${modes_json}" \
+        --arg mode "${mode}" \
+        --argjson mode_object "${mode_object}" \
+        '$acc + {($mode): $mode_object}'
+    )"
+
+  done < <(sorted_mode_names)
+
+  printf '%s\n' "${modes_json}"
+}
 
 compute_manifest_hash() {
 
-  local manifest_content="$1"
+  local manifest_body_file="$1"
 
-  echo "${manifest_content}" \
-    | sha256sum \
-    | awk '{print $1}'
+  sha256sum "${manifest_body_file}" | awk '{print $1}'
 }
 
 # =========================================================
-# GLOBAL MANIFEST
+# MANIFEST GENERATION
 # =========================================================
 
 generate_manifest() {
 
-  local manifest_body
-  manifest_body="$(mktemp)"
+  local manifest_body_file
+  manifest_body_file="$(mktemp)"
 
-  echo "{" > "${manifest_body}"
-
-  echo "\"schema_version\":\"2.2\"," >> "${manifest_body}"
-
-  echo "\"runtime_model\":\"capability_grounded_execution\"," >> "${manifest_body}"
-
-  echo "\"generated_at\":\"${AEGIS_MANIFEST_GENERATED_AT}\"," >> "${manifest_body}"
-
-  echo "\"execution_id\":\"${AEGIS_MANIFEST_EXECUTION_ID}\"," >> "${manifest_body}"
-
-  echo "\"modes\":{" >> "${manifest_body}"
-
-  local first_mode="true"
-
-  local mode
-
-  for mode in "${!AEGIS_EXECUTION_ENGINES[@]}"; do
-
-    if [[ "${first_mode}" == "false" ]]; then
-      echo "," >> "${manifest_body}"
-    fi
-
-    first_mode="false"
-
-    echo "\"${mode}\":" >> "${manifest_body}"
-
-    build_mode_manifest "${mode}" \
-      >> "${manifest_body}"
-
-  done
-
-  echo "}" >> "${manifest_body}"
-
-  echo "}" >> "${manifest_body}"
-
-  jq empty "${manifest_body}" \
-    >/dev/null 2>&1 \
-    || manifest_fatal "invalid_manifest_structure"
-
-  local manifest_content
-  manifest_content="$(cat "${manifest_body}")"
-
-  local manifest_hash
-  manifest_hash="$(
-    compute_manifest_hash "${manifest_content}"
+  local modes_object
+  modes_object="$(
+    build_modes_object
   )"
 
   jq -n \
-    --arg schema_version "2.2" \
+    --arg schema_version "2.8" \
     --arg runtime_model "capability_grounded_execution" \
     --arg generated_at "${AEGIS_MANIFEST_GENERATED_AT}" \
     --arg execution_id "${AEGIS_MANIFEST_EXECUTION_ID}" \
-    --arg manifest_hash "${manifest_hash}" \
-    --slurpfile manifest "${manifest_body}" \
+    --argjson modes "${modes_object}" \
     '{
       schema_version: $schema_version,
       runtime_model: $runtime_model,
       generated_at: $generated_at,
       execution_id: $execution_id,
-      manifest_hash: $manifest_hash,
-      modes: $manifest[0].modes
-    }'
+      modes: $modes
+    }' > "${manifest_body_file}"
 
-  rm -f "${manifest_body}"
+  jq empty "${manifest_body_file}" >/dev/null 2>&1 \
+    || manifest_fatal "invalid_manifest_structure"
+
+  local manifest_hash
+  manifest_hash="$(
+    compute_manifest_hash "${manifest_body_file}"
+  )"
+
+  jq \
+    --arg manifest_hash "${manifest_hash}" \
+    '. + {manifest_hash: $manifest_hash}' \
+    "${manifest_body_file}"
 }
 
 # =========================================================
@@ -336,8 +327,8 @@ main() {
   manifest_log "Generating capability manifest..."
 
   validate_environment
-
   validate_handler_registry
+  validate_grounding_profiles
 
   generate_manifest
 }

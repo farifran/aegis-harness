@@ -1,25 +1,57 @@
 #!/usr/bin/env bash
 
+# =========================================================
+# AEGIS CAPABILITY — filesystem.read
+# =========================================================
+#
+# Classification:
+# readonly
+#
+# Responsibilities:
+#
+# - bounded file inspection
+# - deterministic evidence generation
+# - payload provenance emission
+# - bounded output truncation
+#
+# This capability intentionally:
+#
+# - exposes only file content as evidence;
+# - avoids implicit repository inheritance;
+# - propagates execution identity;
+# - enforces evidence-size budgets.
+#
+# =========================================================
+
 set -Eeuo pipefail
+
+# =========================================================
+# INPUTS
+# =========================================================
 
 readonly TARGET_FILE="${1:-}"
 
-readonly EXECUTION_ID="${AEGIS_EXECUTION_ID:-unknown}"
+# =========================================================
+# LIMITS
+# =========================================================
 
-readonly GENERATED_AT="$(
-  date -u +"%Y-%m-%dT%H:%M:%SZ"
-)"
+readonly MAX_READ_BYTES="${AEGIS_GROUNDING_MAX_READ_BYTES:-50000}"
+
+# =========================================================
+# VALIDATION
+# =========================================================
 
 fail() {
-
-  local error_message="$1"
+  local error_type="$1"
+  local target="${2:-}"
 
   jq -n \
     --arg capability "filesystem.read" \
     --arg classification "readonly" \
-    --arg execution_id "${EXECUTION_ID}" \
-    --arg generated_at "${GENERATED_AT}" \
-    --arg error "${error_message}" \
+    --arg execution_id "${AEGIS_EXECUTION_ID:-unknown}" \
+    --arg generated_at "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+    --arg error_type "${error_type}" \
+    --arg target "${target}" \
     '{
       success: false,
       capability: $capability,
@@ -27,25 +59,65 @@ fail() {
       execution_id: $execution_id,
       generated_at: $generated_at,
       payload: null,
-      error: $error
+      error: {
+        type: $error_type,
+        target: $target
+      }
     }'
-
-  exit 1
 }
 
-[[ -n "${TARGET_FILE}" ]] \
-  || fail "missing_target_file"
+if [[ -z "${TARGET_FILE}" ]]; then
+  fail "missing_target_file"
+  exit 1
+fi
 
-[[ -f "${TARGET_FILE}" ]] \
-  || fail "file_not_found"
+if [[ ! -f "${TARGET_FILE}" ]]; then
+  fail "file_not_found" "${TARGET_FILE}"
+  exit 1
+fi
+
+# =========================================================
+# PAYLOAD GENERATION
+# =========================================================
+
+TMP_CONTENT_FILE="$(mktemp)"
+cleanup() {
+  rm -f "${TMP_CONTENT_FILE}" >/dev/null 2>&1 || true
+}
+trap cleanup EXIT
+
+if ! cat "${TARGET_FILE}" > "${TMP_CONTENT_FILE}"; then
+  fail "read_failure" "${TARGET_FILE}"
+  exit 1
+fi
+
+CONTENT_SIZE_BYTES="$(
+  wc -c < "${TMP_CONTENT_FILE}"
+)"
+
+TRUNCATED="false"
+
+if [[ "${CONTENT_SIZE_BYTES}" -gt "${MAX_READ_BYTES}" ]]; then
+  head -c "${MAX_READ_BYTES}" "${TMP_CONTENT_FILE}" > "${TMP_CONTENT_FILE}.bounded"
+  printf '\n[AEGIS][TRUNCATED]\n' >> "${TMP_CONTENT_FILE}.bounded"
+  mv "${TMP_CONTENT_FILE}.bounded" "${TMP_CONTENT_FILE}"
+  TRUNCATED="true"
+fi
+
+# =========================================================
+# JSON EMISSION
+# =========================================================
 
 jq -n \
   --arg capability "filesystem.read" \
   --arg classification "readonly" \
-  --arg execution_id "${EXECUTION_ID}" \
-  --arg generated_at "${GENERATED_AT}" \
+  --arg execution_id "${AEGIS_EXECUTION_ID:-unknown}" \
+  --arg generated_at "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
   --arg target "${TARGET_FILE}" \
-  --rawfile content "${TARGET_FILE}" \
+  --argjson content_size_bytes "${CONTENT_SIZE_BYTES}" \
+  --argjson max_read_bytes "${MAX_READ_BYTES}" \
+  --argjson truncated "${TRUNCATED}" \
+  --rawfile content "${TMP_CONTENT_FILE}" \
   '{
     success: true,
     capability: $capability,
@@ -54,6 +126,9 @@ jq -n \
     generated_at: $generated_at,
     payload: {
       target: $target,
+      content_size_bytes: $content_size_bytes,
+      max_read_bytes: $max_read_bytes,
+      truncated: $truncated,
       content: $content
     },
     error: null

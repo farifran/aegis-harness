@@ -1,573 +1,402 @@
-# AGENTS.md
+# AGENTS.md — Aegis Harness Constitutional Foundation
 
-# AEGIS HARNESS — CONSTITUTIONAL GOVERNANCE
+## Purpose
 
-Version: 2.0
-Constitutional Status: Active
-Compatibility: Runtime Capability Topology
-Layer: Constitutional Foundation
+This repository implements Aegis Harness: a runtime-sovereign, capability-grounded architecture for bounded cognition and controlled mutation.
 
----
+The purpose of this constitution is to define:
 
-# PURPOSE
+- authority boundaries
+- epistemic boundaries
+- runtime boundaries
+- mutation boundaries
+- memory boundaries
+- continuity boundaries
 
-Aegis Harness is a bounded deterministic execution runtime for AI-assisted cognition and bounded mutation.
+Aegis is not a conventional assistant framework.
 
-The system exists to separate:
-
-- cognition;
-- orchestration;
-- continuity;
-- persistence;
-- mutation authority;
-- capability exposure;
-- operational grounding;
-- and runtime governance.
-
-The architecture intentionally rejects:
-
-- implicit repository inheritance;
-- hidden persistence;
-- assistant-style sovereignty;
-- conversational execution topology;
-- uncontrolled mutation authority;
-- hidden continuity;
-- unrestricted authority expansion;
-- and prompt-only governance.
-
-The runtime governs execution.
-
-Capabilities bound authority.
-
-Grounding remains explicit.
-
-Continuity remains ephemeral.
-
-Persistence remains explicit.
+Aegis is a control system for cognition, evidence, and mutation.
 
 ---
 
-# CONSTITUTIONAL OBJECTIVE
+## Constitutional Principles
 
-The constitutional layer exists to define:
+### 1. Runtime Sovereignty
 
-- sovereign authority;
-- canonical topology;
-- governance boundaries;
-- compatibility rules;
-- operational invariants;
-- and architectural direction.
+The runtime owns orchestration, lifecycle, capability exposure, cleanup, and continuity promotion.
 
-The constitutional layer must remain stable even when:
+The model does not own authority.
 
-- providers evolve;
-- capabilities expand;
-- execution flows change;
-- substrates evolve;
-- or operational mechanics improve.
+The model does not own persistence.
 
-The constitutional layer intentionally avoids operational implementation details.
+The model does not own mutation boundaries.
+
+The model consumes what the runtime exposes.
+
+### 2. Capability Grounding
+
+Repository awareness must be explicit.
+
+The model may only reason over runtime-exposed capabilities, manifests, payloads, and promoted artifacts.
+
+Implicit repository inheritance is not allowed.
+
+### 3. Disposable Cognition
+
+Cognition is disposable.
+
+Mode execution may produce reasoning, but reasoning itself is not persistent state.
+
+Only runtime-promoted artifacts may survive across modes.
+
+### 4. Explicit Continuity
+
+Continuity is runtime-owned and artifact-mediated.
+
+No mode may carry hidden cognition into the next mode.
+
+What survives is what the runtime promotes.
+
+### 5. Bounded Mutation
+
+Mutation must remain bounded to explicit authorized surfaces.
+
+Mutation modes may transform the repository, but only within runtime-defined scope and capability boundaries.
+
+### 6. Epistemic Separation
+
+The system must separate:
+
+- observation
+- interpretation
+- falsification
+- correction
+- verification
+
+Not all responsibilities belong to the same mode.
 
 ---
 
-# RUNTIME SOVEREIGNTY
+## Architectural Model
 
-The runtime is the sovereign operational authority.
+Aegis is organized around a layered runtime topology:
+
+### Layer 1 — Constitutional Foundation
+
+Layer 1 defines the system's fixed rules, capability topology, and governance boundaries.
+
+Primary Layer 1 artifacts:
+
+- `AGENTS.md`
+- `.harness/architecture_graph.json`
+
+Layer 1 should remain stable unless the constitutional model changes.
+
+### Layer 2 — Operational Runtime
+
+Layer 2 implements the runtime mechanics that enforce Layer 1.
+
+Primary Layer 2 artifacts:
+
+- `runtime_aegis.sh`
+- `scripts/execute_mode.sh`
+- `scripts/substrates/raw_llm.sh`
+- `scripts/capabilities/generate_manifest.sh`
+- capability handler scripts under `scripts/capabilities/`
+
+### Layer 3 — Future Capability Runtime
+
+Layer 3 is a future evolution of the runtime and must not be assumed or invented prematurely.
+
+Layer 3 should only be introduced after Layer 1 and Layer 2 are fully consolidated.
+
+---
+
+## Mode Topologies
+
+### Discovery
+
+Discovery is bounded observation.
+
+Discovery transforms runtime-exposed evidence into explicit observations.
+
+Discovery does not interpret.
+Discovery does not validate.
+Discovery does not mutate.
+Discovery does not redesign.
+Discovery does not infer causality.
+
+Discovery answers only what is directly observable.
+
+### Forensics
+
+Forensics is bounded interpretation.
+
+Forensics consumes explicit observations and transforms them into evidence-backed interpretations.
+
+Forensics does not mutate.
+Forensics does not validate final outcomes.
+Forensics does not own persistence.
+
+### Repair
+
+Repair is bounded correction.
+
+Repair is allowed to combine observation, interpretation, causal reasoning, and mutation because correction requires context.
+
+Repair may use context-heavy tools and mutation-oriented substrates.
+
+Repair must remain within authorized mutation boundaries.
+
+### Optimize
+
+Optimize is bounded simplification.
+
+Optimize may reduce complexity, improve maintainability, and remove unnecessary structure.
+
+Optimize must preserve correctness and stay within authorized mutation boundaries.
+
+### Adversarial
+
+Adversarial is bounded falsification.
+
+Adversarial exists to challenge the result of Repair and Optimize.
+
+Adversarial does not perform initial discovery.
+
+Adversarial attempts to expose weak assumptions, missed cases, and residual risk.
+
+### Validation
+
+Validation is bounded verdict.
+
+Validation complements Adversarial and provides the final judgment on the resulting state.
+
+Validation does not rediscover the same problems.
+Validation does not mutate.
+Validation does not replace adversarial challenge.
+
+Validation answers whether the end state is acceptable within the expected constraints.
+
+---
+
+## Evidence and Memory Model
+
+Aegis separates three distinct continuity surfaces.
+
+### 1. Capability Payloads
+
+Capability payloads are runtime-exposed evidence from the current execution surface.
+
+They are not memory.
+They are evidence.
+
+### 2. Epistemic Handover
+
+Epistemic handover preserves only unresolved observational attention, such as:
+
+- incomplete observations
+- uninspected areas
+- insufficient evidence
+- observed limitations
+
+Epistemic handover must not contain:
+
+- hypotheses
+- conclusions
+- causal claims
+- recommendations
+- redesign proposals
+- severity judgments
+- hidden reasoning chains
+
+Epistemic handover is guidance for further investigation, not truth.
+
+### 3. Git
+
+Git is persistent memory.
+
+Git preserves accepted structural changes, code evolution, and official documentation.
+
+Git is the repository's long-term memory.
+
+---
+
+## Epistemic Handover Rule
+
+If the system needs to preserve unresolved attention between modes, it must do so explicitly through an epistemic handover artifact, not through hidden cognitive state.
+
+Artifacts transport facts.
+
+Epistemic handovers transport incomplete observations.
+
+Artifacts may be consumed as evidence.
+
+Epistemic handovers may only be consumed as investigation guidance.
+
+Epistemic handovers never constitute evidence, truth, findings, conclusions, validation, or authority.
+
+---
+
+## Memory Discipline
+
+The system must not use hidden model memory as a continuity layer.
+
+Allowed continuity surfaces:
+
+- capability payloads
+- epistemic handover artifacts
+- promoted artifacts
+- git
+
+Disallowed continuity surfaces:
+
+- implicit reasoning carryover
+- hidden prompt residue
+- unbounded conversational memory
+- mode-internal private context treated as system state
+
+---
+
+## Runtime Responsibilities
 
 The runtime owns:
 
-- lifecycle orchestration;
-- worktree lifecycle;
-- continuity ownership;
-- capability exposure;
-- capability routing;
-- capability environments;
-- execution routing;
-- cleanup;
-- protocol framing;
-- protocol enforcement;
-- persistence decisions;
-- and execution sequencing.
+- capability environment materialization
+- capability payload materialization
+- manifest generation
+- mode routing
+- task framing
+- cleanup
+- continuity promotion
+- execution isolation
 
-The runtime intentionally does NOT:
+The runtime must decide what survives.
 
-- reason semantically;
-- redesign topology;
-- infer architectural intent;
-- generate cognition;
-- self-modify governance;
-- or interpret operational meaning.
-
-The runtime remains:
-
-- procedural;
-- deterministic;
-- bounded;
-- mechanically observable;
-- and runtime-owned.
+The runtime must not allow the model to silently inherit authority.
 
 ---
 
-# EXECUTION MODEL
+## Execution Surface Rules
 
-Execution is protocol-oriented, not conversational.
+The execution surface is disposable.
 
-Outputs must remain:
+Every execution should run in a bounded and transient surface, such as a worktree.
 
-- machine-parseable;
-- deterministic;
-- bounded;
-- protocol-valid;
-- and mechanically verifiable.
+The runtime may create, isolate, and destroy execution surfaces as needed.
 
-The runtime owns:
-
-- framing;
-- artifact validation;
-- protocol acceptance;
-- and execution boundaries.
-
-The model does not own protocol authority.
+The execution surface must not become hidden persistent state.
 
 ---
 
-# CAPABILITY-BOUNDED AUTHORITY
+## Capability Registry Rules
 
-Authority must remain explicit.
+Every capability must be:
 
-Capabilities define:
+- explicitly named
+- explicitly classified
+- explicitly contracted
+- explicitly handler-mapped
 
-- accessible operational surfaces;
-- bounded authority;
-- and execution limits.
+Capabilities must not be ambiguous.
 
-Capabilities are:
+Capabilities must not imply broader authority than declared.
 
-- runtime-owned;
-- observable;
-- bounded;
-- operational;
-- deterministic;
-- and mechanically materialized.
+Readonly capabilities must remain readonly.
 
-Capabilities are NOT:
-
-- assistant tools;
-- hidden permissions;
-- unrestricted repository access;
-- semantic helpers;
-- or implicit inheritance.
-
-Modes consume capabilities.
-
-The runtime governs capability exposure.
+Mutation capabilities must remain bounded.
 
 ---
 
-# EXPLICIT GROUNDING
+## Vocabulary Consolidation
 
-Grounding must remain:
+The project should prefer the following vocabulary:
 
-- explicit;
-- observable;
-- capability-bounded;
-- runtime-exposed;
-- and mechanically materialized.
+- capability payload
+- capability environment
+- runtime-owned
+- readonly cognition
+- bounded mutation
+- execution surface
+- epistemic handover
+- promoted artifact
+- runtime sovereignty
+- explicit continuity
 
-Repository awareness must never depend on:
+The project should phase out or constrain legacy phrasing that suggests implicit assistant-style context inheritance.
 
-- implicit assistant inheritance;
-- unrestricted repository visibility;
-- hidden continuity;
-- prompt-only context;
-- or conversational assumptions.
-
-Grounding exists as runtime-materialized operational evidence.
-
----
-
-# DISPOSABLE EXECUTION
-
-Execution environments are disposable.
-
-Worktrees, capability environments, payloads, and transient runtime state exist only as bounded operational surfaces.
-
-Disposable execution exists to:
-
-- isolate cognition;
-- isolate mutation;
-- isolate continuity;
-- prevent residue inheritance;
-- preserve deterministic lifecycle behavior;
-- and prevent hidden operational carryover.
-
-Containment must not depend solely on prompt obedience.
+In particular, terms like "grounding" should be used carefully and only where they still reflect the operational reality of capability exposure.
 
 ---
 
-# PERSISTENCE MODEL
+## Governance and Precedence
 
-Persistence remains explicit.
+Precedence order:
 
-Git is the durable persistence layer.
+1. constitutional rules in `AGENTS.md`
+2. architectural topology in `.harness/architecture_graph.json`
+3. runtime policy in `config.sh`
+4. capability contracts and manifests
+5. mode skills
+6. transient runtime artifacts
+7. git history
 
-Runtime continuity is:
+Lower layers must not contradict higher layers.
 
-- transient;
-- bounded;
-- disposable;
-- runtime-owned;
-- and non-authoritative.
-
-The runtime decides:
-
-- what survives;
-- what is promoted;
-- and what is discarded.
+If a lower layer conflicts with this constitution, the constitution wins.
 
 ---
 
-# COGNITION MODEL
+## Proven / Intended / Deferred
 
-Modes are bounded cognition contracts.
+### Proven
 
-Modes:
+- runtime sovereignty
+- capability grounding
+- artifact promotion
+- disposable cognition
+- bounded mutation
+- explicit continuity
 
-- inspect;
-- reason;
-- validate;
-- or mutate explicitly authorized surfaces.
+### Intended
 
-Modes do NOT:
+- stricter epistemic handover semantics
+- stronger capability coercion
+- more explicit separation of observation and interpretation
 
-- own continuity;
-- own orchestration;
-- own persistence;
-- self-authorize capabilities;
-- inherit repository sovereignty;
-- or redefine runtime authority.
+### Deferred
 
-Modes remain:
-
-- disposable;
-- execution-scoped;
-- substrate-bounded;
-- and capability-bounded.
+- distributed runtime execution
+- advanced sandboxing layers
+- cross-provider protocol normalization
 
 ---
 
-# ANALYSIS TOPOLOGY
+## Non-Negotiable Constraints
 
-Analysis modes are readonly cognition topologies.
-
-Analysis modes include:
-
-- discovery;
-- forensics;
-- validation;
-- adversarial.
-
-Analysis modes:
-
-- consume explicit readonly capabilities;
-- inspect observable evidence;
-- emit bounded artifacts;
-- avoid mutation authority;
-- and remain protocol-oriented.
-
-Analysis modes must avoid:
-
-- fabrication;
-- speculative authority claims;
-- hidden assumptions;
-- conversational behavior;
-- and implicit repository assumptions.
+- No hidden continuity.
+- No implicit repository inheritance.
+- No model-owned persistence.
+- No mutation outside authorized surfaces.
+- No interpretation masquerading as observation.
+- No validation masquerading as discovery.
+- No epistemic handover leaking into truth claims.
 
 ---
 
-# MUTATION TOPOLOGY
+## Summary
 
-Mutation modes are bounded mutation topologies.
+Aegis is a runtime-sovereign, capability-grounded architecture for bounded cognition.
 
-Mutation modes include:
+Its central idea is that the runtime owns authority and continuity, while the model consumes only explicit capability surfaces and produces explicit artifacts.
 
-- repair;
-- optimize.
+Discovery observes.
+Forensics interprets.
+Repair mutates.
+Optimize simplifies.
+Adversarial challenges.
+Validation judges.
 
-Mutation authority remains:
+The runtime preserves only what must survive.
 
-- explicit;
-- capability-bound;
-- runtime-governed;
-- and mechanically observable.
-
-Mutation modes may:
-
-- modify explicitly authorized surfaces;
-- generate bounded patches;
-- and improve authorized implementation surfaces.
-
-Mutation modes must NOT:
-
-- redesign governance;
-- expand authority;
-- modify unauthorized surfaces;
-- or self-authorize topology changes.
-
----
-
-# EXECUTION SUBSTRATES
-
-Execution substrates are bounded cognition engines.
-
-Substrates execute cognition under runtime-governed authority boundaries.
-
-Substrates do NOT own:
-
-- orchestration;
-- continuity;
-- persistence;
-- governance;
-- topology;
-- or authority definition.
-
-The runtime governs substrate selection and execution boundaries.
-
----
-
-# CANONICAL VOCABULARY
-
-The following terms maintain stable canonical meaning across the system.
-
-| Term | Canonical Meaning |
-|---|---|
-| Runtime | Sovereign operational authority |
-| Executor | Protocol virtual machine |
-| Capability | Explicit bounded authority surface |
-| Substrate | Cognition execution engine |
-| Mode | Bounded cognition contract |
-| Payload | Runtime-materialized operational evidence |
-| Artifact | Structured execution output |
-| Grounding | Explicit operational evidence injection |
-| Continuity | Runtime-owned transient state |
-| Persistence | Durable retained state |
-| Worktree | Disposable execution surface |
-| Authority | Operational permission boundary |
-| Topology | Structural relationship model |
-
-Canonical terms must not drift semantically across files.
-
----
-
-# CONSTITUTIONAL PRECEDENCE
-
-When conflicts exist, precedence order is:
-
-1. AGENTS.md
-2. .harness/architecture_graph.json
-3. .harness/config.sh
-4. .skills/*.md
-5. runtime operational scripts
-6. README.md
-7. summary.md
-
-Lower-precedence files must not redefine higher-precedence authority.
-
----
-
-# PROVEN / INTENDED / DEFERRED STATES
-
-The constitutional layer distinguishes between:
-
-| State | Meaning |
-|---|---|
-| Proven | Operationally demonstrated |
-| Intended | Architecturally desired but incomplete |
-| Deferred | Intentionally postponed |
-
-These states must never be conflated.
-
----
-
-# COMPATIBILITY MODEL
-
-Constitutional changes must declare:
-
-- compatibility impact;
-- migration requirements;
-- and topology impact.
-
-Change classes:
-
-| Type | Meaning |
-|---|---|
-| Compatible | Existing topology remains valid |
-| Migration Required | Runtime/config migration required |
-| Breaking | Previous contracts invalidated |
-
-Breaking constitutional changes must remain rare.
-
----
-
-# DEPRECATION POLICY
-
-Deprecated structures must follow explicit lifecycle stages:
-
-1. active
-2. deprecated
-3. migration-supported
-4. removed
-
-Deprecated structures must not remain indefinitely.
-
----
-
-# EXTENSION POLICY
-
-The constitutional layer supports controlled extensibility.
-
-Allowed extension areas include:
-
-- new capability classes;
-- new cognition modes;
-- new substrates;
-- new protocol metadata;
-- and new topology categories.
-
-Disallowed extension areas include:
-
-- assistant-centric orchestration;
-- hidden persistence models;
-- unrestricted authority expansion;
-- provider-specific semantics;
-- and conversational execution abstractions.
-
----
-
-# CHANGE GOVERNANCE
-
-The constitutional layer is frozen by default.
-
-The constitutional layer may only be reopened when:
-
-- runtime sovereignty changes;
-- authority topology changes;
-- execution philosophy changes;
-- cognition topology changes;
-- or protocol governance changes.
-
-Operational implementation changes must NOT require constitutional rewrites.
-
----
-
-# AUDIT POLICY
-
-Constitutional changes must include:
-
-- reason for change;
-- replaced behavior;
-- compatibility impact;
-- migration impact;
-- and affected topology surfaces.
-
-Architectural drift must remain observable.
-
----
-
-# MINIMALISM POLICY
-
-Every constitutional rule must justify:
-
-- what ambiguity it removes;
-- what redundancy it eliminates;
-- what risk it prevents;
-- and why it belongs constitutionally.
-
-If a rule belongs operationally elsewhere:
-
-- it must not enter the constitutional layer.
-
-Complexity is treated as operational risk.
-
----
-
-# AUTHORITATIVE VS DERIVED SURFACES
-
-## Authoritative Surfaces
-
-Authoritative surfaces include:
-
-- AGENTS.md
-- .harness/architecture_graph.json
-- .harness/config.sh
-
-These define governance and operational topology.
-
----
-
-## Derived Surfaces
-
-Derived surfaces include:
-
-- README.md
-- summary.md
-- onboarding summaries;
-- operational explanations;
-- and educational material.
-
-Derived surfaces must not redefine constitutional authority.
-
----
-
-## Transient Surfaces
-
-Transient surfaces include:
-
-- .harness/runtime/capability_env/
-- .harness/runtime/capability_payloads/
-- .harness/worktrees/
-
-Transient surfaces are operational evidence, not constitutional state.
-
----
-
-# CONSTITUTIONAL INVARIANTS
-
-The following invariants must remain true:
-
-- runtime remains sovereign;
-- authority remains explicit;
-- grounding remains capability-bounded;
-- continuity remains ephemeral;
-- persistence remains explicit;
-- execution remains protocol-oriented;
-- capabilities remain bounded;
-- topology remains observable;
-- cognition remains substrate-scoped;
-- and mutation remains runtime-governed.
-
-Violation of these invariants constitutes architectural drift.
-
----
-
-# FINAL PRINCIPLE
-
-Aegis Harness exists to transform:
-
-- implicit assistant inheritance
-
-into:
-
-- explicit runtime-governed bounded cognition.
-
-The runtime governs execution.
-
-Capabilities bound authority.
-
-Grounding remains explicit.
-
-Continuity remains ephemeral.
-
-Persistence remains explicit.
-
-Cognition remains bounded.
+Everything else is disposable.
