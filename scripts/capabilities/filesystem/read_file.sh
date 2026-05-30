@@ -35,7 +35,7 @@ readonly TARGET_FILE="${1:-}"
 # LIMITS
 # =========================================================
 
-readonly MAX_READ_BYTES="${AEGIS_GROUNDING_MAX_READ_BYTES:-50000}"
+readonly MAX_READ_BYTES="${AEGIS_FILE_CONTENT_MAX_BYTES:-50000}"
 
 # =========================================================
 # VALIDATION

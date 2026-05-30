@@ -35,7 +35,7 @@ readonly GRAPH_FILE="${1:-.harness/architecture_graph.json}"
 # LIMITS
 # =========================================================
 
-readonly MAX_GRAPH_BYTES="${AEGIS_GROUNDING_MAX_GRAPH_BYTES:-100000}"
+readonly MAX_GRAPH_BYTES="${AEGIS_TOPOLOGY_GRAPH_MAX_BYTES:-100000}"
 
 # =========================================================
 # VALIDATION

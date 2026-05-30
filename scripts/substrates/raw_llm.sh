@@ -5,17 +5,17 @@
 # =========================================================
 #
 # Version: 2.9
-# Layer: Raw Analysis Substrate
-# Status: Grounding Selective
+# Layer: Raw Readonly Cognition Substrate
+# Status: Evidence Exposure Hardened
 #
 # Responsibilities:
 #
 # - bounded cognition execution
 # - provider interaction
-# - capability-grounded prompt assembly
+# - capability-exposed prompt assembly
 # - selective payload exposure
 # - payload aggregation
-# - grounding budget enforcement
+# - evidence budget enforcement
 # - bounded evidence assembly
 # - truncation policy enforcement
 # - protocol coercion
@@ -23,10 +23,10 @@
 #
 # This substrate intentionally:
 #
-# - consumes only runtime-selected grounding payloads;
+- - consumes only runtime-exposed capability payloads;
 # - avoids full payload-directory scanning;
 # - avoids assistant topology;
-# - avoids hidden continuity;
+- - avoids hidden operational memory surfaces;
 # - emits only bounded protocol payloads;
 # - treats the model as a JSON payload generator.
 #
@@ -96,6 +96,26 @@ validate_raw_substrate_inputs() {
   [[ -n "${CAPABILITY_MANIFEST}" ]] \
     || raw_fatal "missing_capability_manifest"
 
+  printf '%s\n' "${CAPABILITY_MANIFEST}" \
+    | jq empty \
+      >/dev/null 2>&1 \
+    || raw_fatal "invalid_capability_manifest_json"
+
+  printf '%s\n' "${CAPABILITY_MANIFEST}" \
+    | jq -e --arg mode "${AEGIS_MODE}" '.mode == $mode' \
+      >/dev/null 2>&1 \
+    || raw_fatal "manifest_mode_mismatch"
+
+  printf '%s\n' "${CAPABILITY_MANIFEST}" \
+    | jq -e '.execution_engine == "raw"' \
+      >/dev/null 2>&1 \
+    || raw_fatal "manifest_not_readonly_engine"
+
+  printf '%s\n' "${CAPABILITY_MANIFEST}" \
+    | jq -e '(.capabilities | type == "array") and ([.capabilities[]?.classification == "readonly"] | all)' \
+      >/dev/null 2>&1 \
+    || raw_fatal "manifest_contains_non_readonly_capabilities"
+
   [[ -d "${CAPABILITY_PAYLOAD_DIR}" ]] \
     || raw_fatal "missing_capability_payload_directory"
 
@@ -114,11 +134,11 @@ validate_raw_substrate_inputs() {
   [[ -n "${AEGIS_MODE:-}" ]] \
     || raw_fatal "missing_execution_mode"
 
-  [[ -n "${AEGIS_GROUNDING_MAX_TOTAL_BYTES:-}" ]] \
-    || raw_fatal "missing_grounding_budget"
+  [[ -n "${AEGIS_EVIDENCE_MAX_TOTAL_BYTES:-}" ]] \
+    || raw_fatal "missing_evidence_budget"
 
-  [[ -n "${AEGIS_GROUNDING_MAX_PAYLOAD_BYTES:-}" ]] \
-    || raw_fatal "missing_payload_budget"
+  [[ -n "${AEGIS_CAPABILITY_PAYLOAD_MAX_BYTES:-}" ]] \
+    || raw_fatal "missing_capability_payload_budget"
 
   [[ -n "${AEGIS_PROVIDER_RESPONSE_TIMEOUT:-}" ]] \
     || raw_fatal "missing_response_timeout"
@@ -129,24 +149,21 @@ validate_raw_substrate_inputs() {
   [[ -n "${AEGIS_PROVIDER_MAX_RETRIES:-}" ]] \
     || raw_fatal "missing_retry_configuration"
 
-  [[ -n "${AEGIS_SELECTED_GROUNDING_PAYLOADS:-}" ]] \
-    || raw_fatal "missing_selected_grounding_payloads"
+  [[ -n "${AEGIS_SELECTED_CAPABILITY_PAYLOADS:-}" ]] \
+    || raw_fatal "missing_selected_capability_payloads"
 
-  echo "${AEGIS_SELECTED_GROUNDING_PAYLOADS}" \
+  echo "${AEGIS_SELECTED_CAPABILITY_PAYLOADS}" \
     | jq -e 'type == "array"' \
       >/dev/null 2>&1 \
-    || raw_fatal "invalid_selected_grounding_payloads"
+    || raw_fatal "invalid_selected_capability_payloads"
 
-  mapfile -t SELECTED_GROUNDING_PAYLOAD_PATHS < <(
-    echo "${AEGIS_SELECTED_GROUNDING_PAYLOADS}" \
+  mapfile -t SELECTED_CAPABILITY_PAYLOAD_PATHS < <(
+    echo "${AEGIS_SELECTED_CAPABILITY_PAYLOADS}" \
       | jq -r '.[]'
   )
 
-  [[ "${#SELECTED_GROUNDING_PAYLOAD_PATHS[@]}" -gt 0 ]] \
-    || raw_fatal "empty_selected_grounding_payloads"
-
-  declare -p AEGIS_MODE_GROUNDING_PROFILE >/dev/null 2>&1 \
-    || raw_fatal "missing_grounding_profile_registry"
+  [[ "${#SELECTED_CAPABILITY_PAYLOAD_PATHS[@]}" -gt 0 ]] \
+    || raw_fatal "empty_selected_capability_payloads"
 }
 
 # =========================================================
@@ -244,10 +261,10 @@ render_bounded_payload_section() {
     wc -c < "${compact_file}"
   )"
 
-  if [[ "${payload_size}" -gt "${AEGIS_GROUNDING_MAX_PAYLOAD_BYTES}" ]]; then
+  if [[ "${payload_size}" -gt "${AEGIS_CAPABILITY_PAYLOAD_MAX_BYTES}" ]]; then
     truncate_file_bytes \
       "${compact_file}" \
-      "${AEGIS_GROUNDING_MAX_PAYLOAD_BYTES}" \
+      "${AEGIS_CAPABILITY_PAYLOAD_MAX_BYTES}" \
       "${compact_file}.bounded"
     mv "${compact_file}.bounded" "${compact_file}"
   fi
@@ -278,10 +295,10 @@ ${AEGIS_MODE}
 Execution model:
 - protocol oriented
 - bounded cognition
-- capability grounded
+- capability exposure
 - runtime governed
 - evidence bounded
-- selective grounding only
+- selective capability payload exposure only
 
 You must:
 - consume only runtime-selected evidence
@@ -323,30 +340,32 @@ assemble_bounded_manifest() {
     > "${TMP_MANIFEST_RAW_FILE}"
 
   jq -c \
-    --arg mode "${AEGIS_MODE}" \
     '{
       schema_version: .schema_version,
       runtime_model: .runtime_model,
       generated_at: .generated_at,
       execution_id: .execution_id,
       manifest_hash: .manifest_hash,
-      mode: $mode,
-      execution_engine: .modes[$mode].execution_engine,
-      capabilities: .modes[$mode].capabilities
+      mode: .mode,
+      execution_engine: .execution_engine,
+      capability_envelope: .capability_envelope,
+      evidence_profile: .evidence_profile,
+      evidence_capabilities: .evidence_capabilities,
+      capabilities: .capabilities
     }' \
     "${TMP_MANIFEST_RAW_FILE}" \
     > "${TMP_MANIFEST_FILE}"
 
   truncate_file_bytes \
     "${TMP_MANIFEST_FILE}" \
-    "${AEGIS_GROUNDING_MAX_MANIFEST_BYTES}" \
+    "${AEGIS_CAPABILITY_MANIFEST_MAX_BYTES}" \
     "${TMP_MANIFEST_FILE}.bounded"
 
   mv "${TMP_MANIFEST_FILE}.bounded" "${TMP_MANIFEST_FILE}"
 }
 
 # =========================================================
-# SELECTIVE PAYLOAD EXPOSURE
+# SELECTIVE CAPABILITY PAYLOAD EXPOSURE
 # =========================================================
 
 assemble_bounded_capability_context() {
@@ -362,9 +381,9 @@ assemble_bounded_capability_context() {
     cat "${TMP_MANIFEST_FILE}"
 
     echo
-    echo "=== SELECTED GROUNDING PAYLOADS ==="
+    echo "=== EXPOSED CAPABILITY PAYLOADS ==="
     echo
-    printf 'Selected payload count: %s\n' "${#SELECTED_GROUNDING_PAYLOAD_PATHS[@]}"
+    printf 'Exposed capability payload count: %s\n' "${#SELECTED_CAPABILITY_PAYLOAD_PATHS[@]}"
     echo
   } > "${TMP_CAPABILITY_CONTEXT_FILE}"
 
@@ -373,20 +392,20 @@ assemble_bounded_capability_context() {
   local section_file
   local total_bytes
 
-  for payload_path in "${SELECTED_GROUNDING_PAYLOAD_PATHS[@]}"; do
+  for payload_path in "${SELECTED_CAPABILITY_PAYLOAD_PATHS[@]}"; do
 
     [[ -f "${payload_path}" ]] \
-      || raw_fatal "missing_selected_payload: ${payload_path}"
+      || raw_fatal "missing_exposed_capability_payload: ${payload_path}"
 
     [[ "${payload_path}" == "${CAPABILITY_PAYLOAD_DIR}/"* ]] \
-      || raw_fatal "selected_payload_out_of_scope: ${payload_path}"
+      || raw_fatal "exposed_capability_payload_out_of_scope: ${payload_path}"
 
     payload_count=$((payload_count + 1))
 
-    if [[ "${payload_count}" -gt "${AEGIS_GROUNDING_MAX_FILES}" ]]; then
+    if [[ "${payload_count}" -gt "${AEGIS_EVIDENCE_MAX_FILES}" ]]; then
       {
         echo
-        echo "[AEGIS][GROUNDING_LIMIT_REACHED]"
+        echo "[AEGIS][CAPABILITY_PAYLOAD_LIMIT_REACHED]"
       } >> "${TMP_CAPABILITY_CONTEXT_FILE}"
       break
     fi
@@ -408,16 +427,16 @@ assemble_bounded_capability_context() {
       wc -c < "${TMP_CAPABILITY_CONTEXT_FILE}"
     )"
 
-    if [[ "${total_bytes}" -ge "${AEGIS_GROUNDING_MAX_TOTAL_BYTES}" ]]; then
+    if [[ "${total_bytes}" -ge "${AEGIS_EVIDENCE_MAX_TOTAL_BYTES}" ]]; then
       {
         echo
-        echo "[AEGIS][TOTAL_GROUNDING_BUDGET_REACHED]"
+        echo "[AEGIS][TOTAL_EVIDENCE_BUDGET_REACHED]"
       } >> "${TMP_CAPABILITY_CONTEXT_FILE}"
       break
     fi
   done
 
-  raw_log "Grounding size bytes: $(wc -c < "${TMP_CAPABILITY_CONTEXT_FILE}")"
+  raw_log "Capability payload evidence size bytes: $(wc -c < "${TMP_CAPABILITY_CONTEXT_FILE}")"
 }
 
 # =========================================================

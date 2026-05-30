@@ -1,0 +1,5 @@
+# system_profile.md
+
+This file defines explicit characteristics of the target system.
+If empty, no additional characteristics are assumed.
+All defaults remain governed by AGENTS.md and architecture_graph.json.

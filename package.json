@@ -19,9 +19,9 @@
 
     "aegis:verify-structure": "npm run aegis:typecheck && npm run aegis:lint",
 
-    "aegis:falsify": "echo 'Mode 4 adversarial falsification pending implementation'",
+    "aegis:adversarial": "echo 'Adversarial bounded challenge topology pending implementation'",
 
-    "aegis:validate-confidence": "npm run aegis:verify-structure && npm run aegis:falsify",
+    "aegis:validate-confidence": "npm run aegis:verify-structure && npm run aegis:adversarial",
 
     "aegis:test": "echo 'Tests pending implementation'",
 

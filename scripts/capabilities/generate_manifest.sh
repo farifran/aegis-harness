@@ -13,7 +13,7 @@
 # - deterministic manifest generation
 # - capability topology materialization
 # - execution engine mapping
-# - grounding profile mapping
+# - evidence profile mapping
 # - capability provenance
 # - manifest integrity
 # - topology serialization
@@ -22,7 +22,7 @@
 #
 # - runtime-owned authority
 # - capability envelopes
-# - grounding profiles
+# - evidence profiles
 # - execution routing
 # - bounded execution topology
 #
@@ -102,8 +102,8 @@ validate_environment() {
   declare -p AEGIS_CAPABILITY_CLASSIFICATION >/dev/null 2>&1 \
     || manifest_fatal "missing_capability_classification_registry"
 
-  declare -p AEGIS_MODE_GROUNDING_PROFILE >/dev/null 2>&1 \
-    || manifest_fatal "missing_grounding_profile_registry"
+  declare -p AEGIS_MODE_EVIDENCE_PROFILE >/dev/null 2>&1 \
+    || manifest_fatal "missing_evidence_profile_registry"
 }
 
 validate_handler_registry() {
@@ -119,23 +119,23 @@ validate_handler_registry() {
   done
 }
 
-validate_grounding_profiles() {
+validate_evidence_profiles() {
 
   local mode
   local profile_name
 
-  for mode in "${!AEGIS_MODE_GROUNDING_PROFILE[@]}"; do
+  for mode in "${!AEGIS_MODE_EVIDENCE_PROFILE[@]}"; do
 
-    profile_name="${AEGIS_MODE_GROUNDING_PROFILE[$mode]}"
+    profile_name="${AEGIS_MODE_EVIDENCE_PROFILE[$mode]}"
 
     declare -p "${profile_name}" >/dev/null 2>&1 || {
-      manifest_fatal "missing_grounding_profile_array: ${profile_name}"
+      manifest_fatal "missing_evidence_profile_array: ${profile_name}"
     }
 
     declare -n profile_ref="${profile_name}"
 
     [[ "${#profile_ref[@]}" -gt 0 ]] || {
-      manifest_fatal "empty_grounding_profile_array: ${profile_name}"
+      manifest_fatal "empty_evidence_profile_array: ${profile_name}"
     }
   done
 }
@@ -188,13 +188,13 @@ build_capabilities_json() {
   rm -f "${tmp_caps_file}" >/dev/null 2>&1 || true
 }
 
-build_grounding_capabilities_json() {
+build_evidence_capabilities_json() {
 
-  local grounding_list_name="$1"
+  local evidence_list_name="$1"
 
-  declare -n grounding_ref="${grounding_list_name}"
+  declare -n evidence_ref="${evidence_list_name}"
 
-  printf '%s\n' "${grounding_ref[@]}" | jq -R . | jq -s '.'
+  printf '%s\n' "${evidence_ref[@]}" | jq -R . | jq -s '.'
 }
 
 build_mode_object() {
@@ -203,9 +203,9 @@ build_mode_object() {
 
   local engine
   local envelope_name
-  local grounding_profile_name
+  local evidence_profile_name
   local capabilities_json
-  local grounding_capabilities_json
+  local evidence_capabilities_json
 
   engine="${AEGIS_EXECUTION_ENGINES[$mode]:-}"
   [[ -n "${engine}" ]] \
@@ -215,32 +215,32 @@ build_mode_object() {
   [[ -n "${envelope_name}" ]] \
     || manifest_fatal "missing_capability_envelope: ${mode}"
 
-  grounding_profile_name="${AEGIS_MODE_GROUNDING_PROFILE[$mode]:-}"
-  [[ -n "${grounding_profile_name}" ]] \
-    || manifest_fatal "missing_grounding_profile: ${mode}"
+  evidence_profile_name="${AEGIS_MODE_EVIDENCE_PROFILE[$mode]:-}"
+  [[ -n "${evidence_profile_name}" ]] \
+    || manifest_fatal "missing_evidence_profile: ${mode}"
 
   capabilities_json="$(
     build_capabilities_json "${envelope_name}"
   )"
 
-  grounding_capabilities_json="$(
-    build_grounding_capabilities_json "${grounding_profile_name}"
+  evidence_capabilities_json="$(
+    build_evidence_capabilities_json "${evidence_profile_name}"
   )"
 
   jq -n \
     --arg mode "${mode}" \
     --arg execution_engine "${engine}" \
     --arg capability_envelope "${envelope_name}" \
-    --arg grounding_profile "${grounding_profile_name}" \
+    --arg evidence_profile "${evidence_profile_name}" \
     --argjson capabilities "${capabilities_json}" \
-    --argjson grounding_capabilities "${grounding_capabilities_json}" \
+    --argjson evidence_capabilities "${evidence_capabilities_json}" \
     '{
       mode: $mode,
       execution_engine: $execution_engine,
       capability_envelope: $capability_envelope,
-      grounding_profile: $grounding_profile,
+      evidence_profile: $evidence_profile,
       capabilities: $capabilities,
-      grounding_capabilities: $grounding_capabilities
+      evidence_capabilities: $evidence_capabilities
     }'
 }
 
@@ -292,7 +292,7 @@ generate_manifest() {
 
   jq -n \
     --arg schema_version "2.8" \
-    --arg runtime_model "capability_grounded_execution" \
+    --arg runtime_model "runtime_owned_capability_payload_execution" \
     --arg generated_at "${AEGIS_MANIFEST_GENERATED_AT}" \
     --arg execution_id "${AEGIS_MANIFEST_EXECUTION_ID}" \
     --argjson modes "${modes_object}" \
@@ -328,7 +328,7 @@ main() {
 
   validate_environment
   validate_handler_registry
-  validate_grounding_profiles
+  validate_evidence_profiles
 
   generate_manifest
 }

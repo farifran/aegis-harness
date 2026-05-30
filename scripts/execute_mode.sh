@@ -6,39 +6,41 @@
 #
 # Version: 2.9
 # Layer: Protocol VM
-# Status: Grounding Selective
+# Status: Evidence Transition Hardened
 #
 # Responsibilities:
 #
 # - capability envelope resolution
 # - capability environment materialization
 # - capability payload persistence
-# - capability manifest generation
-# - grounding profile resolution
-# - selective grounding payload selection
+# - runtime-owned capability manifest consumption
+# - evidence profile resolution
+# - selective evidence payload selection
 # - selected manifest materialization
 # - capability invocation contracts
 # - capability evidence generation
 # - substrate invocation
 # - protocol validation
-# - artifact coercion
+# - candidate artifact validation
 #
 # The executor intentionally owns:
 #
 # - capability routing
 # - payload persistence
-# - grounding selection
-# - capability manifest generation
+# - evidence selection
+# - runtime-owned capability manifest validation
 # - selected manifest generation
 # - capability invocation
 # - protocol enforcement
 # - capability evidence lifecycle
+# - candidate artifact validation
 #
 # The executor intentionally does NOT:
 #
 # - own orchestration
 # - own runtime lifecycle
 # - own persistence decisions
+# - own capability manifest generation
 # - reason semantically
 #
 # =========================================================
@@ -72,7 +74,7 @@ source ".harness/config.sh"
 
 readonly AEGIS_SKILL_FILE="${1:-}"
 readonly AEGIS_MODE="${2:-}"
-readonly AEGIS_ACTIVE_TASK_FILE_INPUT="${3:-}"
+readonly AEGIS_EPISTEMIC_HANDOVER_FILE_INPUT="${3:-}"
 
 # =========================================================
 # LOGGING
@@ -104,10 +106,10 @@ cleanup_executor() {
   #
   # Runtime remains sovereign over:
   #
-  # - worktrees
+  # - execution surfaces
   # - payload retention
   # - capability environment retention
-  # - continuity lifecycle
+  # - epistemic handover lifecycle
   #
   # Executor intentionally does NOT remove runtime-owned state.
   #
@@ -126,8 +128,8 @@ trap 'executor_warn "Interrupted"; exit 130' INT TERM
 
 validate_executor_inputs() {
 
-  [[ -n "${AEGIS_WORKTREE_PATH:-}" ]] \
-    || executor_fatal "missing_worktree_path"
+  [[ -n "${AEGIS_EXECUTION_SURFACE_PATH:-}" ]] \
+    || executor_fatal "missing_execution_surface_path"
 
   [[ -n "${AEGIS_EXECUTION_ID:-}" ]] \
     || executor_fatal "missing_execution_id"
@@ -138,8 +140,11 @@ validate_executor_inputs() {
   [[ -f "${AEGIS_SKILL_FILE}" ]] \
     || executor_fatal "missing_skill_contract"
 
-  [[ -f "${AEGIS_ACTIVE_TASK_FILE_INPUT}" ]] \
-    || executor_fatal "missing_active_task"
+  [[ -f "${AEGIS_EPISTEMIC_HANDOVER_FILE_INPUT}" ]] \
+    || executor_fatal "missing_epistemic_handover"
+
+  [[ -n "${AEGIS_CAPABILITY_MANIFEST:-}" ]] \
+    || executor_fatal "missing_runtime_owned_capability_manifest"
 
   declare -p AEGIS_EXECUTION_ENGINES >/dev/null 2>&1 \
     || executor_fatal "missing_execution_engine_registry"
@@ -153,8 +158,8 @@ validate_executor_inputs() {
   declare -p AEGIS_CAPABILITY_ARGUMENTS >/dev/null 2>&1 \
     || executor_fatal "missing_capability_argument_registry"
 
-  declare -p AEGIS_MODE_GROUNDING_PROFILE >/dev/null 2>&1 \
-    || executor_fatal "missing_grounding_profile_registry"
+  declare -p AEGIS_MODE_EVIDENCE_PROFILE >/dev/null 2>&1 \
+    || executor_fatal "missing_evidence_profile_registry"
 
   [[ -n "${AEGIS_EXECUTION_ENGINES[$AEGIS_MODE]:-}" ]] \
     || executor_fatal "unknown_execution_mode"
@@ -202,27 +207,27 @@ resolve_capability_envelope() {
 }
 
 # =========================================================
-# GROUNDING PROFILE
+# EVIDENCE PROFILE
 # =========================================================
 
-resolve_grounding_profile() {
+resolve_evidence_profile() {
 
   local profile_name
 
   profile_name="$(
     printf '%s' \
-      "${AEGIS_MODE_GROUNDING_PROFILE[$AEGIS_MODE]:-}"
+      "${AEGIS_MODE_EVIDENCE_PROFILE[$AEGIS_MODE]:-}"
   )"
 
   [[ -n "${profile_name}" ]] \
-    || executor_fatal "missing_grounding_profile"
+    || executor_fatal "missing_evidence_profile"
 
-  declare -n grounding_ref="${profile_name}"
+  declare -n evidence_ref="${profile_name}"
 
-  [[ "${#grounding_ref[@]}" -gt 0 ]] \
-    || executor_fatal "empty_grounding_profile"
+  [[ "${#evidence_ref[@]}" -gt 0 ]] \
+    || executor_fatal "empty_evidence_profile"
 
-  AEGIS_ACTIVE_GROUNDING_CAPABILITIES=("${grounding_ref[@]}")
+  AEGIS_ACTIVE_EVIDENCE_CAPABILITIES=("${evidence_ref[@]}")
 }
 
 # =========================================================
@@ -231,16 +236,31 @@ resolve_grounding_profile() {
 
 prepare_execution_state() {
 
-  executor_log "Removing stale execution state..."
+  executor_log "Using runtime-prepared execution state..."
 
-  rm -rf "${AEGIS_CAPABILITY_ENV_DIR}" \
-    >/dev/null 2>&1 || true
+  [[ -d "${AEGIS_CAPABILITY_ENV_DIR}" ]] \
+    || executor_fatal "missing_runtime_prepared_capability_environment"
 
-  rm -rf "${AEGIS_CAPABILITY_PAYLOAD_DIR}" \
-    >/dev/null 2>&1 || true
+  [[ -d "${AEGIS_CAPABILITY_PAYLOAD_DIR}" ]] \
+    || executor_fatal "missing_runtime_prepared_capability_payload_directory"
+}
 
-  mkdir -p "${AEGIS_CAPABILITY_ENV_DIR}"
-  mkdir -p "${AEGIS_CAPABILITY_PAYLOAD_DIR}"
+# =========================================================
+# ARGUMENT CONTRACTS
+# =========================================================
+
+resolve_capability_argument() {
+
+  local capability="$1"
+
+  case "${capability}" in
+    runtime.read_epistemic_handover)
+      printf '%s' "${AEGIS_EPISTEMIC_HANDOVER_FILE_INPUT}"
+      ;;
+    *)
+      printf '%s' "${AEGIS_CAPABILITY_ARGUMENTS[$capability]:-}"
+      ;;
+  esac
 }
 
 # =========================================================
@@ -310,8 +330,7 @@ materialize_capability_payloads() {
       || executor_fatal "missing_capability_handler"
 
     capability_argument="$(
-      printf '%s' \
-        "${AEGIS_CAPABILITY_ARGUMENTS[$capability]:-}"
+      resolve_capability_argument "${capability}"
     )"
 
     payload_file="$(
@@ -323,7 +342,7 @@ materialize_capability_payloads() {
     payload_output="$(
       AEGIS_EXECUTION_ID="${AEGIS_EXECUTION_ID}" \
       AEGIS_EXECUTION_TIMESTAMP="${AEGIS_EXECUTION_TIMESTAMP}" \
-      AEGIS_WORKTREE_PATH="${AEGIS_WORKTREE_PATH}" \
+      AEGIS_EXECUTION_SURFACE_PATH="${AEGIS_EXECUTION_SURFACE_PATH}" \
       bash "${handler}" "${capability_argument}"
     )"
 
@@ -345,42 +364,37 @@ materialize_capability_payloads() {
 }
 
 # =========================================================
-# MANIFEST GENERATION
+# RUNTIME-OWNED MANIFEST
 # =========================================================
 
-materialize_capability_manifest() {
+consume_runtime_owned_capability_manifest() {
 
-  executor_log "Generating capability manifest..."
-
-  export AEGIS_CAPABILITY_MANIFEST="$(
-    bash scripts/capabilities/generate_manifest.sh
-  )"
+  executor_log "Consuming runtime-owned capability manifest..."
 
   [[ -n "${AEGIS_CAPABILITY_MANIFEST}" ]] \
     || executor_fatal "missing_capability_manifest"
 
-  export AEGIS_CAPABILITY_MANIFEST_HASH="$(
-    printf '%s' "${AEGIS_CAPABILITY_MANIFEST}" \
-      | sha256sum \
-      | awk '{print $1}'
-  )"
+  printf '%s\n' "${AEGIS_CAPABILITY_MANIFEST}" \
+    | jq empty \
+      >/dev/null 2>&1 \
+    || executor_fatal "invalid_runtime_owned_capability_manifest"
 }
 
 # =========================================================
-# GROUNDING PAYLOAD SELECTION
+# EVIDENCE PAYLOAD SELECTION
 # =========================================================
 
-select_grounding_payloads() {
+select_evidence_payloads() {
 
   local capability
   local payload_file
   local payload_path
 
-  export AEGIS_SELECTED_GROUNDING_PAYLOADS="$(
+  export AEGIS_SELECTED_CAPABILITY_PAYLOADS="$(
     jq -n '[]'
   )"
 
-  for capability in "${AEGIS_ACTIVE_GROUNDING_CAPABILITIES[@]}"; do
+  for capability in "${AEGIS_ACTIVE_EVIDENCE_CAPABILITIES[@]}"; do
 
     payload_file="$(
       echo "${capability}" | tr '.' '_'
@@ -389,15 +403,15 @@ select_grounding_payloads() {
     payload_path="${AEGIS_CAPABILITY_PAYLOAD_DIR}/${payload_file}"
 
     [[ -f "${payload_path}" ]] \
-      || executor_fatal "missing_grounding_payload: ${payload_path}"
+      || executor_fatal "missing_evidence_payload: ${payload_path}"
 
-    AEGIS_SELECTED_GROUNDING_PAYLOADS="$(
-      echo "${AEGIS_SELECTED_GROUNDING_PAYLOADS}" \
+    AEGIS_SELECTED_CAPABILITY_PAYLOADS="$(
+      echo "${AEGIS_SELECTED_CAPABILITY_PAYLOADS}" \
         | jq --arg payload "${payload_path}" '. + [$payload]'
     )"
   done
 
-  export AEGIS_SELECTED_GROUNDING_PAYLOADS
+  export AEGIS_SELECTED_CAPABILITY_PAYLOADS
 }
 
 # =========================================================
@@ -422,9 +436,9 @@ materialize_selected_manifest() {
             mode: $mode,
             execution_engine: .modes[$mode].execution_engine,
             capability_envelope: .modes[$mode].capability_envelope,
-            grounding_profile: .modes[$mode].grounding_profile,
-            capabilities: .modes[$mode].capabilities,
-            grounding_capabilities: .modes[$mode].grounding_capabilities
+            evidence_profile: .modes[$mode].evidence_profile,
+            evidence_capabilities: .modes[$mode].evidence_capabilities,
+            capabilities: .modes[$mode].capabilities
           }'
   )"
 
@@ -439,7 +453,7 @@ materialize_selected_manifest() {
 execute_substrate() {
 
   export AEGIS_MODE
-  export AEGIS_SELECTED_GROUNDING_PAYLOADS
+  export AEGIS_SELECTED_CAPABILITY_PAYLOADS
   export AEGIS_SELECTED_MANIFEST
 
   local substrate_output
@@ -449,7 +463,7 @@ execute_substrate() {
     raw)
       substrate_output="$(
         bash scripts/substrates/raw_llm.sh \
-          "${OPENAI_MODEL_ANALYSIS}" \
+          "${OPENAI_MODEL_READONLY_COGNITION}" \
           "${AEGIS_SKILL_FILE}" \
           "${AEGIS_SELECTED_MANIFEST}" \
           "${AEGIS_CAPABILITY_PAYLOAD_DIR}"
@@ -521,12 +535,12 @@ main() {
   validate_executor_inputs
   resolve_execution_engine
   resolve_capability_envelope
-  resolve_grounding_profile
+  resolve_evidence_profile
   prepare_execution_state
   materialize_capability_environment
   materialize_capability_payloads
-  materialize_capability_manifest
-  select_grounding_payloads
+  consume_runtime_owned_capability_manifest
+  select_evidence_payloads
   materialize_selected_manifest
   execute_substrate
   validate_artifact

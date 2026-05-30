@@ -13,7 +13,7 @@
 # - deterministic search evidence generation
 # - payload provenance emission
 # - bounded evidence exposure
-# - grounding-safe payload generation
+# - evidence-safe payload generation
 #
 # This capability intentionally:
 #
@@ -36,12 +36,12 @@ readonly QUERY="${1:-}"
 readonly SEARCH_ROOT="${2:-.}"
 
 # =========================================================
-# GROUNDING LIMITS
+# EVIDENCE LIMITS
 # =========================================================
 
-readonly MAX_MATCH_LINES="${AEGIS_GROUNDING_MAX_MATCH_LINES:-100}"
+readonly MAX_MATCH_LINES="${AEGIS_SEARCH_SYMBOL_MAX_MATCH_LINES:-100}"
 
-readonly MAX_PAYLOAD_BYTES="${AEGIS_GROUNDING_MAX_PAYLOAD_BYTES:-200000}"
+readonly MAX_PAYLOAD_BYTES="${AEGIS_CAPABILITY_PAYLOAD_MAX_BYTES:-200000}"
 
 readonly CONTEXT_LINES="${AEGIS_SEARCH_SYMBOL_CONTEXT_LINES:-2}"
 
@@ -134,7 +134,7 @@ grep -Rni \
   --exclude-dir=node_modules \
   --exclude-dir=.git \
   --exclude-dir=.harness/runtime \
-  --exclude-dir=.harness/worktrees \
+  --exclude-dir=.harness/execution_surfaces \
   --exclude='*.lock' \
   --exclude='*.log' \
   "${QUERY}" \

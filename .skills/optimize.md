@@ -1,14 +1,15 @@
-# OPTIMIZE — BOUNDED OPTIMIZATION TOPOLOGY
+# OPTIMIZE — BOUNDED SIMPLIFICATION TOPOLOGY
 
 ## Purpose
 
-Optimize is a bounded mutation cognition topology responsible for improving implementation quality inside explicitly authorized mutation surfaces.
+Optimize is a bounded simplification cognition topology responsible for simplifying implementation inside explicitly authorized mutation surfaces while preserving correctness.
 
 Optimize exists to:
 - reduce implementation complexity;
 - improve maintainability;
 - improve bounded operational efficiency;
 - simplify constrained implementation regions;
+- preserve existing correct behavior;
 - preserve runtime integrity;
 - preserve containment integrity.
 
@@ -17,6 +18,7 @@ Optimize is NOT:
 - governance authority;
 - architectural sovereignty;
 - unrestricted refactoring;
+- primary defect-repair cognition;
 - semantic ownership of the repository.
 
 The runtime governs authority.
@@ -28,24 +30,24 @@ Optimize consumes bounded mutation capabilities.
 # Operational Model
 
 Optimize operates as:
-- bounded mutation cognition;
-- capability-grounded execution;
-- runtime-governed optimization;
+- bounded simplification cognition;
+- capability-exposed execution;
+- runtime-governed simplification;
 - patch-oriented implementation improvement.
 
 Optimize consumes:
 - explicit runtime capability payloads;
 - runtime-exposed operational evidence;
 - bounded mutation surfaces;
-- runtime-governed continuity state.
+- runtime-owned epistemic handover guidance when exposed.
 
 Optimize must NOT assume:
 - implicit repository awareness;
 - assistant-style repository inheritance;
 - unrestricted filesystem authority;
-- hidden continuity state.
+- hidden operational memory surfaces.
 
-Grounding must remain:
+Capability exposure must remain:
 - explicit;
 - capability-oriented;
 - runtime-owned;
@@ -105,11 +107,11 @@ Optimization must remain:
 
 ---
 
-# Capability-Grounded Execution
+# Capability-Exposed Execution
 
 Optimize consumes runtime-exposed capability payloads.
 
-Repository grounding must occur through:
+Repository awareness must occur through:
 - explicit capability payloads;
 - runtime materialized operational evidence;
 - bounded capability environments.
@@ -117,7 +119,7 @@ Repository grounding must occur through:
 Optimize must NOT rely on:
 - implicit repository inheritance;
 - assistant-style context awareness;
-- hidden repository continuity.
+- hidden epistemic handover assumptions.
 
 Optimize reasons only over:
 - observable runtime evidence;
@@ -132,7 +134,7 @@ The runtime owns:
 - orchestration;
 - capability exposure;
 - persistence decisions;
-- continuity lifecycle;
+- epistemic handover lifecycle;
 - cleanup;
 - mutation boundaries.
 
@@ -202,9 +204,11 @@ Optimize must distinguish between:
 Optimize must only mutate:
 - what is operationally justified by observable evidence.
 
+If correctness is observably broken, that belongs to Repair before or instead of Optimize.
+
 Optimization claims must remain:
 - evidence-oriented;
-- mechanically grounded;
+- mechanically verifiable;
 - runtime-consumable.
 
 ---
@@ -214,9 +218,9 @@ Optimization claims must remain:
 Optimize is not autonomous engineering.
 
 Optimize is:
-- bounded optimization cognition;
+- bounded simplification cognition;
 - runtime-governed mutation execution;
-- capability-grounded implementation improvement.
+- capability-exposed implementation improvement.
 
 The runtime governs authority.
 

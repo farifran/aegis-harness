@@ -40,7 +40,7 @@ timeout 20 aider \
 
 # Aegis Harness
 
-Aegis Harness is a bounded, deterministic AI execution runtime designed to separate cognition, orchestration, continuity, persistence, and mutation authority. The system is built around explicit authority boundaries, disposable execution environments, capability-grounded grounding, and protocol-enforced artifacts.
+Aegis Harness is a bounded, deterministic AI execution runtime designed to separate cognition, orchestration, evidence, operational memory, persistence, and mutation authority. The system is built around explicit authority boundaries, disposable execution environments, capability exposure, runtime-exposed evidence, and protocol-enforced artifacts.
 
 ## What Aegis Is
 
@@ -51,8 +51,10 @@ The core goal is to ensure that:
 - the runtime governs execution,
 - modes produce bounded cognition,
 - capabilities define authority,
+- capability payloads remain evidence rather than memory,
+- epistemic handover remains incomplete epistemic attention rather than truth,
 - persistence remains explicit,
-- continuity remains ephemeral,
+- git remains the only persistent memory,
 - execution is mechanically observable.
 
 This architecture intentionally rejects hidden persistence, implicit governance, conversational execution topology, and assistant-style repository inheritance.
@@ -64,9 +66,9 @@ Aegis is organized around a small set of clearly separated responsibilities:
 | Layer | Responsibility |
 |---|---|
 | `AGENTS.md` | Governance constitution and operating principles |
-| `runtime_aegis.sh` | Runtime orchestration, worktree lifecycle, capability lifecycle, cleanup |
-| `scripts/execute_mode.sh` | Protocol virtual machine, capability environment injection, payload grounding |
-| `scripts/substrates/raw_llm.sh` | Readonly cognition substrate for analysis modes |
+| `runtime_aegis.sh` | Runtime orchestration, execution surface lifecycle, capability lifecycle, cleanup |
+| `scripts/execute_mode.sh` | Protocol virtual machine, capability environment injection, evidence payload selection |
+| `scripts/substrates/raw_llm.sh` | Readonly cognition substrate for readonly cognition modes |
 | `scripts/capabilities/*` | Runtime-owned capability handlers |
 | `.harness/config.sh` | Central capability registry and runtime topology |
 | `.skills/*.md` | Mode contracts |
@@ -74,19 +76,19 @@ Aegis is organized around a small set of clearly separated responsibilities:
 
 ## Execution Model
 
-Aegis operates through disposable git worktrees and runtime-owned capability environments.
+Aegis operates through disposable execution surfaces and runtime-owned capability environments.
 
 The runtime:
 
 1. validates topology,
-2. creates an isolated worktree,
+2. creates an isolated execution surface,
 3. materializes capability environments,
 4. executes capability handlers,
 5. materializes capability payloads,
-6. injects runtime-owned grounding evidence,
+6. injects runtime-owned capability payload evidence,
 7. executes the selected mode substrate,
 8. validates the resulting artifact,
-9. promotes or discards ephemeral continuity,
+9. updates epistemic handover guidance when unresolved attention must persist,
 10. cleans up transient state.
 
 The execution model is intentionally deterministic and protocol-oriented.
@@ -103,15 +105,17 @@ Examples include:
 - `git.status`
 - `git.diff`
 - `topology.read_graph`
-- `runtime.read_active_task`
+- `runtime.read_epistemic_handover`
 
 Capabilities are exposed through executable handler scripts under `scripts/capabilities/`, and the runtime materializes them into `.harness/runtime/capability_env/` during execution.
+
+Operational memory uses exactly three surfaces: capability payloads as runtime-owned evidence, `.harness/runtime/epistemic_handover.json` as incomplete epistemic attention, and git as persistent memory.
 
 ## Modes
 
 Aegis currently defines the following modes:
 
-### Analysis modes
+### Readonly cognition modes
 - `discovery`
 - `forensics`
 - `validation`
@@ -131,8 +135,8 @@ Aegis is built around the following principles:
 
 - **Runtime sovereignty** â the runtime owns orchestration and lifecycle.
 - **Capability-based authority** â modes consume capabilities; they do not self-authorize.
-- **Explicit grounding** â repository awareness is runtime-exposed, not implicit.
-- **Disposable execution** â worktrees and runtime state are ephemeral.
+- **Capability exposure** â repository awareness comes through runtime-exposed evidence, not implicit inheritance.
+- **Operational memory discipline** â only capability payloads, epistemic handover, and git exist as operational surfaces.
 - **Protocol enforcement** â outputs are validated mechanically.
 - **KISS** â minimize complexity, avoid framework drift, and preserve operational clarity.
 
@@ -172,7 +176,7 @@ bash runtime_aegis.sh
 Run a specific mode directly:
 
 ```bash
-bash scripts/execute_mode.sh   ".skills/discovery.md"   "discovery"   ".harness/runtime/active_task.md"
+bash scripts/execute_mode.sh   ".skills/discovery.md"   "discovery"   ".harness/runtime/epistemic_handover.json"
 ```
 
 Execute a capability handler directly:
@@ -231,20 +235,20 @@ The architecture is currently optimized for:
 
 - deterministic execution,
 - explicit authority,
-- runtime-owned grounding,
+- runtime-exposed evidence,
 - bounded cognition,
-- disposable runtime state.
+- execution-scoped evidence surfaces.
 
 ## Current Status
 
-Aegis is now operating as a capability-grounded runtime with:
+Aegis is now operating as a capability-exposed runtime with:
 
 - runtime sovereignty,
 - explicit capability environments,
-- payload-based grounding,
+- capability payload evidence,
 - protocol-enforced execution,
-- disposable worktrees,
-- bounded readonly cognition for analysis modes,
+- disposable execution surfaces,
+- bounded readonly cognition for readonly cognition modes,
 - bounded mutation surfaces for mutation modes.
 
 The remaining work should focus on operational hardening rather than architectural expansion.

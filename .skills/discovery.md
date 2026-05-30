@@ -6,7 +6,11 @@ Discovery is a bounded observation topology.
 
 Its purpose is to transform runtime-exposed evidence into explicit observations.
 
-Discovery is not an analysis mode.
+Its responsibility ends at explicit observation.
+
+Discovery never performs interpretation, conclusion, or causal attribution.
+
+Discovery is not an interpretation mode.
 
 Discovery is not a validation mode.
 
@@ -22,7 +26,7 @@ Discovery does not infer causality.
 
 Discovery does not infer correctness.
 
-Discovery only reports what is directly observable from the capability-grounded evidence surface.
+Discovery only reports what is directly observable from the runtime-exposed evidence surface.
 
 ⸻
 
@@ -45,6 +49,8 @@ Discovery does not answer:
 * Is it a problem?
 * Is it intended?
 * What should be changed?
+* How should the result be challenged?
+* What is the final verdict?
 
 Those questions belong to other cognition topologies.
 
@@ -63,11 +69,11 @@ Discovery consumes readonly runtime-exposed capability payloads only.
 
 ⸻
 
-Grounding Model
+Evidence Model
 
 Discovery must reason only over:
 
-* runtime-selected capability payloads
+* runtime-exposed capability payloads
 * capability manifest metadata
 * directly observable evidence
 
@@ -208,7 +214,7 @@ Absence of evidence must not be converted into conclusions.
 
 Operational Identity
 
-Discovery is capability-grounded bounded observation.
+Discovery is readonly cognition bounded observation over runtime-exposed evidence.
 
 It is the observation layer of the Aegis cognition stack.
 
@@ -216,6 +222,10 @@ Its responsibility ends at explicit observation.
 
 Interpretation belongs to Forensics.
 
-Verification belongs to Validation.
+Correction belongs to Repair.
 
-Mutation belongs to Repair and Optimize.
+Simplification belongs to Optimize.
+
+Challenge belongs to Adversarial.
+
+Final verdict belongs to Validation.

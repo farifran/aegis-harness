@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This repository implements Aegis Harness: a runtime-sovereign, capability-grounded architecture for bounded cognition and controlled mutation.
+This repository implements Aegis Harness: a runtime-sovereign, capability-exposed architecture for bounded cognition and controlled mutation.
 
 The purpose of this constitution is to define:
 
@@ -11,7 +11,7 @@ The purpose of this constitution is to define:
 - runtime boundaries
 - mutation boundaries
 - memory boundaries
-- continuity boundaries
+- operational memory boundaries
 
 Aegis is not a conventional assistant framework.
 
@@ -23,7 +23,7 @@ Aegis is a control system for cognition, evidence, and mutation.
 
 ### 1. Runtime Sovereignty
 
-The runtime owns orchestration, lifecycle, capability exposure, cleanup, and continuity promotion.
+The runtime owns orchestration, lifecycle, capability exposure, cleanup, artifact promotion, epistemic handover lifecycle, and persistence decisions.
 
 The model does not own authority.
 
@@ -33,11 +33,11 @@ The model does not own mutation boundaries.
 
 The model consumes what the runtime exposes.
 
-### 2. Capability Grounding
+### 2. Capability Exposure
 
 Repository awareness must be explicit.
 
-The model may only reason over runtime-exposed capabilities, manifests, payloads, and promoted artifacts.
+The model may only reason over runtime-exposed capabilities, runtime-exposed evidence, manifests, and capability payloads.
 
 Implicit repository inheritance is not allowed.
 
@@ -45,17 +45,19 @@ Implicit repository inheritance is not allowed.
 
 Cognition is disposable.
 
-Mode execution may produce reasoning, but reasoning itself is not persistent state.
+Mode execution may produce reasoning, but reasoning itself is not evidence, not epistemic handover, and not memory.
 
-Only runtime-promoted artifacts may survive across modes.
+No hidden cognition survives across modes.
 
-### 4. Explicit Continuity
+### 4. Operational Memory Discipline
 
-Continuity is runtime-owned and artifact-mediated.
+Aegis uses exactly three operational surfaces for evidence and memory.
 
-No mode may carry hidden cognition into the next mode.
+- Capability payloads are runtime-owned evidence, not memory.
+- Epistemic handover is incomplete epistemic attention, not truth, not evidence, not interpretation, and not memory.
+- Git is persistent memory.
 
-What survives is what the runtime promotes.
+No other intermediate continuity or operational memory surface exists.
 
 ### 5. Bounded Mutation
 
@@ -180,9 +182,33 @@ Validation answers whether the end state is acceptable within the expected const
 
 ---
 
+## Foundational Definitions
+
+Discovery is an observation topology.
+
+Forensics is an interpretation topology.
+
+Repair is a correction topology.
+
+Optimize is a simplification topology.
+
+Adversarial is a falsification topology.
+
+Validation is a verdict topology.
+
+An artifact is a promoted fact.
+
+Epistemic handover is a promoted incomplete observation.
+
+A capability payload is runtime-owned evidence.
+
+Git is persistence.
+
+---
+
 ## Evidence and Memory Model
 
-Aegis separates three distinct continuity surfaces.
+Aegis uses exactly three operational surfaces for evidence and memory.
 
 ### 1. Capability Payloads
 
@@ -210,7 +236,14 @@ Epistemic handover must not contain:
 - severity judgments
 - hidden reasoning chains
 
-Epistemic handover is guidance for further investigation, not truth.
+Epistemic handover is incomplete epistemic attention.
+
+It is a promoted incomplete observation.
+
+It is not truth.
+It is not evidence.
+It is not interpretation.
+It is not memory.
 
 ### 3. Git
 
@@ -226,11 +259,11 @@ Git is the repository's long-term memory.
 
 If the system needs to preserve unresolved attention between modes, it must do so explicitly through an epistemic handover artifact, not through hidden cognitive state.
 
-Artifacts transport facts.
+Capability payloads transport runtime-owned evidence.
 
-Epistemic handovers transport incomplete observations.
+Epistemic handovers transport incomplete epistemic attention only.
 
-Artifacts may be consumed as evidence.
+Git transports accepted persistent state.
 
 Epistemic handovers may only be consumed as investigation guidance.
 
@@ -240,17 +273,17 @@ Epistemic handovers never constitute evidence, truth, findings, conclusions, val
 
 ## Memory Discipline
 
-The system must not use hidden model memory as a continuity layer.
+The system must not use hidden model memory as an operational memory surface.
 
-Allowed continuity surfaces:
+Allowed operational memory surfaces:
 
 - capability payloads
 - epistemic handover artifacts
-- promoted artifacts
 - git
 
-Disallowed continuity surfaces:
+Disallowed operational memory surfaces:
 
+- intermediate operational memory surfaces
 - implicit reasoning carryover
 - hidden prompt residue
 - unbounded conversational memory
@@ -265,13 +298,14 @@ The runtime owns:
 - capability environment materialization
 - capability payload materialization
 - manifest generation
+- artifact promotion
 - mode routing
 - task framing
 - cleanup
-- continuity promotion
+- epistemic handover lifecycle
 - execution isolation
 
-The runtime must decide what survives.
+The runtime must not introduce any fourth memory surface.
 
 The runtime must not allow the model to silently inherit authority.
 
@@ -281,7 +315,7 @@ The runtime must not allow the model to silently inherit authority.
 
 The execution surface is disposable.
 
-Every execution should run in a bounded and transient surface, such as a worktree.
+Every execution should run in a bounded and transient execution surface.
 
 The runtime may create, isolate, and destroy execution surfaces as needed.
 
@@ -302,7 +336,7 @@ Capabilities must not be ambiguous.
 
 Capabilities must not imply broader authority than declared.
 
-Readonly capabilities must remain readonly.
+Readonly capability surfaces must remain readonly.
 
 Mutation capabilities must remain bounded.
 
@@ -319,13 +353,13 @@ The project should prefer the following vocabulary:
 - bounded mutation
 - execution surface
 - epistemic handover
-- promoted artifact
+- persistent git memory
 - runtime sovereignty
-- explicit continuity
+- operational memory discipline
 
 The project should phase out or constrain legacy phrasing that suggests implicit assistant-style context inheritance.
 
-In particular, terms like "grounding" should be used carefully and only where they still reflect the operational reality of capability exposure.
+Preferred terminology should center capability exposure, runtime-exposed evidence, and capability payloads.
 
 ---
 
@@ -352,11 +386,12 @@ If a lower layer conflicts with this constitution, the constitution wins.
 ### Proven
 
 - runtime sovereignty
-- capability grounding
-- artifact promotion
+- capability exposure
+- runtime-exposed evidence
+- capability payload evidence
 - disposable cognition
 - bounded mutation
-- explicit continuity
+- epistemic handover guidance-only semantics
 
 ### Intended
 
@@ -374,9 +409,10 @@ If a lower layer conflicts with this constitution, the constitution wins.
 
 ## Non-Negotiable Constraints
 
-- No hidden continuity.
+- No hidden operational memory surface.
 - No implicit repository inheritance.
 - No model-owned persistence.
+- No intermediate operational memory surface beyond capability payloads, epistemic handover, and git.
 - No mutation outside authorized surfaces.
 - No interpretation masquerading as observation.
 - No validation masquerading as discovery.
@@ -386,17 +422,19 @@ If a lower layer conflicts with this constitution, the constitution wins.
 
 ## Summary
 
-Aegis is a runtime-sovereign, capability-grounded architecture for bounded cognition.
+Aegis is a runtime-sovereign, capability-exposed architecture for bounded cognition.
 
-Its central idea is that the runtime owns authority and continuity, while the model consumes only explicit capability surfaces and produces explicit artifacts.
+Its central idea is that the runtime owns authority, artifact promotion, and operational memory boundaries, while the model consumes only capability payload evidence and epistemic handover guidance.
+
+Git is the only persistent memory.
 
 Discovery observes.
 Forensics interprets.
-Repair mutates.
+Repair corrects.
 Optimize simplifies.
 Adversarial challenges.
 Validation judges.
 
-The runtime preserves only what must survive.
+The runtime does not invent intermediate memory.
 
 Everything else is disposable.

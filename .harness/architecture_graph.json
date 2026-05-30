@@ -9,37 +9,53 @@
     "name": "Aegis Harness",
     "architecture_type": "bounded_capability_runtime",
     "execution_model": "protocol_oriented",
-    "grounding_model": "runtime_exposed_capabilities",
-    "continuity_model": "ephemeral_runtime_state",
+    "capability_exposure_model": "runtime_exposed_evidence",
+    "operational_memory_model": "three_surface_operational_memory",
     "persistence_model": "explicit_git_persistence",
     "authority_model": "runtime_sovereignty"
+  },
+  "foundational_definitions": {
+    "discovery": "observation_topology",
+    "forensics": "interpretation_topology",
+    "repair": "correction_topology",
+    "optimize": "simplification_topology",
+    "adversarial": "falsification_topology",
+    "validation": "verdict_topology",
+    "artifact": "runtime_promoted_fact",
+    "epistemic_handover": "runtime_promoted_incomplete_observation",
+    "capability_payload": "runtime_owned_evidence",
+    "git": "persistence"
   },
   "constitutional_principles": [
     "runtime_governs_execution",
     "capabilities_bound_authority",
-    "grounding_is_explicit",
-    "continuity_is_ephemeral",
+    "capability_exposure_is_explicit",
+    "operational_memory_has_three_surfaces",
+    "capability_payloads_are_evidence_not_memory",
+    "artifacts_are_promoted_facts",
     "persistence_is_explicit",
     "execution_is_protocol_oriented",
     "topology_is_observable",
     "cognition_is_bounded",
     "repository_awareness_is_capability_bounded",
-    "epistemic_handover_is_explicit"
+    "epistemic_handover_is_explicit",
+    "git_is_persistent_memory"
   ],
   "runtime": {
     "authority": "sovereign",
     "classification": "runtime_owned",
     "responsibilities": [
-      "worktree_lifecycle",
+      "execution_surface_lifecycle",
       "capability_environment_lifecycle",
       "capability_payload_materialization",
       "execution_orchestration",
       "execution_routing",
       "protocol_enforcement",
+      "artifact_promotion",
       "artifact_validation",
       "epistemic_handover_materialization",
-      "epistemic_handover_promotion",
-      "continuity_promotion",
+      "epistemic_handover_validation",
+      "epistemic_handover_update",
       "cleanup",
       "capability_routing",
       "persistence_decisions"
@@ -67,29 +83,29 @@
       "mode_identity_validation"
     ],
     "forbidden": [
-      "continuity_ownership",
+      "epistemic_handover_ownership",
       "persistence_ownership",
       "semantic_inference",
-      "implicit_repository_grounding",
+      "implicit_repository_exposure",
       "runtime_authority_override"
     ]
   },
-  "grounding": {
-    "model": "capability_grounded_execution",
-    "classification": "runtime_materialized_operational_evidence",
+  "evidence_exposure": {
+    "model": "runtime_exposed_evidence",
+    "classification": "runtime_materialized_capability_payloads",
     "principles": [
       "repository_access_is_explicit",
-      "grounding_is_runtime_exposed",
-      "capability_payloads_are_authoritative",
+      "runtime_exposed_evidence_is_runtime_owned",
+      "capability_payloads_are_runtime_owned_evidence",
+      "capability_payloads_are_not_memory",
       "repository_awareness_is_not_implicit",
-      "grounding_is_observable",
-      "grounding_is_mechanically_materialized",
-      "epistemic_handover_is_incomplete_attention"
+      "runtime_exposed_evidence_is_observable",
+      "runtime_exposed_evidence_is_mechanically_materialized"
     ],
     "forbidden": [
       "assistant_style_repository_inheritance",
       "hidden_repository_visibility",
-      "prompt_only_grounding",
+      "prompt_only_context_inference",
       "unrestricted_context_inheritance",
       "hidden_operational_memory"
     ]
@@ -98,7 +114,7 @@
     "model": "runtime_owned_capability_surfaces",
     "capability_root": "scripts/capabilities",
     "classification": {
-      "readonly": "analysis_surface",
+      "readonly": "readonly_cognition_surface",
       "bounded_mutation": "mutation_surface"
     },
     "capability_classes": {
@@ -130,41 +146,44 @@
       "filesystem.write",
       "patch.apply",
       "dependency.install",
-      "topology.validate",
-      "artifact.promote"
+      "topology.validate"
     ]
   },
   "mode_topology": {
-    "analysis_modes": {
+    "readonly_cognition_modes": {
       "classification": "readonly_cognition",
       "modes": {
         "discovery": {
+          "topology": "observation",
           "authority": "readonly",
           "execution_engine": "raw",
           "mutation_authority": false,
-          "continuity_ownership": false,
-          "grounding_model": "capability_payloads"
+          "epistemic_handover_ownership": false,
+          "evidence_model": "capability_payloads"
         },
         "forensics": {
+          "topology": "interpretation",
           "authority": "readonly",
           "execution_engine": "raw",
           "mutation_authority": false,
-          "continuity_ownership": false,
-          "grounding_model": "capability_payloads"
+          "epistemic_handover_ownership": false,
+          "evidence_model": "capability_payloads"
         },
         "validation": {
+          "topology": "verdict",
           "authority": "readonly",
           "execution_engine": "raw",
           "mutation_authority": false,
-          "continuity_ownership": false,
-          "grounding_model": "capability_payloads"
+          "epistemic_handover_ownership": false,
+          "evidence_model": "capability_payloads"
         },
         "adversarial": {
+          "topology": "falsification",
           "authority": "readonly",
           "execution_engine": "raw",
           "mutation_authority": false,
-          "continuity_ownership": false,
-          "grounding_model": "capability_payloads"
+          "epistemic_handover_ownership": false,
+          "evidence_model": "capability_payloads"
         }
       }
     },
@@ -172,25 +191,27 @@
       "classification": "bounded_mutation_cognition",
       "modes": {
         "repair": {
+          "topology": "correction",
           "authority": "bounded_mutation",
           "execution_engine": "aider",
           "mutation_authority": true,
-          "continuity_ownership": false,
-          "grounding_model": "capability_payloads"
+          "epistemic_handover_ownership": false,
+          "evidence_model": "capability_payloads"
         },
         "optimize": {
+          "topology": "simplification",
           "authority": "bounded_mutation",
           "execution_engine": "aider",
           "mutation_authority": true,
-          "continuity_ownership": false,
-          "grounding_model": "capability_payloads"
+          "epistemic_handover_ownership": false,
+          "evidence_model": "capability_payloads"
         }
       }
     }
   },
   "execution_substrates": {
     "raw": {
-      "classification": "bounded_readonly_cognition",
+      "classification": "readonly_cognition_substrate",
       "used_by": [
         "discovery",
         "forensics",
@@ -202,7 +223,7 @@
         "provider_bounded",
         "deterministic_protocol",
         "readonly_cognition",
-        "runtime_grounded"
+        "runtime_governed"
       ]
     },
     "aider": {
@@ -219,64 +240,82 @@
       ]
     }
   },
-  "continuity_model": {
-    "classification": "runtime_owned_ephemeral_state",
-    "runtime_state_files": [
-      ".harness/runtime/epistemic_handover.json",
-      ".harness/runtime/last_good_epistemic_handover.json"
-    ],
+  "artifact_model": {
+    "classification": "runtime_promoted_fact",
+    "properties": [
+      "runtime_validated",
+      "protocol_framed",
+      "execution_scoped",
+      "not_operational_memory"
+    ]
+  },
+  "operational_memory_model": {
+    "classification": "three_surface_memory_boundary",
     "principles": [
-      "continuity_is_explicit",
-      "continuity_is_runtime_owned",
-      "continuity_is_disposable",
-      "git_is_durable_persistence"
+      "capability_payloads_are_runtime_owned_evidence",
+      "capability_payloads_are_not_memory",
+      "epistemic_handover_is_incomplete_attention",
+      "epistemic_handover_is_not_truth",
+      "epistemic_handover_is_not_evidence",
+      "epistemic_handover_is_not_interpretation",
+      "git_is_persistent_memory",
+      "no_intermediate_operational_memory_surface"
     ],
+    "surfaces": {
+      "capability_payloads": {
+        "classification": "runtime_owned_evidence_surface",
+        "location": ".harness/runtime/capability_payloads",
+        "properties": [
+          "runtime_owned",
+          "execution_scoped",
+          "evidence_only",
+          "not_memory"
+        ]
+      },
+      "epistemic_handover": {
+        "classification": "runtime_promoted_incomplete_observation",
+        "files": [
+          ".harness/runtime/epistemic_handover.json",
+          ".harness/runtime/last_good_epistemic_handover.json"
+        ],
+        "purpose": [
+          "observations_incomplete",
+          "areas_not_inspected",
+          "evidence_insufficient",
+          "limitations_observed"
+        ],
+        "properties": [
+          "promoted_incomplete_observation",
+          "guidance_only",
+          "not_truth",
+          "not_evidence",
+          "not_interpretation",
+          "not_memory"
+        ],
+        "consumers": [
+          "forensics",
+          "repair",
+          "optimize",
+          "adversarial",
+          "validation"
+        ]
+      },
+      "git": {
+        "classification": "persistent_memory_surface",
+        "location": ".git",
+        "properties": [
+          "persistent",
+          "accepted_change_history",
+          "long_term_memory"
+        ]
+      }
+    },
     "forbidden": [
       "assistant_memory",
       "hidden_persistence",
       "implicit_state_inheritance",
-      "cross_execution_memory"
-    ]
-  },
-  "epistemic_handover_model": {
-    "classification": "runtime_owned_epistemic_attention",
-    "handover_file": ".harness/runtime/epistemic_handover.json",
-    "last_good_handover_file": ".harness/runtime/last_good_epistemic_handover.json",
-    "purpose": [
-      "observations_incomplete",
-      "areas_not_inspected",
-      "evidence_insufficient",
-      "limitations_observed"
-    ],
-    "principles": [
-      "handover_is_explicit",
-      "handover_is_runtime_owned",
-      "handover_is_ephemeral",
-      "handover_is_guidance_not_truth",
-      "handover_is_not_memory"
-    ],
-    "allowed_content": [
-      "incomplete_observations",
-      "uninspected_areas",
-      "insufficient_evidence",
-      "observed_limitations"
-    ],
-    "forbidden_content": [
-      "hypotheses",
-      "conclusions",
-      "causal_claims",
-      "recommendations",
-      "interpretations",
-      "redesign",
-      "severity_judgments",
-      "hidden_reasoning_chains"
-    ],
-    "consumers": [
-      "forensics",
-      "repair",
-      "optimize",
-      "adversarial",
-      "validation"
+      "cross_execution_memory",
+      "intermediate_operational_memory_surface"
     ]
   },
   "protocol_model": {
@@ -297,7 +336,7 @@
     ]
   },
   "containment_model": {
-    "execution_boundary": "disposable_worktree",
+    "execution_boundary": "disposable_execution_surface",
     "principles": [
       "capability_bound_authority",
       "runtime_owned_cleanup",
@@ -329,7 +368,7 @@
       ".harness/runtime/last_good_epistemic_handover.json",
       ".harness/runtime/capability_env",
       ".harness/runtime/capability_payloads",
-      ".harness/worktrees"
+      ".harness/execution_surfaces"
     ]
   },
   "governance": {
@@ -362,8 +401,9 @@
     "proven": [
       "runtime_external_to_execution_surface",
       "capability_environment_materialization",
-      "capability_payload_grounding",
-      "readonly_analysis_topology",
+      "capability_payload_evidence_materialization",
+      "artifact_promotion",
+      "readonly_cognition_topology",
       "protocol_oriented_execution"
     ],
     "intended": [
@@ -384,10 +424,13 @@
       "prompt_oriented_execution",
       "implicit_context_topology",
       "hidden_continuity",
-      "active_task_as_cognitive_memory"
+      "task_shaped_hidden_continuity"
     ],
     "moving_toward": [
-      "runtime_exposed_capability_grounding",
+      "capability_exposure",
+      "runtime_exposed_evidence",
+      "capability_payloads",
+      "three_surface_operational_memory",
       "capability_oriented_execution",
       "bounded_execution_surfaces",
       "runtime_governed_cognition",
@@ -398,8 +441,9 @@
   "constitutional_invariants": [
     "runtime_remains_sovereign",
     "authority_remains_explicit",
-    "grounding_remains_capability_bounded",
-    "continuity_remains_ephemeral",
+    "capability_exposure_remains_bounded",
+    "operational_memory_remains_three_surface",
+    "artifacts_remain_promoted_facts",
     "persistence_remains_explicit",
     "execution_remains_protocol_oriented",
     "capabilities_remain_bounded",

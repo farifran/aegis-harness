@@ -86,8 +86,8 @@ build_prune_expression() {
       .git)
         expr+=( -path "*/.git" )
         ;;
-      .harness/worktrees)
-        expr+=( -path "*/.harness/worktrees" )
+      .harness/execution_surfaces)
+        expr+=( -path "*/.harness/execution_surfaces" )
         ;;
       .harness/runtime)
         expr+=( -path "*/.harness/runtime" )
