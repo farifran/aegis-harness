@@ -18,6 +18,9 @@
 #
 # - exposes only runtime-owned epistemic handover state;
 # - avoids implicit repository inheritance;
+# - remains runtime-bound to materialized runtime context;
+# - does not discover context or hardcode fallback paths;
+# - fails explicitly when runtime context is not initialized;
 # - propagates execution identity;
 # - enforces handover-size budgets.
 #
@@ -30,6 +33,7 @@ set -Eeuo pipefail
 # =========================================================
 
 readonly EPISTEMIC_HANDOVER_FILE="${1:-${AEGIS_EPISTEMIC_HANDOVER_FILE:-}}"
+readonly REQUIRED_RUNTIME_CONTEXT='["AEGIS_EPISTEMIC_HANDOVER_FILE"]'
 
 # =========================================================
 # LIMITS
@@ -54,6 +58,7 @@ readonly GENERATED_AT="$(
 fail() {
   local error_type="$1"
   local target="${2:-${EPISTEMIC_HANDOVER_FILE:-}}"
+  local required_context_json="${3:-[]}"
 
   jq -n \
     --arg capability "runtime.read_epistemic_handover" \
@@ -62,6 +67,7 @@ fail() {
     --arg generated_at "${GENERATED_AT}" \
     --arg error_type "${error_type}" \
     --arg target "${target}" \
+    --argjson required_context "${required_context_json}" \
     '{
       success: false,
       capability: $capability,
@@ -69,10 +75,11 @@ fail() {
       execution_id: $execution_id,
       generated_at: $generated_at,
       payload: null,
-      error: {
-        type: $error_type,
-        target: $target
-      }
+      error: (
+        { type: $error_type }
+        + (if $target != "" then { target: $target } else {} end)
+        + (if ($required_context | length) > 0 then { required: $required_context } else {} end)
+      )
     }'
 }
 
@@ -101,7 +108,7 @@ validate_epistemic_handover_schema() {
 }
 
 if [[ -z "${EPISTEMIC_HANDOVER_FILE}" ]]; then
-  fail "missing_epistemic_handover_file"
+  fail "runtime_context_not_initialized" "" "${REQUIRED_RUNTIME_CONTEXT}"
   exit 1
 fi
 

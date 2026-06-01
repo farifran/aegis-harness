@@ -77,6 +77,8 @@ Discovery must reason only over:
 * capability manifest metadata
 * directly observable evidence
 
+Discovery should inventory the observable runtime surface that was actually exposed, including filesystem evidence, runtime-bound profile evidence, runtime-bound handover guidance, and manifest-exposed capability entries when present in the payload set.
+
 Discovery must not assume:
 
 * repository knowledge
@@ -101,8 +103,7 @@ Allowed observations:
 * observed directories
 * observed capability names
 * observed payload names
-* observed graph nodes
-* observed graph edges
+* observed manifest capability entries
 * observed execution metadata
 * observed protocol fields
 * observed configuration fields
@@ -172,19 +173,28 @@ Discovery should produce a compact inventory of observable evidence.
 The ideal Discovery output resembles:
 
 {
-“mode”: “discovery”,
-“observed_payloads”: [
-“topology.read_graph”
+"mode": "discovery",
+"observed_payloads": [
+"filesystem.list_tree",
+"filesystem.search_symbol",
+"runtime.read_target_system_profile",
+"runtime.read_epistemic_handover"
 ],
-“observed_entities”: [
-“runtime”,
-“execution_surface”,
-“capability_environment”
+"observed_files": [
+"runtime_aegis.sh",
+"scripts/execute_mode.sh",
+"target_system_profile.yml",
+".harness/runtime/epistemic_handover.json"
 ],
-“observed_fields”: [
-“authority_model”,
-“execution_engine”,
-“capability_root”
+"observed_entities": [
+"target_system_profile",
+"epistemic_handover"
+],
+"observed_capabilities": [
+"filesystem.list_tree",
+"filesystem.search_symbol",
+"runtime.read_target_system_profile",
+"runtime.read_epistemic_handover"
 ]
 }
 

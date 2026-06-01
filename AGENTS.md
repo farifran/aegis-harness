@@ -4,14 +4,7 @@
 
 This repository implements Aegis Harness: a runtime-sovereign, capability-exposed architecture for bounded cognition and controlled mutation.
 
-The purpose of this constitution is to define:
-
-- authority boundaries
-- epistemic boundaries
-- runtime boundaries
-- mutation boundaries
-- memory boundaries
-- operational memory boundaries
+The constitution defines the system’s authority boundaries, epistemic boundaries, runtime boundaries, mutation boundaries, memory boundaries, and continuity boundaries.
 
 Aegis is not a conventional assistant framework.
 
@@ -19,11 +12,11 @@ Aegis is a control system for cognition, evidence, and mutation.
 
 ---
 
-## Constitutional Principles
+## Core Constitutional Principles
 
-### 1. Runtime Sovereignty
+### Runtime Sovereignty
 
-The runtime owns orchestration, lifecycle, capability exposure, cleanup, artifact promotion, epistemic handover lifecycle, and persistence decisions.
+The runtime owns orchestration, lifecycle, capability exposure, cleanup, artifact promotion, epistemic handover lifecycle, target-system profile materialization, and persistence decisions.
 
 The model does not own authority.
 
@@ -33,15 +26,15 @@ The model does not own mutation boundaries.
 
 The model consumes what the runtime exposes.
 
-### 2. Capability Exposure
+### Capability Exposure
 
 Repository awareness must be explicit.
 
-The model may only reason over runtime-exposed capabilities, runtime-exposed evidence, manifests, and capability payloads.
+The model may only reason over runtime-exposed capabilities, runtime-exposed evidence, manifests, capability payloads, epistemic handovers, and target-system profiles when explicitly exposed by the runtime.
 
 Implicit repository inheritance is not allowed.
 
-### 3. Disposable Cognition
+### Disposable Cognition
 
 Cognition is disposable.
 
@@ -49,9 +42,9 @@ Mode execution may produce reasoning, but reasoning itself is not evidence, not 
 
 No hidden cognition survives across modes.
 
-### 4. Operational Memory Discipline
+### Operational Memory Discipline
 
-Aegis uses exactly three operational surfaces for evidence and memory.
+Aegis uses exactly three operational surfaces for evidence and continuity:
 
 - Capability payloads are runtime-owned evidence, not memory.
 - Epistemic handover is incomplete epistemic attention, not truth, not evidence, not interpretation, and not memory.
@@ -59,13 +52,13 @@ Aegis uses exactly three operational surfaces for evidence and memory.
 
 No other intermediate continuity or operational memory surface exists.
 
-### 5. Bounded Mutation
+### Bounded Mutation
 
 Mutation must remain bounded to explicit authorized surfaces.
 
 Mutation modes may transform the repository, but only within runtime-defined scope and capability boundaries.
 
-### 6. Epistemic Separation
+### Epistemic Separation
 
 The system must separate:
 
@@ -81,16 +74,15 @@ Not all responsibilities belong to the same mode.
 
 ## Architectural Model
 
-Aegis is organized around a layered runtime topology:
+Aegis is organized around a layered runtime topology.
 
 ### Layer 1 — Constitutional Foundation
 
-Layer 1 defines the system's fixed rules, capability topology, and governance boundaries.
+Layer 1 defines the system’s fixed rules, constitutional semantics, and governance boundaries.
 
 Primary Layer 1 artifacts:
 
 - `AGENTS.md`
-- `.harness/architecture_graph.json`
 
 Layer 1 should remain stable unless the constitutional model changes.
 
@@ -100,6 +92,7 @@ Layer 2 implements the runtime mechanics that enforce Layer 1.
 
 Primary Layer 2 artifacts:
 
+- `.harness/config.sh`
 - `runtime_aegis.sh`
 - `scripts/execute_mode.sh`
 - `scripts/substrates/raw_llm.sh`
@@ -114,7 +107,7 @@ Layer 3 should only be introduced after Layer 1 and Layer 2 are fully consolidat
 
 ---
 
-## Mode Topologies
+## Mode Semantics
 
 ### Discovery
 
@@ -184,31 +177,23 @@ Validation answers whether the end state is acceptable within the expected const
 
 ## Foundational Definitions
 
-Discovery is an observation topology.
-
-Forensics is an interpretation topology.
-
-Repair is a correction topology.
-
-Optimize is a simplification topology.
-
-Adversarial is a falsification topology.
-
-Validation is a verdict topology.
-
-An artifact is a promoted fact.
-
-Epistemic handover is a promoted incomplete observation.
-
-A capability payload is runtime-owned evidence.
-
-Git is persistence.
+- Discovery is an observation topology.
+- Forensics is an interpretation topology.
+- Repair is a correction topology.
+- Optimize is a simplification topology.
+- Adversarial is a falsification topology.
+- Validation is a verdict topology.
+- An artifact is a promoted fact.
+- An epistemic handover is a promoted incomplete observation.
+- A capability payload is runtime-owned evidence.
+- Git is persistence.
+- `target_system_profile.yml` is a runtime-exposed target-system specification.
 
 ---
 
 ## Evidence and Memory Model
 
-Aegis uses exactly three operational surfaces for evidence and memory.
+Aegis uses exactly three operational surfaces for evidence and continuity.
 
 ### 1. Capability Payloads
 
@@ -251,7 +236,7 @@ Git is persistent memory.
 
 Git preserves accepted structural changes, code evolution, and official documentation.
 
-Git is the repository's long-term memory.
+Git is the repository’s long-term memory.
 
 ---
 
@@ -271,23 +256,23 @@ Epistemic handovers never constitute evidence, truth, findings, conclusions, val
 
 ---
 
-## Memory Discipline
+## Target System Profile
 
-The system must not use hidden model memory as an operational memory surface.
+`target_system_profile.yml` defines explicit characteristics, constraints, and preferences of the target system.
 
-Allowed operational memory surfaces:
+It is a data artifact, not a constitutional surface.
 
-- capability payloads
-- epistemic handover artifacts
-- git
+Its semantics are defined by this constitution and must not be duplicated inside the profile itself.
 
-Disallowed operational memory surfaces:
+The profile may only inform target-system decisions when exposed through an explicit runtime capability payload.
 
-- intermediate operational memory surfaces
-- implicit reasoning carryover
-- hidden prompt residue
-- unbounded conversational memory
-- mode-internal private context treated as system state
+If the file is absent, or if its declared sections are absent or empty, no additional target-system characteristics are assumed.
+
+Only explicitly declared characteristics, constraints, and preferences may inform target-system decisions.
+
+Absence of a characteristic, constraint, or preference must not be interpreted as the opposite characteristic, constraint, or preference.
+
+`target_system_profile.yml` must not embed governance, runtime philosophy, constitutional semantics, or artifact self-description.
 
 ---
 
@@ -303,6 +288,7 @@ The runtime owns:
 - task framing
 - cleanup
 - epistemic handover lifecycle
+- target-system profile materialization
 - execution isolation
 
 The runtime must not introduce any fourth memory surface.
@@ -340,6 +326,25 @@ Readonly capability surfaces must remain readonly.
 
 Mutation capabilities must remain bounded.
 
+### Runtime-Bound Capability Contract
+
+Some capabilities are runtime-bound.
+
+Runtime-bound capabilities consume runtime-materialized context rather than discovering inputs on their own.
+
+Current runtime-bound capabilities are:
+
+- `runtime.read_target_system_profile`, which requires `AEGIS_TARGET_SYSTEM_PROFILE_FILE`
+- `runtime.read_epistemic_handover`, which requires `AEGIS_EPISTEMIC_HANDOVER_FILE`
+
+If required runtime context is absent, a runtime-bound capability must fail explicitly with `runtime_context_not_initialized`.
+
+Runtime-bound capabilities must not:
+
+- hardcode fallback paths
+- autodiscover repository paths
+- duplicate runtime policy
+
 ---
 
 ## Vocabulary Consolidation
@@ -353,6 +358,7 @@ The project should prefer the following vocabulary:
 - bounded mutation
 - execution surface
 - epistemic handover
+- target-system profile
 - persistent git memory
 - runtime sovereignty
 - operational memory discipline
@@ -368,12 +374,11 @@ Preferred terminology should center capability exposure, runtime-exposed evidenc
 Precedence order:
 
 1. constitutional rules in `AGENTS.md`
-2. architectural topology in `.harness/architecture_graph.json`
-3. runtime policy in `config.sh`
-4. capability contracts and manifests
-5. mode skills
-6. transient runtime artifacts
-7. git history
+2. runtime policy in `.harness/config.sh`
+3. capability contracts and manifests
+4. mode skills
+5. transient runtime artifacts
+6. git history
 
 Lower layers must not contradict higher layers.
 
@@ -392,6 +397,7 @@ If a lower layer conflicts with this constitution, the constitution wins.
 - disposable cognition
 - bounded mutation
 - epistemic handover guidance-only semantics
+- target-system profile exposure
 
 ### Intended
 
@@ -417,6 +423,7 @@ If a lower layer conflicts with this constitution, the constitution wins.
 - No interpretation masquerading as observation.
 - No validation masquerading as discovery.
 - No epistemic handover leaking into truth claims.
+- No target-system profile semantics inside the profile file itself.
 
 ---
 

@@ -23,10 +23,10 @@
 #
 # This substrate intentionally:
 #
-- - consumes only runtime-exposed capability payloads;
+# - consumes only runtime-exposed capability payloads;
 # - avoids full payload-directory scanning;
 # - avoids assistant topology;
-- - avoids hidden operational memory surfaces;
+# - avoids hidden operational memory surfaces;
 # - emits only bounded protocol payloads;
 # - treats the model as a JSON payload generator.
 #
@@ -60,9 +60,13 @@ source ".harness/config.sh"
 # =========================================================
 
 readonly MODEL="${1:-}"
-readonly SKILL_FILE="${2:-}"
+readonly SKILL_FILE_INPUT="${2:-}"
 readonly CAPABILITY_MANIFEST="${3:-}"
-readonly CAPABILITY_PAYLOAD_DIR="${4:-}"
+readonly CAPABILITY_PAYLOAD_DIR_INPUT="${4:-}"
+
+SKILL_FILE=""
+CAPABILITY_PAYLOAD_DIR=""
+AEGIS_SUBSTRATE_WORKSPACE=""
 
 # =========================================================
 # LOGGING
@@ -81,6 +85,52 @@ raw_fatal() {
   exit 1
 }
 
+resolve_absolute_input_path() {
+  local input_path="$1"
+
+  if [[ "${input_path}" == /* ]]; then
+    printf '%s' "${input_path}"
+  else
+    printf '%s/%s' "${AEGIS_SUBSTRATE_ROOT}" "${input_path}"
+  fi
+}
+
+normalize_selected_payload_paths() {
+  local normalized_payloads='[]'
+  local payload_path
+  local absolute_payload_path
+
+  for payload_path in "${SELECTED_CAPABILITY_PAYLOAD_PATHS[@]}"; do
+
+    absolute_payload_path="$(
+      resolve_absolute_input_path "${payload_path}"
+    )"
+
+    normalized_payloads="$(
+      printf '%s' "${normalized_payloads}" \
+        | jq --arg payload_path "${absolute_payload_path}" '. + [$payload_path]'
+    )"
+
+  done
+
+  export AEGIS_SELECTED_CAPABILITY_PAYLOADS="${normalized_payloads}"
+
+  mapfile -t SELECTED_CAPABILITY_PAYLOAD_PATHS < <(
+    echo "${AEGIS_SELECTED_CAPABILITY_PAYLOADS}" \
+      | jq -r '.[]'
+  )
+}
+
+prepare_isolated_substrate_workspace() {
+
+  AEGIS_SUBSTRATE_WORKSPACE="$(mktemp -d)"
+
+  [[ -d "${AEGIS_SUBSTRATE_WORKSPACE}" ]] \
+    || raw_fatal "failed_to_prepare_isolated_substrate_workspace"
+
+  cd "${AEGIS_SUBSTRATE_WORKSPACE}"
+}
+
 # =========================================================
 # VALIDATION
 # =========================================================
@@ -89,6 +139,14 @@ validate_raw_substrate_inputs() {
 
   [[ -n "${MODEL}" ]] \
     || raw_fatal "missing_model"
+
+  SKILL_FILE="$(
+    resolve_absolute_input_path "${SKILL_FILE_INPUT}"
+  )"
+
+  CAPABILITY_PAYLOAD_DIR="$(
+    resolve_absolute_input_path "${CAPABILITY_PAYLOAD_DIR_INPUT}"
+  )"
 
   [[ -f "${SKILL_FILE}" ]] \
     || raw_fatal "missing_skill_file"
@@ -164,6 +222,8 @@ validate_raw_substrate_inputs() {
 
   [[ "${#SELECTED_CAPABILITY_PAYLOAD_PATHS[@]}" -gt 0 ]] \
     || raw_fatal "empty_selected_capability_payloads"
+
+  normalize_selected_payload_paths
 }
 
 # =========================================================
@@ -206,6 +266,11 @@ cleanup_raw_substrate() {
     "${TMP_REQUEST_FILE}" \
     "${TMP_RESPONSE_FILE}" \
     >/dev/null 2>&1 || true
+
+  if [[ -n "${AEGIS_SUBSTRATE_WORKSPACE}" ]]; then
+    rm -rf "${AEGIS_SUBSTRATE_WORKSPACE}" \
+      >/dev/null 2>&1 || true
+  fi
 
   set -e
 }
@@ -604,6 +669,7 @@ extract_artifact_payload() {
 main() {
 
   validate_raw_substrate_inputs
+  prepare_isolated_substrate_workspace
   assemble_system_prompt
   assemble_bounded_manifest
   assemble_bounded_capability_context

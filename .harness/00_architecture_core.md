@@ -65,7 +65,7 @@ Aegis intentionally separates:
 | mode_*.md | local cognition semantics |
 | runtime/orchestrator | execution sequencing |
 | enforcement | mechanically enforceable containment |
-| architecture_graph.json | epistemic structural metadata |
+| capability manifests | runtime-materialized structural contracts |
 
 These layers must not silently collapse into each other.
 
@@ -199,19 +199,18 @@ Runtime orchestration does not replace constitutional governance.
 
 ---
 
-# Epistemic Graph Semantics
+# Manifest Semantics
 
-`.harness/architecture_graph.json` provides epistemic structural metadata.
+Runtime-owned capability manifests provide bounded structural contracts.
 
-The graph may inform:
-- dependency legality;
-- mutation proportionality;
-- optimization containment;
-- falsification proportionality;
-- confidence sensitivity;
-- structural criticality.
+The manifest may inform:
+- capability envelope legality;
+- evidence profile composition;
+- execution-engine mapping;
+- handler provenance;
+- selected capability exposure.
 
-The graph informs proportional cognition but does not:
+The manifest informs proportional cognition but does not:
 - define runtime orchestration;
 - replace constitutional governance;
 - control mode cognition.

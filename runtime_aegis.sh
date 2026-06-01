@@ -88,6 +88,8 @@ readonly AEGIS_SKILL_FILE=".skills/${AEGIS_MODE}.md"
 
 export AEGIS_EXECUTION_SURFACE_PATH="${AEGIS_EXECUTION_SURFACE_ROOT}/${AEGIS_MODE}"
 
+AEGIS_EXECUTION_SURFACE_ACTIVE="false"
+
 # =========================================================
 # LOGGING
 # =========================================================
@@ -105,6 +107,12 @@ runtime_fatal() {
   exit 1
 }
 
+mode_requires_execution_surface() {
+  local execution_engine="${AEGIS_EXECUTION_ENGINES[$AEGIS_MODE]:-}"
+
+  [[ "${execution_engine}" == "aider" ]]
+}
+
 # =========================================================
 # CLEANUP
 # =========================================================
@@ -115,7 +123,8 @@ cleanup_runtime() {
 
   runtime_log "Starting runtime-owned cleanup..."
 
-  if [[ "${AEGIS_RUNTIME_REMOVE_EXECUTION_SURFACE}" == "true" ]]; then
+  if [[ "${AEGIS_RUNTIME_REMOVE_EXECUTION_SURFACE}" == "true" ]] \
+    && [[ "${AEGIS_EXECUTION_SURFACE_ACTIVE}" == "true" ]]; then
 
     if [[ -d "${AEGIS_EXECUTION_SURFACE_PATH:-}" ]]; then
       git worktree remove \
@@ -330,7 +339,8 @@ remove_stale_runtime_residue() {
 
   runtime_log "Removing stale execution-surface residue..."
 
-  if [[ "${AEGIS_RUNTIME_REMOVE_EXECUTION_SURFACE}" == "true" ]]; then
+  if [[ "${AEGIS_RUNTIME_REMOVE_EXECUTION_SURFACE}" == "true" ]] \
+    && mode_requires_execution_surface; then
 
     if git worktree list | grep -q "${AEGIS_EXECUTION_SURFACE_PATH}"; then
       git worktree remove \
@@ -360,6 +370,11 @@ remove_stale_runtime_residue() {
 
 prepare_execution_surface() {
 
+  if ! mode_requires_execution_surface; then
+    runtime_log "Skipping disposable execution surface for mode without execution-surface requirements..."
+    return
+  fi
+
   runtime_log "Preparing disposable execution surface..."
 
   mkdir -p "${AEGIS_EXECUTION_SURFACE_ROOT}"
@@ -373,6 +388,8 @@ prepare_execution_surface() {
 
   [[ -d "${AEGIS_EXECUTION_SURFACE_PATH}" ]] \
     || runtime_fatal "failed_to_materialize_execution_surface"
+
+  AEGIS_EXECUTION_SURFACE_ACTIVE="true"
 }
 
 # =========================================================

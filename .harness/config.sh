@@ -56,6 +56,7 @@ export AEGIS_CAPABILITY_PAYLOAD_DIR=".harness/runtime/capability_payloads"
 
 export AEGIS_EPISTEMIC_HANDOVER_FILE=".harness/runtime/epistemic_handover.json"
 export AEGIS_LAST_GOOD_EPISTEMIC_HANDOVER_FILE=".harness/runtime/last_good_epistemic_handover.json"
+export AEGIS_TARGET_SYSTEM_PROFILE_FILE="target_system_profile.yml"
 
 # =========================================================
 # ARTIFACT PROTOCOL
@@ -123,8 +124,8 @@ export AEGIS_RUNTIME_REMOVE_CAPABILITY_PAYLOADS
 : "${AEGIS_EVIDENCE_MAX_TOTAL_BYTES:=1500000}"
 : "${AEGIS_SEARCH_SYMBOL_MAX_MATCH_LINES:=100}"
 : "${AEGIS_FILE_CONTENT_MAX_BYTES:=50000}"
-: "${AEGIS_TOPOLOGY_GRAPH_MAX_BYTES:=100000}"
 : "${AEGIS_EPISTEMIC_HANDOVER_MAX_BYTES:=25000}"
+: "${AEGIS_TARGET_SYSTEM_PROFILE_MAX_BYTES:=25000}"
 : "${AEGIS_CAPABILITY_MANIFEST_MAX_BYTES:=75000}"
 
 export AEGIS_EVIDENCE_MAX_FILES
@@ -132,8 +133,8 @@ export AEGIS_CAPABILITY_PAYLOAD_MAX_BYTES
 export AEGIS_EVIDENCE_MAX_TOTAL_BYTES
 export AEGIS_SEARCH_SYMBOL_MAX_MATCH_LINES
 export AEGIS_FILE_CONTENT_MAX_BYTES
-export AEGIS_TOPOLOGY_GRAPH_MAX_BYTES
 export AEGIS_EPISTEMIC_HANDOVER_MAX_BYTES
+export AEGIS_TARGET_SYSTEM_PROFILE_MAX_BYTES
 export AEGIS_CAPABILITY_MANIFEST_MAX_BYTES
 
 # =========================================================
@@ -180,7 +181,8 @@ declare -ar AEGIS_READONLY_COGNITION_CAPABILITIES=(
   "filesystem.list_tree"
   "filesystem.read"
   "filesystem.search_symbol"
-  "topology.read_graph"
+  "git.status"
+  "runtime.read_target_system_profile"
   "runtime.read_epistemic_handover"
 )
 
@@ -188,7 +190,7 @@ declare -ar AEGIS_BOUNDED_MUTATION_CAPABILITIES=(
   "filesystem.list_tree"
   "filesystem.read"
   "filesystem.search_symbol"
-  "topology.read_graph"
+  "runtime.read_target_system_profile"
   "runtime.read_epistemic_handover"
   "git.diff"
   "git.status"
@@ -217,7 +219,7 @@ declare -Ar AEGIS_CAPABILITY_HANDLERS=(
   ["filesystem.search_symbol"]="scripts/capabilities/filesystem/search_symbol.sh"
   ["git.diff"]="scripts/capabilities/git/git_diff.sh"
   ["git.status"]="scripts/capabilities/git/git_status.sh"
-  ["topology.read_graph"]="scripts/capabilities/topology/read_graph.sh"
+  ["runtime.read_target_system_profile"]="scripts/capabilities/runtime/read_target_system_profile.sh"
   ["runtime.read_epistemic_handover"]="scripts/capabilities/runtime/read_epistemic_handover.sh"
 )
 
@@ -231,7 +233,7 @@ declare -Ar AEGIS_CAPABILITY_CLASSIFICATION=(
   ["filesystem.search_symbol"]="readonly"
   ["git.diff"]="readonly"
   ["git.status"]="readonly"
-  ["topology.read_graph"]="readonly"
+  ["runtime.read_target_system_profile"]="readonly"
   ["runtime.read_epistemic_handover"]="readonly"
 )
 
@@ -243,7 +245,7 @@ declare -Ar AEGIS_CAPABILITY_ARGUMENTS=(
   ["filesystem.list_tree"]="."
   ["filesystem.read"]="AGENTS.md"
   ["filesystem.search_symbol"]="AEGIS"
-  ["topology.read_graph"]=".harness/architecture_graph.json"
+  ["runtime.read_target_system_profile"]="${AEGIS_TARGET_SYSTEM_PROFILE_FILE}"
   ["runtime.read_epistemic_handover"]="${AEGIS_EPISTEMIC_HANDOVER_FILE}"
   ["git.diff"]="HEAD~1"
   ["git.status"]="."
@@ -263,27 +265,32 @@ declare -Ar AEGIS_MODE_EVIDENCE_PROFILE=(
 )
 
 declare -ar AEGIS_DISCOVERY_EVIDENCE=(
-  "topology.read_graph"
+  "filesystem.list_tree"
+  "filesystem.search_symbol"
+  "runtime.read_target_system_profile"
+  "runtime.read_epistemic_handover"
 )
 
 declare -ar AEGIS_FORENSICS_EVIDENCE=(
-  "topology.read_graph"
   "filesystem.search_symbol"
+  "git.status"
+  "runtime.read_target_system_profile"
   "runtime.read_epistemic_handover"
 )
 
 declare -ar AEGIS_VALIDATION_EVIDENCE=(
-  "topology.read_graph"
+  "runtime.read_target_system_profile"
   "runtime.read_epistemic_handover"
 )
 
 declare -ar AEGIS_ADVERSARIAL_EVIDENCE=(
-  "topology.read_graph"
   "filesystem.search_symbol"
+  "runtime.read_target_system_profile"
 )
 
 declare -ar AEGIS_REPAIR_EVIDENCE=(
   "filesystem.search_symbol"
+  "runtime.read_target_system_profile"
   "runtime.read_epistemic_handover"
   "git.diff"
   "git.status"
@@ -291,6 +298,7 @@ declare -ar AEGIS_REPAIR_EVIDENCE=(
 
 declare -ar AEGIS_OPTIMIZE_EVIDENCE=(
   "filesystem.search_symbol"
+  "runtime.read_target_system_profile"
   "runtime.read_epistemic_handover"
   "git.diff"
   "git.status"
@@ -335,14 +343,15 @@ declare -a AEGIS_PROVEN_SURFACES=(
   "runtime_external_to_execution_surface"
   "capability_environment_materialization"
   "capability_payload_evidence_materialization"
+  "payload_provenance_tracking"
   "readonly_cognition_topology"
   "protocol_oriented_execution"
   "epistemic_handover_explicit_continuity"
+  "readonly_execution_surface_elision"
 )
 
 declare -a AEGIS_INTENDED_SURFACES=(
   "bounded_mutation_hardening"
-  "payload_provenance_tracking"
   "capability_coercion"
   "strict_schema_validation"
 )
@@ -445,10 +454,20 @@ validate_evidence_profiles() {
 
   local mode
   local profile_name
+  local envelope_name
+  local capability
+  local envelope_capability
+  local capability_is_authorized
 
   for mode in "${!AEGIS_MODE_EVIDENCE_PROFILE[@]}"; do
 
     profile_name="${AEGIS_MODE_EVIDENCE_PROFILE[$mode]}"
+    envelope_name="${AEGIS_MODE_CAPABILITY_MAP[$mode]:-}"
+
+    [[ -n "${envelope_name}" ]] || {
+      echo "[AEGIS][CONFIG][FATAL] missing_capability_envelope_for_mode: ${mode}" >&2
+      return 1
+    }
 
     declare -p "${profile_name}" >/dev/null 2>&1 || {
       echo "[AEGIS][CONFIG][FATAL] missing_evidence_profile_array: ${profile_name}" >&2
@@ -456,11 +475,30 @@ validate_evidence_profiles() {
     }
 
     declare -n profile_ref="${profile_name}"
+    declare -n envelope_ref="${envelope_name}"
 
     [[ "${#profile_ref[@]}" -gt 0 ]] || {
       echo "[AEGIS][CONFIG][FATAL] empty_evidence_profile_array: ${profile_name}" >&2
       return 1
     }
+
+    for capability in "${profile_ref[@]}"; do
+
+      capability_is_authorized="false"
+
+      for envelope_capability in "${envelope_ref[@]}"; do
+        if [[ "${envelope_capability}" == "${capability}" ]]; then
+          capability_is_authorized="true"
+          break
+        fi
+      done
+
+      [[ "${capability_is_authorized}" == "true" ]] || {
+        echo "[AEGIS][CONFIG][FATAL] evidence_capability_outside_envelope: ${mode}:${capability}" >&2
+        return 1
+      }
+
+    done
 
   done
 }

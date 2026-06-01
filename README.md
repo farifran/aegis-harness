@@ -70,22 +70,21 @@ Aegis is organized around a small set of clearly separated responsibilities:
 | `scripts/execute_mode.sh` | Protocol virtual machine, capability environment injection, evidence payload selection |
 | `scripts/substrates/raw_llm.sh` | Readonly cognition substrate for readonly cognition modes |
 | `scripts/capabilities/*` | Runtime-owned capability handlers |
-| `.harness/config.sh` | Central capability registry and runtime topology |
+| `.harness/config.sh` | Operational capability registry and runtime policy |
 | `.skills/*.md` | Mode contracts |
-| `.harness/architecture_graph.json` | Capability-readable topology |
 
 ## Execution Model
 
-Aegis operates through disposable execution surfaces and runtime-owned capability environments.
+Aegis operates through runtime-owned capability environments and prepares disposable execution surfaces only for modes that require mutation-oriented infrastructure.
 
 The runtime:
 
-1. validates topology,
-2. creates an isolated execution surface,
+1. validates runtime policy,
+2. creates an isolated execution surface when required by the active mode,
 3. materializes capability environments,
-4. executes capability handlers,
-5. materializes capability payloads,
-6. injects runtime-owned capability payload evidence,
+4. materializes the runtime-owned capability manifest,
+5. executes capability handlers,
+6. materializes capability payloads,
 7. executes the selected mode substrate,
 8. validates the resulting artifact,
 9. updates epistemic handover guidance when unresolved attention must persist,
@@ -104,10 +103,18 @@ Examples include:
 - `filesystem.search_symbol`
 - `git.status`
 - `git.diff`
-- `topology.read_graph`
+- `runtime.read_target_system_profile`
 - `runtime.read_epistemic_handover`
 
-Capabilities are exposed through executable handler scripts under `scripts/capabilities/`, and the runtime materializes them into `.harness/runtime/capability_env/` during execution.
+Capabilities are exposed through executable handler scripts under `scripts/capabilities/`, and the runtime materializes both the capability environment and the selected manifest from `.harness/config.sh` during execution.
+
+`runtime.read_target_system_profile` and `runtime.read_epistemic_handover` are runtime-bound capabilities.
+
+Their canonical contract is runtime-materialized context exported through `.harness/config.sh` and the runtime lifecycle.
+
+If that context is absent, direct invocation must fail explicitly with `runtime_context_not_initialized` rather than implying a broken handler.
+
+Runtime-bound capabilities must not hardcode fallback paths or autodiscover context.
 
 Operational memory uses exactly three surfaces: capability payloads as runtime-owned evidence, `.harness/runtime/epistemic_handover.json` as incomplete epistemic attention, and git as persistent memory.
 
@@ -185,12 +192,27 @@ Execute a capability handler directly:
 bash .harness/runtime/capability_env/filesystem.read AGENTS.md
 ```
 
+Run isolated capability harnesses:
+
+```bash
+bash scripts/test_capabilities.sh
+bash scripts/test_runtime_contract.sh
+bash scripts/test_constitutional_invariants.sh
+```
+
+Run the readonly runtime smoke suite:
+
+```bash
+bash scripts/test_readonly_modes.sh
+```
+
 ## Repository Structure
 
 ```text
 .
 âââ AGENTS.md
 âââ runtime_aegis.sh
+âââ target_system_profile.yml
 âââ scripts/
 â   âââ execute_mode.sh
 â   âââ substrates/
@@ -198,10 +220,8 @@ bash .harness/runtime/capability_env/filesystem.read AGENTS.md
 â   âââ capabilities/
 â       âââ filesystem/
 â       âââ git/
-â       âââ runtime/
-â       âââ topology/
+â       âââ runtime/
 âââ .harness/
-â   âââ architecture_graph.json
 â   âââ config.sh
 â   âââ runtime/
 âââ .skills/

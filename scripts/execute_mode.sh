@@ -246,6 +246,37 @@ prepare_execution_state() {
 }
 
 # =========================================================
+# PAYLOAD VALIDATION
+# =========================================================
+
+validate_materialized_payload() {
+
+  local capability="$1"
+  local payload_path="$2"
+  local expected_classification
+
+  expected_classification="${AEGIS_CAPABILITY_CLASSIFICATION[$capability]:-}"
+
+  [[ -n "${expected_classification}" ]] \
+    || executor_fatal "missing_capability_classification"
+
+  jq -e \
+    --arg capability "${capability}" \
+    --arg classification "${expected_classification}" \
+    --arg execution_id "${AEGIS_EXECUTION_ID}" \
+    '
+      .success == true
+      and .error == null
+      and .payload != null
+      and .capability == $capability
+      and .classification == $classification
+      and .execution_id == $execution_id
+      and (.generated_at | type == "string" and length > 0)
+    ' "${payload_path}" >/dev/null 2>&1 \
+    || executor_fatal "invalid_capability_payload_contract: ${capability}"
+}
+
+# =========================================================
 # ARGUMENT CONTRACTS
 # =========================================================
 
@@ -261,6 +292,62 @@ resolve_capability_argument() {
       printf '%s' "${AEGIS_CAPABILITY_ARGUMENTS[$capability]:-}"
       ;;
   esac
+}
+
+invoke_capability_handler() {
+
+  local handler="$1"
+  local capability_argument="$2"
+
+  env -i \
+    PATH="${PATH}" \
+    HOME="${HOME:-}" \
+    TMPDIR="${TMPDIR:-/tmp}" \
+    LANG="${LANG:-C.UTF-8}" \
+    LC_ALL="${LC_ALL:-}" \
+    AEGIS_EXECUTION_ID="${AEGIS_EXECUTION_ID}" \
+    AEGIS_EXECUTION_TIMESTAMP="${AEGIS_EXECUTION_TIMESTAMP}" \
+    AEGIS_EXECUTION_SURFACE_PATH="${AEGIS_EXECUTION_SURFACE_PATH}" \
+    AEGIS_TARGET_SYSTEM_PROFILE_FILE="${AEGIS_TARGET_SYSTEM_PROFILE_FILE:-}" \
+    AEGIS_EPISTEMIC_HANDOVER_FILE="${AEGIS_EPISTEMIC_HANDOVER_FILE_INPUT:-}" \
+    bash "${handler}" "${capability_argument}"
+}
+
+invoke_raw_substrate() {
+
+  local model="$1"
+  local skill_file="$2"
+  local selected_manifest="$3"
+  local capability_payload_dir="$4"
+
+  env -i \
+    PATH="${PATH}" \
+    HOME="${HOME:-}" \
+    TMPDIR="${TMPDIR:-/tmp}" \
+    LANG="${LANG:-C.UTF-8}" \
+    LC_ALL="${LC_ALL:-}" \
+    OPENAI_API_KEY="${OPENAI_API_KEY:-}" \
+    OPENAI_API_BASE="${OPENAI_API_BASE:-}" \
+    AEGIS_MODE="${AEGIS_MODE}" \
+    AEGIS_EXECUTION_ID="${AEGIS_EXECUTION_ID}" \
+    AEGIS_EXECUTION_TIMESTAMP="${AEGIS_EXECUTION_TIMESTAMP}" \
+    AEGIS_SELECTED_CAPABILITY_PAYLOADS="${AEGIS_SELECTED_CAPABILITY_PAYLOADS}" \
+    AEGIS_EVIDENCE_MAX_TOTAL_BYTES="${AEGIS_EVIDENCE_MAX_TOTAL_BYTES}" \
+    AEGIS_CAPABILITY_PAYLOAD_MAX_BYTES="${AEGIS_CAPABILITY_PAYLOAD_MAX_BYTES}" \
+    AEGIS_PROVIDER_RESPONSE_TIMEOUT="${AEGIS_PROVIDER_RESPONSE_TIMEOUT}" \
+    AEGIS_PROVIDER_CONNECT_TIMEOUT="${AEGIS_PROVIDER_CONNECT_TIMEOUT}" \
+    AEGIS_PROVIDER_MAX_RETRIES="${AEGIS_PROVIDER_MAX_RETRIES}" \
+    AEGIS_PROVIDER_RETRY_DELAY="${AEGIS_PROVIDER_RETRY_DELAY}" \
+    AEGIS_EVIDENCE_MAX_FILES="${AEGIS_EVIDENCE_MAX_FILES}" \
+    AEGIS_RAW_SUBSTRATE_TEMPERATURE="${AEGIS_RAW_SUBSTRATE_TEMPERATURE}" \
+    AEGIS_CAPABILITY_MANIFEST_MAX_BYTES="${AEGIS_CAPABILITY_MANIFEST_MAX_BYTES}" \
+    AEGIS_ARTIFACT_BEGIN_MARKER="${AEGIS_ARTIFACT_BEGIN_MARKER}" \
+    AEGIS_ARTIFACT_END_MARKER="${AEGIS_ARTIFACT_END_MARKER}" \
+    bash scripts/substrates/raw_llm.sh \
+      "${model}" \
+      "${skill_file}" \
+      "${selected_manifest}" \
+      "${capability_payload_dir}"
 }
 
 # =========================================================
@@ -319,7 +406,7 @@ materialize_capability_payloads() {
   local payload_file
   local payload_path
 
-  for capability in "${AEGIS_ACTIVE_CAPABILITIES[@]}"; do
+  for capability in "${AEGIS_ACTIVE_EVIDENCE_CAPABILITIES[@]}"; do
 
     handler="$(
       printf '%s' \
@@ -340,10 +427,9 @@ materialize_capability_payloads() {
     payload_path="${AEGIS_CAPABILITY_PAYLOAD_DIR}/${payload_file}"
 
     payload_output="$(
-      AEGIS_EXECUTION_ID="${AEGIS_EXECUTION_ID}" \
-      AEGIS_EXECUTION_TIMESTAMP="${AEGIS_EXECUTION_TIMESTAMP}" \
-      AEGIS_EXECUTION_SURFACE_PATH="${AEGIS_EXECUTION_SURFACE_PATH}" \
-      bash "${handler}" "${capability_argument}"
+      invoke_capability_handler \
+        "${handler}" \
+        "${capability_argument}"
     )"
 
     echo "${payload_output}" > "${payload_path}"
@@ -351,6 +437,10 @@ materialize_capability_payloads() {
     jq empty "${payload_path}" \
       >/dev/null 2>&1 \
       || executor_fatal "invalid_capability_payload_json"
+
+    validate_materialized_payload \
+      "${capability}" \
+      "${payload_path}"
 
     AEGIS_CAPABILITY_PAYLOAD_INDEX="$(
       echo "${AEGIS_CAPABILITY_PAYLOAD_INDEX}" \
@@ -462,7 +552,7 @@ execute_substrate() {
 
     raw)
       substrate_output="$(
-        bash scripts/substrates/raw_llm.sh \
+        invoke_raw_substrate \
           "${OPENAI_MODEL_READONLY_COGNITION}" \
           "${AEGIS_SKILL_FILE}" \
           "${AEGIS_SELECTED_MANIFEST}" \

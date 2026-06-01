@@ -23,9 +23,19 @@
 
     "aegis:validate-confidence": "npm run aegis:verify-structure && npm run aegis:adversarial",
 
-    "aegis:test": "echo 'Tests pending implementation'",
+    "aegis:test:capabilities": "bash scripts/test_capabilities.sh",
+
+    "aegis:test:runtime-contract": "bash scripts/test_runtime_contract.sh",
+
+    "aegis:test:readonly-modes": "bash scripts/test_readonly_modes.sh",
+
+    "aegis:test:constitutional-invariants": "bash scripts/test_constitutional_invariants.sh",
+
+    "aegis:test": "npm run aegis:test:capabilities && npm run aegis:test:runtime-contract && npm run aegis:test:readonly-modes && npm run aegis:test:constitutional-invariants",
 
     "aegis:sanity": "npm run aegis:typecheck && npm run aegis:lint && npm run aegis:enforce",
+
+    "aegis:sanityy": "npm run aegis:sanity",
 
     "aegis:full": "npm run aegis:sanity && npm run aegis:validate-confidence && npm run aegis:test"
   },
