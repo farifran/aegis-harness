@@ -107,10 +107,89 @@ runtime_fatal() {
   exit 1
 }
 
+readonly AEGIS_EPISTEMIC_HANDOVER_LIB="${AEGIS_RUNTIME_ROOT}/scripts/lib/epistemic_handover.sh"
+
+[[ -f "${AEGIS_EPISTEMIC_HANDOVER_LIB}" ]] || {
+  echo "[AEGIS][RUNTIME][FATAL] missing_epistemic_handover_library" >&2
+  exit 1
+}
+
+source "${AEGIS_EPISTEMIC_HANDOVER_LIB}"
+
+apply_default_investigation_input() {
+  export AEGIS_INVESTIGATION_INPUT="${AEGIS_DEFAULT_INVESTIGATION_INPUT}"
+
+  printf '%s\n' \
+    "[AEGIS][RUNTIME]" \
+    "No investigation input provided." \
+    "Using default exploratory investigation." >&2
+}
+
 mode_requires_execution_surface() {
   local execution_engine="${AEGIS_EXECUTION_ENGINES[$AEGIS_MODE]:-}"
 
   [[ "${execution_engine}" == "aider" ]]
+}
+
+mode_starts_new_investigation() {
+  [[ "${AEGIS_MODE}" == "discovery" ]]
+}
+
+artifact_snapshot_investigation_input_from_handover() {
+
+  local handover_file="$1"
+
+  if ! handover_schema_is_valid "${handover_file}"; then
+    return 0
+  fi
+
+  jq -r '
+    if (
+      (.artifact_snapshot | type == "object")
+      and (.artifact_snapshot.investigation_input? | type == "string")
+      and (.artifact_snapshot.investigation_input | length > 0)
+    ) then
+      .artifact_snapshot.investigation_input
+    else
+      empty
+    end
+  ' "${handover_file}" 2>/dev/null || true
+}
+
+resolve_runtime_investigation_input() {
+
+  local current_investigation_input
+  current_investigation_input="$({
+    artifact_snapshot_investigation_input_from_handover "${AEGIS_EPISTEMIC_HANDOVER_FILE}"
+  })"
+
+  if mode_starts_new_investigation; then
+    if [[ -n "${AEGIS_INVESTIGATION_INPUT:-}" ]]; then
+      export AEGIS_INVESTIGATION_INPUT
+      return 0
+    fi
+
+    apply_default_investigation_input
+    return 0
+  fi
+
+  if [[ -n "${AEGIS_INVESTIGATION_INPUT:-}" ]] \
+    && [[ -n "${current_investigation_input}" ]] \
+    && [[ "${AEGIS_INVESTIGATION_INPUT}" != "${current_investigation_input}" ]]; then
+    runtime_fatal "investigation_input_mismatch"
+  fi
+
+  if [[ -n "${AEGIS_INVESTIGATION_INPUT:-}" ]]; then
+    export AEGIS_INVESTIGATION_INPUT
+    return 0
+  fi
+
+  if [[ -n "${current_investigation_input}" ]]; then
+    export AEGIS_INVESTIGATION_INPUT="${current_investigation_input}"
+    return 0
+  fi
+
+  apply_default_investigation_input
 }
 
 # =========================================================
@@ -125,27 +204,10 @@ cleanup_runtime() {
 
   if [[ "${AEGIS_RUNTIME_REMOVE_EXECUTION_SURFACE}" == "true" ]] \
     && [[ "${AEGIS_EXECUTION_SURFACE_ACTIVE}" == "true" ]]; then
-
-    if [[ -d "${AEGIS_EXECUTION_SURFACE_PATH:-}" ]]; then
-      git worktree remove \
-        --force \
-        "${AEGIS_EXECUTION_SURFACE_PATH}" \
-        >/dev/null 2>&1 || true
-    fi
-
-    git worktree prune \
-      >/dev/null 2>&1 || true
+    remove_runtime_owned_execution_surface_if_present
   fi
 
-  if [[ "${AEGIS_RUNTIME_REMOVE_CAPABILITY_ENV}" == "true" ]]; then
-    rm -rf "${AEGIS_CAPABILITY_ENV_DIR}" \
-      >/dev/null 2>&1 || true
-  fi
-
-  if [[ "${AEGIS_RUNTIME_REMOVE_CAPABILITY_PAYLOADS}" == "true" ]]; then
-    rm -rf "${AEGIS_CAPABILITY_PAYLOAD_DIR}" \
-      >/dev/null 2>&1 || true
-  fi
+  remove_runtime_owned_capability_surfaces
 
   runtime_log "Runtime cleanup completed"
 
@@ -158,33 +220,6 @@ trap 'runtime_warn "Interrupted"; exit 130' INT TERM
 # =========================================================
 # EPISTEMIC HANDOVER
 # =========================================================
-
-handover_schema_is_valid() {
-
-  local handover_file="$1"
-
-  jq -e '
-    type == "object"
-    and ((keys | sort) == [
-      "incomplete_observations",
-      "insufficient_evidence",
-      "observed_limitations",
-      "uninspected_areas"
-    ])
-    and (.incomplete_observations | type == "array")
-    and (.uninspected_areas | type == "array")
-    and (.insufficient_evidence | type == "array")
-    and (.observed_limitations | type == "array")
-    and (
-      [
-        .incomplete_observations[],
-        .uninspected_areas[],
-        .insufficient_evidence[],
-        .observed_limitations[]
-      ] | all(type == "string")
-    )
-  ' "${handover_file}" >/dev/null 2>&1
-}
 
 handover_size_is_valid() {
 
@@ -200,18 +235,157 @@ handover_size_is_valid() {
   [[ "${handover_size_bytes}" -le "${AEGIS_EPISTEMIC_HANDOVER_MAX_BYTES}" ]]
 }
 
+runtime_owned_epistemic_handover_is_valid() {
+
+  local handover_file="$1"
+
+  [[ -f "${handover_file}" ]] \
+    && handover_schema_is_valid "${handover_file}" \
+    && handover_size_is_valid "${handover_file}"
+}
+
+assert_valid_runtime_owned_epistemic_handover() {
+
+  local handover_file="$1"
+  local invalid_error="$2"
+  local size_error="$3"
+
+  handover_schema_is_valid "${handover_file}" \
+    || runtime_fatal "${invalid_error}"
+
+  handover_size_is_valid "${handover_file}" \
+    || runtime_fatal "${size_error}"
+}
+
 write_empty_epistemic_handover() {
 
   local handover_file="$1"
 
+  write_runtime_owned_epistemic_handover \
+    "${handover_file}" \
+    'null' \
+    "$(write_empty_epistemic_handover_state_json)"
+}
+
+epistemic_state_json_from_promoted_artifact() {
+
+  local promoted_artifact_json="$1"
+  local promoted_epistemic_state_json
+
+  promoted_epistemic_state_json="$({
+    printf '%s' "${promoted_artifact_json}" \
+      | jq -c '
+          if has("handover_attention") then
+            .handover_attention
+          else
+            null
+          end
+        '
+  })" || runtime_fatal "failed_to_extract_promoted_artifact_handover_attention"
+
+  if [[ "${promoted_epistemic_state_json}" == "null" ]]; then
+    write_empty_epistemic_handover_state_json
+    return 0
+  fi
+
+  validate_epistemic_state_json "${promoted_epistemic_state_json}" \
+    || runtime_fatal "invalid_promoted_artifact_handover_attention"
+
+  printf '%s' "${promoted_epistemic_state_json}"
+}
+
+artifact_snapshot_json_from_promoted_artifact() {
+
+  local promoted_artifact_json="$1"
+
+  printf '%s' "${promoted_artifact_json}" \
+    | jq -c \
+        --arg generated_at "${AEGIS_EXECUTION_TIMESTAMP}" \
+        --arg investigation_input "${AEGIS_INVESTIGATION_INPUT}" '
+        del(.handover_attention, .investigation_input)
+        | . + {investigation_input: $investigation_input}
+        | . + (if has("generated_at") then {} else {generated_at: $generated_at} end)
+      '
+}
+
+write_runtime_owned_epistemic_handover() {
+
+  local handover_file="$1"
+  local artifact_snapshot_json="$2"
+  local epistemic_state_json="$3"
+  local tmp_handover_file
+
+  tmp_handover_file="$(mktemp)"
+
   jq -n \
+    --argjson artifact_snapshot "${artifact_snapshot_json}" \
+    --argjson epistemic_state "${epistemic_state_json}" \
     '{
-      incomplete_observations: [],
-      uninspected_areas: [],
-      insufficient_evidence: [],
-      observed_limitations: []
-    }' > "${handover_file}" \
-    || runtime_fatal "failed_to_initialize_epistemic_handover: ${handover_file}"
+      artifact_snapshot: $artifact_snapshot,
+      epistemic_state: $epistemic_state
+    }' > "${tmp_handover_file}" \
+    || runtime_fatal "failed_to_materialize_epistemic_handover"
+
+  handover_size_is_valid "${tmp_handover_file}" \
+    || runtime_fatal "epistemic_handover_runtime_state_exceeds_max_bytes"
+
+  mv "${tmp_handover_file}" "${handover_file}" \
+    || runtime_fatal "failed_to_commit_epistemic_handover"
+}
+
+normalize_runtime_owned_epistemic_handover() {
+
+  local handover_file="$1"
+  local artifact_snapshot_json
+  local epistemic_state_json
+
+  artifact_snapshot_json="$({
+    artifact_snapshot_json_from_handover "${handover_file}"
+  })" || runtime_fatal "invalid_epistemic_handover_runtime_state"
+
+  epistemic_state_json="$({
+    epistemic_state_json_from_handover "${handover_file}"
+  })" || runtime_fatal "invalid_epistemic_handover_runtime_state"
+
+  write_runtime_owned_epistemic_handover \
+    "${handover_file}" \
+    "${artifact_snapshot_json}" \
+    "${epistemic_state_json}"
+}
+
+remove_runtime_owned_execution_surface_if_present() {
+
+  if git worktree list | grep -q "${AEGIS_EXECUTION_SURFACE_PATH}" \
+    || [[ -d "${AEGIS_EXECUTION_SURFACE_PATH:-}" ]]; then
+    git worktree remove \
+      --force \
+      "${AEGIS_EXECUTION_SURFACE_PATH}" \
+      >/dev/null 2>&1 || true
+  fi
+
+  git worktree prune \
+    >/dev/null 2>&1 || true
+}
+
+remove_runtime_owned_capability_surfaces() {
+
+  local respect_cleanup_policy="${1:-true}"
+
+  if [[ "${respect_cleanup_policy}" != "false" ]] \
+    && [[ "${AEGIS_RUNTIME_REMOVE_CAPABILITY_ENV}" != "true" ]]; then
+    :
+  else
+    rm -rf "${AEGIS_CAPABILITY_ENV_DIR}" \
+      >/dev/null 2>&1 || true
+  fi
+
+  if [[ "${respect_cleanup_policy}" != "false" ]] \
+    && [[ "${AEGIS_RUNTIME_REMOVE_CAPABILITY_PAYLOADS}" != "true" ]]; then
+    :
+  else
+    rm -rf "${AEGIS_CAPABILITY_PAYLOAD_DIR}" \
+      >/dev/null 2>&1 || true
+  fi
 }
 
 prepare_runtime_owned_epistemic_handover() {
@@ -222,15 +396,11 @@ prepare_runtime_owned_epistemic_handover() {
   local handover_is_valid="false"
   local last_good_handover_is_valid="false"
 
-  if [[ -f "${handover_file}" ]] \
-    && handover_schema_is_valid "${handover_file}" \
-    && handover_size_is_valid "${handover_file}"; then
+  if runtime_owned_epistemic_handover_is_valid "${handover_file}"; then
     handover_is_valid="true"
   fi
 
-  if [[ -f "${last_good_handover_file}" ]] \
-    && handover_schema_is_valid "${last_good_handover_file}" \
-    && handover_size_is_valid "${last_good_handover_file}"; then
+  if runtime_owned_epistemic_handover_is_valid "${last_good_handover_file}"; then
     last_good_handover_is_valid="true"
   fi
 
@@ -246,24 +416,42 @@ prepare_runtime_owned_epistemic_handover() {
     fi
   fi
 
+  normalize_runtime_owned_epistemic_handover "${handover_file}"
+
   if [[ "${last_good_handover_is_valid}" != "true" ]]; then
     cp \
       "${handover_file}" \
       "${last_good_handover_file}" \
       || runtime_fatal "failed_to_seed_last_good_epistemic_handover"
+  else
+    normalize_runtime_owned_epistemic_handover "${last_good_handover_file}"
   fi
 
-  handover_schema_is_valid "${handover_file}" \
-    || runtime_fatal "invalid_epistemic_handover_runtime_state"
+  assert_valid_runtime_owned_epistemic_handover \
+    "${handover_file}" \
+    "invalid_epistemic_handover_runtime_state" \
+    "epistemic_handover_runtime_state_exceeds_max_bytes"
 
-  handover_size_is_valid "${handover_file}" \
-    || runtime_fatal "epistemic_handover_runtime_state_exceeds_max_bytes"
+  assert_valid_runtime_owned_epistemic_handover \
+    "${last_good_handover_file}" \
+    "invalid_last_good_epistemic_handover_runtime_state" \
+    "last_good_epistemic_handover_runtime_state_exceeds_max_bytes"
+}
 
-  handover_schema_is_valid "${last_good_handover_file}" \
-    || runtime_fatal "invalid_last_good_epistemic_handover_runtime_state"
+reset_runtime_owned_epistemic_handover_for_new_investigation() {
 
-  handover_size_is_valid "${last_good_handover_file}" \
-    || runtime_fatal "last_good_epistemic_handover_runtime_state_exceeds_max_bytes"
+  if ! mode_starts_new_investigation; then
+    return
+  fi
+
+  runtime_log "Resetting runtime-owned epistemic handover for new investigation boundary..."
+
+  write_empty_epistemic_handover "${AEGIS_EPISTEMIC_HANDOVER_FILE}"
+
+  cp \
+    "${AEGIS_EPISTEMIC_HANDOVER_FILE}" \
+    "${AEGIS_LAST_GOOD_EPISTEMIC_HANDOVER_FILE}" \
+    || runtime_fatal "failed_to_reset_last_good_epistemic_handover"
 }
 
 # =========================================================
@@ -329,6 +517,8 @@ validate_runtime_environment() {
   prepare_runtime_owned_epistemic_handover \
     "${AEGIS_EPISTEMIC_HANDOVER_FILE}" \
     "${AEGIS_LAST_GOOD_EPISTEMIC_HANDOVER_FILE}"
+
+  resolve_runtime_investigation_input
 }
 
 # =========================================================
@@ -341,27 +531,10 @@ remove_stale_runtime_residue() {
 
   if [[ "${AEGIS_RUNTIME_REMOVE_EXECUTION_SURFACE}" == "true" ]] \
     && mode_requires_execution_surface; then
-
-    if git worktree list | grep -q "${AEGIS_EXECUTION_SURFACE_PATH}"; then
-      git worktree remove \
-        --force \
-        "${AEGIS_EXECUTION_SURFACE_PATH}" \
-        >/dev/null 2>&1 || true
-    fi
-
-    git worktree prune \
-      >/dev/null 2>&1 || true
+    remove_runtime_owned_execution_surface_if_present
   fi
 
-  if [[ "${AEGIS_RUNTIME_REMOVE_CAPABILITY_ENV}" == "true" ]]; then
-    rm -rf "${AEGIS_CAPABILITY_ENV_DIR}" \
-      >/dev/null 2>&1 || true
-  fi
-
-  if [[ "${AEGIS_RUNTIME_REMOVE_CAPABILITY_PAYLOADS}" == "true" ]]; then
-    rm -rf "${AEGIS_CAPABILITY_PAYLOAD_DIR}" \
-      >/dev/null 2>&1 || true
-  fi
+  remove_runtime_owned_capability_surfaces
 }
 
 # =========================================================
@@ -400,11 +573,7 @@ prepare_runtime_owned_capability_surfaces() {
 
   runtime_log "Preparing runtime-owned capability surfaces..."
 
-  rm -rf "${AEGIS_CAPABILITY_ENV_DIR}" \
-    >/dev/null 2>&1 || true
-
-  rm -rf "${AEGIS_CAPABILITY_PAYLOAD_DIR}" \
-    >/dev/null 2>&1 || true
+  remove_runtime_owned_capability_surfaces false
 
   mkdir -p "${AEGIS_CAPABILITY_ENV_DIR}"
   mkdir -p "${AEGIS_CAPABILITY_PAYLOAD_DIR}"
@@ -477,6 +646,18 @@ execute_mode() {
       >/dev/null 2>&1 \
     || runtime_fatal "invalid_promoted_artifact_json"
 
+  echo "${artifact_payload}" \
+    | jq -e 'type == "object"' \
+      >/dev/null 2>&1 \
+    || runtime_fatal "invalid_promoted_artifact_shape"
+
+  export AEGIS_PROMOTED_ARTIFACT_PAYLOAD="$({
+    printf '%s\n' "${artifact_payload}" | jq -c '.'
+  })"
+
+  [[ -n "${AEGIS_PROMOTED_ARTIFACT_PAYLOAD}" ]] \
+    || runtime_fatal "failed_to_compact_promoted_artifact"
+
   runtime_log "Promoting validated artifact..."
 
   echo "${AEGIS_ARTIFACT_BEGIN_MARKER}"
@@ -494,11 +675,29 @@ promote_epistemic_handover() {
 
   runtime_log "Updating epistemic handover..."
 
-  handover_schema_is_valid "${AEGIS_EPISTEMIC_HANDOVER_FILE}" \
-    || runtime_fatal "invalid_epistemic_handover_after_mode_execution"
+  [[ -n "${AEGIS_PROMOTED_ARTIFACT_PAYLOAD:-}" ]] \
+    || runtime_fatal "missing_promoted_artifact_for_handover"
 
-  handover_size_is_valid "${AEGIS_EPISTEMIC_HANDOVER_FILE}" \
-    || runtime_fatal "epistemic_handover_after_mode_execution_exceeds_max_bytes"
+  local epistemic_state_json
+  local artifact_snapshot_json
+
+  epistemic_state_json="$({
+    epistemic_state_json_from_promoted_artifact "${AEGIS_PROMOTED_ARTIFACT_PAYLOAD}"
+  })" || runtime_fatal "invalid_epistemic_handover_after_mode_execution"
+
+  artifact_snapshot_json="$({
+    artifact_snapshot_json_from_promoted_artifact "${AEGIS_PROMOTED_ARTIFACT_PAYLOAD}"
+  })" || runtime_fatal "failed_to_materialize_artifact_snapshot"
+
+  write_runtime_owned_epistemic_handover \
+    "${AEGIS_EPISTEMIC_HANDOVER_FILE}" \
+    "${artifact_snapshot_json}" \
+    "${epistemic_state_json}"
+
+  assert_valid_runtime_owned_epistemic_handover \
+    "${AEGIS_EPISTEMIC_HANDOVER_FILE}" \
+    "invalid_epistemic_handover_after_mode_execution" \
+    "epistemic_handover_after_mode_execution_exceeds_max_bytes"
 
   cp \
     "${AEGIS_EPISTEMIC_HANDOVER_FILE}" \
@@ -513,6 +712,7 @@ promote_epistemic_handover() {
 main() {
 
   validate_runtime_environment
+  reset_runtime_owned_epistemic_handover_for_new_investigation
   remove_stale_runtime_residue
   prepare_execution_surface
   prepare_runtime_owned_capability_surfaces

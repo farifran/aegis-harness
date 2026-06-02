@@ -28,6 +28,19 @@
 
 set -Eeuo pipefail
 
+readonly AEGIS_RUNTIME_CAPABILITY_ROOT="$({
+  cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd
+})"
+
+readonly AEGIS_EPISTEMIC_HANDOVER_LIB="${AEGIS_RUNTIME_CAPABILITY_ROOT}/scripts/lib/epistemic_handover.sh"
+
+[[ -f "${AEGIS_EPISTEMIC_HANDOVER_LIB}" ]] || {
+  echo "[AEGIS][CAPABILITY][FATAL] missing_epistemic_handover_library" >&2
+  exit 1
+}
+
+source "${AEGIS_EPISTEMIC_HANDOVER_LIB}"
+
 # =========================================================
 # INPUTS
 # =========================================================
@@ -83,28 +96,13 @@ fail() {
     }'
 }
 
-validate_epistemic_handover_schema() {
-  jq -e '
-    type == "object"
-    and ((keys | sort) == [
-      "incomplete_observations",
-      "insufficient_evidence",
-      "observed_limitations",
-      "uninspected_areas"
-    ])
-    and (.incomplete_observations | type == "array")
-    and (.uninspected_areas | type == "array")
-    and (.insufficient_evidence | type == "array")
-    and (.observed_limitations | type == "array")
-    and (
-      [
-        .incomplete_observations[],
-        .uninspected_areas[],
-        .insufficient_evidence[],
-        .observed_limitations[]
-      ] | all(type == "string")
-    )
-  ' "${EPISTEMIC_HANDOVER_FILE}" >/dev/null 2>&1
+normalize_epistemic_handover_json() {
+  if handover_schema_is_valid "${EPISTEMIC_HANDOVER_FILE}"; then
+    jq -c '.' "${EPISTEMIC_HANDOVER_FILE}"
+    return 0
+  fi
+
+  return 1
 }
 
 if [[ -z "${EPISTEMIC_HANDOVER_FILE}" ]]; then
@@ -126,10 +124,12 @@ if [[ "${EPISTEMIC_HANDOVER_SIZE_BYTES}" -gt "${MAX_EPISTEMIC_HANDOVER_BYTES}" ]
   exit 1
 fi
 
-if ! validate_epistemic_handover_schema; then
+NORMALIZED_EPISTEMIC_HANDOVER_JSON="$({
+  normalize_epistemic_handover_json
+})" || {
   fail "invalid_epistemic_handover_schema" "${EPISTEMIC_HANDOVER_FILE}"
   exit 1
-fi
+}
 
 # =========================================================
 # JSON EMISSION
@@ -143,7 +143,7 @@ jq -n \
   --arg path "${EPISTEMIC_HANDOVER_FILE}" \
   --argjson epistemic_handover_size_bytes "${EPISTEMIC_HANDOVER_SIZE_BYTES}" \
   --argjson max_epistemic_handover_bytes "${MAX_EPISTEMIC_HANDOVER_BYTES}" \
-  --slurpfile handover "${EPISTEMIC_HANDOVER_FILE}" \
+  --argjson handover "${NORMALIZED_EPISTEMIC_HANDOVER_JSON}" \
   '{
     success: true,
     capability: $capability,
@@ -154,7 +154,7 @@ jq -n \
       path: $path,
       epistemic_handover_size_bytes: $epistemic_handover_size_bytes,
       max_epistemic_handover_bytes: $max_epistemic_handover_bytes,
-      handover: $handover[0]
+      handover: $handover
     },
     error: null
   }'

@@ -15,6 +15,25 @@ fail() {
   exit 1
 }
 
+readonly TEST_INVESTIGATION_INPUT="constitutional investigation"
+readonly MISMATCHED_INVESTIGATION_INPUT="mismatched investigation"
+
+readonly HANDOOVER_BACKUP_FILE="$(mktemp)"
+readonly LAST_GOOD_HANDOVER_BACKUP_FILE="$(mktemp)"
+
+HAD_EPISTEMIC_HANDOVER_FILE="false"
+HAD_LAST_GOOD_EPISTEMIC_HANDOVER_FILE="false"
+
+if [[ -f "${AEGIS_EPISTEMIC_HANDOVER_FILE}" ]]; then
+  cp "${AEGIS_EPISTEMIC_HANDOVER_FILE}" "${HANDOOVER_BACKUP_FILE}"
+  HAD_EPISTEMIC_HANDOVER_FILE="true"
+fi
+
+if [[ -f "${AEGIS_LAST_GOOD_EPISTEMIC_HANDOVER_FILE}" ]]; then
+  cp "${AEGIS_LAST_GOOD_EPISTEMIC_HANDOVER_FILE}" "${LAST_GOOD_HANDOVER_BACKUP_FILE}"
+  HAD_LAST_GOOD_EPISTEMIC_HANDOVER_FILE="true"
+fi
+
 start_mock_provider() {
   MOCK_PROVIDER_PORT_FILE="$(mktemp)"
   MOCK_PROVIDER_LOG_FILE="$(mktemp)"
@@ -32,6 +51,38 @@ END = "AEGIS_ARTIFACT_END"
 MODE_PATTERN = re.compile(r'"mode"\s*:\s*"(discovery|forensics|validation|adversarial)"')
 SYSTEM_MODE_PATTERN = re.compile(r'Mode:\s*(discovery|forensics|validation|adversarial)')
 PAYLOAD_PATTERN = re.compile(r'^--- PAYLOAD: ([^\n]+) ---$', re.MULTILINE)
+
+
+def build_handover_attention(mode):
+  if mode == "discovery":
+    return {
+      "next_attention_targets": [
+        "runtime.read_epistemic_handover",
+        "filesystem.search_symbol",
+      ],
+      "attention_scope": "runtime-exposed evidence inventory",
+      "attention_reason": "initial investigation boundary",
+    }
+
+  if mode == "forensics":
+    return {
+      "next_attention_targets": ["observable_containment_anomalies"],
+      "attention_scope": "evidence-backed interpretation",
+      "attention_reason": "narrowed from discovery observations",
+    }
+
+  if mode == "adversarial":
+    return {
+      "next_attention_targets": ["observable_failure_modes"],
+      "attention_scope": "bounded falsification",
+      "attention_reason": "challenge current result",
+    }
+
+  return {
+    "next_attention_targets": [],
+    "attention_scope": "none",
+    "attention_reason": "no active attention",
+  }
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -62,6 +113,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             "status": "ok",
             "summary": f"mock {mode} artifact",
             "observed_payloads": payload_names,
+          "handover_attention": build_handover_attention(mode),
         }
 
         response = {
@@ -123,6 +175,29 @@ cleanup() {
     "${MOCK_PROVIDER_LOG_FILE:-}" \
     >/dev/null 2>&1 || true
 
+  mkdir -p "$(dirname "${AEGIS_EPISTEMIC_HANDOVER_FILE}")"
+
+  if [[ "${HAD_EPISTEMIC_HANDOVER_FILE}" == "true" ]]; then
+    cp "${HANDOOVER_BACKUP_FILE}" "${AEGIS_EPISTEMIC_HANDOVER_FILE}" \
+      >/dev/null 2>&1 || true
+  else
+    rm -f "${AEGIS_EPISTEMIC_HANDOVER_FILE}" \
+      >/dev/null 2>&1 || true
+  fi
+
+  if [[ "${HAD_LAST_GOOD_EPISTEMIC_HANDOVER_FILE}" == "true" ]]; then
+    cp "${LAST_GOOD_HANDOVER_BACKUP_FILE}" "${AEGIS_LAST_GOOD_EPISTEMIC_HANDOVER_FILE}" \
+      >/dev/null 2>&1 || true
+  else
+    rm -f "${AEGIS_LAST_GOOD_EPISTEMIC_HANDOVER_FILE}" \
+      >/dev/null 2>&1 || true
+  fi
+
+  rm -f \
+    "${HANDOOVER_BACKUP_FILE:-}" \
+    "${LAST_GOOD_HANDOVER_BACKUP_FILE:-}" \
+    >/dev/null 2>&1 || true
+
   rm -rf \
     "${AEGIS_CAPABILITY_ENV_DIR}" \
     "${AEGIS_CAPABILITY_PAYLOAD_DIR}" \
@@ -164,6 +239,9 @@ assert_constitutional_state_registry() {
 
   array_contains "readonly_execution_surface_elision" "${AEGIS_PROVEN_SURFACES[@]}" \
     || fail "readonly_execution_surface_elision_not_proven"
+
+  array_contains "runtime_owned_artifact_snapshot_handover" "${AEGIS_PROVEN_SURFACES[@]}" \
+    || fail "runtime_owned_artifact_snapshot_handover_not_proven"
 
   array_contains "bounded_mutation_hardening" "${AEGIS_INTENDED_SURFACES[@]}" \
     || fail "bounded_mutation_hardening_not_intended"
@@ -224,6 +302,7 @@ assert_readonly_mode_has_no_execution_surface() {
 
   rm -rf "${execution_surface_path}"
 
+  AEGIS_INVESTIGATION_INPUT="${TEST_INVESTIGATION_INPUT}" \
   AEGIS_RUNTIME_REMOVE_EXECUTION_SURFACE=false \
   bash runtime_aegis.sh "${mode}" >/dev/null 2>"${runtime_log_file}"
 
@@ -261,6 +340,7 @@ assert_payloads_are_execution_scoped() {
       error: null
     }' > "${payload_dir}/stale_payload.json"
 
+  AEGIS_INVESTIGATION_INPUT="${TEST_INVESTIGATION_INPUT}" \
   AEGIS_RUNTIME_REMOVE_CAPABILITY_PAYLOADS=false \
   bash runtime_aegis.sh discovery >/dev/null
 
@@ -317,6 +397,266 @@ assert_payloads_are_execution_scoped() {
   rm -rf "${payload_dir}"
 }
 
+extract_first_artifact_payload() {
+  local runtime_output="$1"
+
+  printf '%s\n' "${runtime_output}" | awk '
+    $0 == "AEGIS_ARTIFACT_BEGIN" {
+      if (seen == 0) {
+        seen = 1
+        next
+      }
+    }
+
+    $0 == "AEGIS_ARTIFACT_END" {
+      if (seen == 1) {
+        exit
+      }
+    }
+
+    seen == 1 {
+      print
+    }
+  '
+}
+
+seed_fake_investigation_handover() {
+  local marker="$1"
+
+  mkdir -p "$(dirname "${AEGIS_EPISTEMIC_HANDOVER_FILE}")"
+
+  jq -n \
+    --arg marker "${marker}" \
+    '{
+      artifact_snapshot: {
+        mode: "fake",
+        status: "stale",
+        summary: $marker,
+        observed_payloads: ["stale_payload.json"],
+        generated_at: "1970-01-01T00:00:00Z"
+      },
+      epistemic_state: {
+        next_attention_targets: [$marker],
+        attention_scope: "stale scope",
+        attention_reason: "stale attention"
+      }
+    }' > "${AEGIS_EPISTEMIC_HANDOVER_FILE}"
+
+  cp \
+    "${AEGIS_EPISTEMIC_HANDOVER_FILE}" \
+    "${AEGIS_LAST_GOOD_EPISTEMIC_HANDOVER_FILE}"
+}
+
+assert_runtime_read_handover_payload_is_empty() {
+  local payload_file="${AEGIS_CAPABILITY_PAYLOAD_DIR}/runtime_read_epistemic_handover.json"
+
+  [[ -f "${payload_file}" ]] \
+    || fail "missing_runtime_read_handover_payload"
+
+  jq -e '
+    .success == true
+    and .error == null
+    and .payload.handover.artifact_snapshot == null
+    and .payload.handover.epistemic_state.next_attention_targets == []
+    and .payload.handover.epistemic_state.attention_scope == "none"
+    and .payload.handover.epistemic_state.attention_reason == "no active attention"
+  ' "${payload_file}" >/dev/null \
+    || fail "discovery_observed_stale_handover_state"
+}
+
+assert_handover_file_matches_promoted_artifact() {
+  local handover_file="$1"
+  local artifact_payload="$2"
+
+  jq -e \
+    --argjson expected_artifact_payload "${artifact_payload}" \
+    --arg expected_investigation_input "${TEST_INVESTIGATION_INPUT}" \
+    '
+      type == "object"
+      and ((keys | sort) == ["artifact_snapshot", "epistemic_state"])
+      and (.artifact_snapshot | type == "object")
+      and (.artifact_snapshot.mode == $expected_artifact_payload.mode)
+      and (.artifact_snapshot.status == $expected_artifact_payload.status)
+      and (.artifact_snapshot.summary == $expected_artifact_payload.summary)
+      and (.artifact_snapshot.investigation_input == $expected_investigation_input)
+      and (.artifact_snapshot.observed_payloads == $expected_artifact_payload.observed_payloads)
+      and (.artifact_snapshot.generated_at | type == "string" and length > 0)
+      and ((.artifact_snapshot | has("handover_attention")) == false)
+      and (.epistemic_state == $expected_artifact_payload.handover_attention)
+    ' "${handover_file}" >/dev/null \
+    || fail "unexpected_runtime_owned_handover: ${handover_file}"
+}
+
+assert_runtime_read_handover_payload_matches_promoted_artifact() {
+  local artifact_payload="$1"
+  local payload_file="${AEGIS_CAPABILITY_PAYLOAD_DIR}/runtime_read_epistemic_handover.json"
+
+  [[ -f "${payload_file}" ]] \
+    || fail "missing_runtime_read_handover_payload"
+
+  jq -e \
+    --argjson expected_artifact_payload "${artifact_payload}" \
+    --arg expected_investigation_input "${TEST_INVESTIGATION_INPUT}" \
+    '
+      .success == true
+      and .error == null
+      and (.payload.handover.artifact_snapshot | type == "object")
+      and (.payload.handover.artifact_snapshot.mode == $expected_artifact_payload.mode)
+      and (.payload.handover.artifact_snapshot.status == $expected_artifact_payload.status)
+      and (.payload.handover.artifact_snapshot.summary == $expected_artifact_payload.summary)
+      and (.payload.handover.artifact_snapshot.investigation_input == $expected_investigation_input)
+      and (.payload.handover.artifact_snapshot.observed_payloads == $expected_artifact_payload.observed_payloads)
+      and (.payload.handover.artifact_snapshot.generated_at | type == "string" and length > 0)
+      and ((.payload.handover.artifact_snapshot | has("handover_attention")) == false)
+      and (.payload.handover.epistemic_state == $expected_artifact_payload.handover_attention)
+    ' "${payload_file}" >/dev/null \
+    || fail "forensics_did_not_receive_current_investigation_handover"
+}
+
+assert_discovery_resets_prior_handover_state() {
+  local runtime_output
+  local artifact_payload
+
+  seed_fake_investigation_handover "old issue"
+
+  runtime_output="$({
+    AEGIS_INVESTIGATION_INPUT="${TEST_INVESTIGATION_INPUT}" \
+    AEGIS_RUNTIME_REMOVE_CAPABILITY_PAYLOADS=false \
+    bash runtime_aegis.sh
+  })"
+
+  artifact_payload="$({
+    extract_first_artifact_payload "${runtime_output}"
+  })"
+
+  [[ -n "${artifact_payload}" ]] \
+    || fail "missing_runtime_artifact_for_discovery_reset"
+
+  assert_runtime_read_handover_payload_is_empty
+  assert_handover_file_matches_promoted_artifact "${AEGIS_EPISTEMIC_HANDOVER_FILE}" "${artifact_payload}"
+  assert_handover_file_matches_promoted_artifact "${AEGIS_LAST_GOOD_EPISTEMIC_HANDOVER_FILE}" "${artifact_payload}"
+
+  grep -q 'old issue' "${AEGIS_EPISTEMIC_HANDOVER_FILE}" \
+    && fail "stale_epistemic_state_survived_discovery_reset"
+
+  grep -q '"mode": "fake"' "${AEGIS_EPISTEMIC_HANDOVER_FILE}" \
+    && fail "stale_artifact_snapshot_survived_discovery_reset"
+
+  grep -q 'old issue' "${AEGIS_LAST_GOOD_EPISTEMIC_HANDOVER_FILE}" \
+    && fail "stale_last_good_epistemic_state_survived_discovery_reset"
+
+  grep -q '"mode": "fake"' "${AEGIS_LAST_GOOD_EPISTEMIC_HANDOVER_FILE}" \
+    && fail "stale_last_good_artifact_snapshot_survived_discovery_reset"
+}
+
+assert_discovery_starts_fresh_each_execution() {
+  local first_runtime_output
+  local first_artifact_payload
+  local second_runtime_output
+  local second_artifact_payload
+
+  first_runtime_output="$({
+    AEGIS_INVESTIGATION_INPUT="${TEST_INVESTIGATION_INPUT}" \
+    AEGIS_RUNTIME_REMOVE_CAPABILITY_PAYLOADS=false \
+    bash runtime_aegis.sh
+  })"
+
+  first_artifact_payload="$({
+    extract_first_artifact_payload "${first_runtime_output}"
+  })"
+
+  [[ -n "${first_artifact_payload}" ]] \
+    || fail "missing_first_discovery_artifact"
+
+  seed_fake_investigation_handover "issue-a"
+
+  second_runtime_output="$({
+    AEGIS_INVESTIGATION_INPUT="${TEST_INVESTIGATION_INPUT}" \
+    AEGIS_RUNTIME_REMOVE_CAPABILITY_PAYLOADS=false \
+    bash runtime_aegis.sh
+  })"
+
+  second_artifact_payload="$({
+    extract_first_artifact_payload "${second_runtime_output}"
+  })"
+
+  [[ -n "${second_artifact_payload}" ]] \
+    || fail "missing_second_discovery_artifact"
+
+  assert_runtime_read_handover_payload_is_empty
+  assert_handover_file_matches_promoted_artifact "${AEGIS_EPISTEMIC_HANDOVER_FILE}" "${second_artifact_payload}"
+  assert_handover_file_matches_promoted_artifact "${AEGIS_LAST_GOOD_EPISTEMIC_HANDOVER_FILE}" "${second_artifact_payload}"
+
+  grep -q 'issue-a' "${AEGIS_EPISTEMIC_HANDOVER_FILE}" \
+    && fail "second_discovery_inherited_prior_investigation_state"
+
+  grep -q 'issue-a' "${AEGIS_LAST_GOOD_EPISTEMIC_HANDOVER_FILE}" \
+    && fail "second_discovery_left_prior_state_in_last_good_handover"
+}
+
+assert_forensics_consumes_current_investigation_handover() {
+  local discovery_runtime_output
+  local discovery_artifact_payload
+  local forensics_runtime_output
+  local forensics_artifact_payload
+
+  discovery_runtime_output="$({
+    AEGIS_INVESTIGATION_INPUT="${TEST_INVESTIGATION_INPUT}" \
+    AEGIS_RUNTIME_REMOVE_CAPABILITY_PAYLOADS=false \
+    bash runtime_aegis.sh discovery
+  })"
+
+  discovery_artifact_payload="$({
+    extract_first_artifact_payload "${discovery_runtime_output}"
+  })"
+
+  [[ -n "${discovery_artifact_payload}" ]] \
+    || fail "missing_discovery_artifact_for_forensics_continuity"
+
+  forensics_runtime_output="$({
+    AEGIS_INVESTIGATION_INPUT="${TEST_INVESTIGATION_INPUT}" \
+    AEGIS_RUNTIME_REMOVE_CAPABILITY_PAYLOADS=false \
+    bash runtime_aegis.sh forensics
+  })"
+
+  forensics_artifact_payload="$({
+    extract_first_artifact_payload "${forensics_runtime_output}"
+  })"
+
+  [[ -n "${forensics_artifact_payload}" ]] \
+    || fail "missing_forensics_artifact_for_current_investigation"
+
+  assert_runtime_read_handover_payload_matches_promoted_artifact "${discovery_artifact_payload}"
+  assert_handover_file_matches_promoted_artifact "${AEGIS_EPISTEMIC_HANDOVER_FILE}" "${forensics_artifact_payload}"
+  assert_handover_file_matches_promoted_artifact "${AEGIS_LAST_GOOD_EPISTEMIC_HANDOVER_FILE}" "${forensics_artifact_payload}"
+}
+
+assert_forensics_rejects_mismatched_investigation_input() {
+  local mismatch_log_file
+  local status
+
+  AEGIS_INVESTIGATION_INPUT="${TEST_INVESTIGATION_INPUT}" \
+  AEGIS_RUNTIME_REMOVE_CAPABILITY_PAYLOADS=false \
+  bash runtime_aegis.sh discovery >/dev/null
+
+  mismatch_log_file="$(mktemp)"
+
+  set +e
+  AEGIS_INVESTIGATION_INPUT="${MISMATCHED_INVESTIGATION_INPUT}" \
+  AEGIS_RUNTIME_REMOVE_CAPABILITY_PAYLOADS=false \
+  bash runtime_aegis.sh forensics >/dev/null 2>"${mismatch_log_file}"
+  status=$?
+  set -e
+
+  [[ "${status}" -ne 0 ]] \
+    || fail "forensics_accepted_mismatched_investigation_input"
+
+  grep -q "investigation_input_mismatch" "${mismatch_log_file}" \
+    || fail "missing_investigation_input_mismatch_failure"
+
+  rm -f "${mismatch_log_file}"
+}
+
 main() {
   assert_constitutional_state_registry
   assert_executor_subprocess_isolation_contract
@@ -332,6 +672,10 @@ main() {
   assert_readonly_mode_has_no_execution_surface "validation"
   assert_readonly_mode_has_no_execution_surface "adversarial"
   assert_payloads_are_execution_scoped
+  assert_discovery_resets_prior_handover_state
+  assert_discovery_starts_fresh_each_execution
+  assert_forensics_consumes_current_investigation_handover
+  assert_forensics_rejects_mismatched_investigation_input
 
   echo "[AEGIS][TEST] constitutional invariants passed"
 }

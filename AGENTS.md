@@ -115,11 +115,19 @@ Discovery is bounded observation.
 
 Discovery transforms runtime-exposed evidence into explicit observations.
 
+Discovery establishes a new investigation boundary.
+
+Epistemic continuity is scoped to the lifecycle of a single investigation.
+
+Transient continuity state from previous investigations must not influence subsequent investigations.
+
 Discovery does not interpret.
 Discovery does not validate.
 Discovery does not mutate.
 Discovery does not redesign.
 Discovery does not infer causality.
+
+Discovery may seed the next investigation attention only by identifying the minimum `next_attention_targets`, `attention_scope`, and `attention_reason` needed for the next mode.
 
 Discovery answers only what is directly observable.
 
@@ -128,6 +136,8 @@ Discovery answers only what is directly observable.
 Forensics is bounded interpretation.
 
 Forensics consumes explicit observations and transforms them into evidence-backed interpretations.
+
+Forensics may narrow the current investigation attention by reducing noise and preserving only the minimum `next_attention_targets`, `attention_scope`, and `attention_reason` still needed.
 
 Forensics does not mutate.
 Forensics does not validate final outcomes.
@@ -141,6 +151,8 @@ Repair is allowed to combine observation, interpretation, causal reasoning, and 
 
 Repair may use context-heavy tools and mutation-oriented substrates.
 
+Repair may translate routed attention into the smallest action target still required for bounded correction.
+
 Repair must remain within authorized mutation boundaries.
 
 ### Optimize
@@ -149,6 +161,8 @@ Optimize is bounded simplification.
 
 Optimize may reduce complexity, improve maintainability, and remove unnecessary structure.
 
+Optimize may translate routed attention into the smallest simplification target still required.
+
 Optimize must preserve correctness and stay within authorized mutation boundaries.
 
 ### Adversarial
@@ -156,6 +170,8 @@ Optimize must preserve correctness and stay within authorized mutation boundarie
 Adversarial is bounded falsification.
 
 Adversarial exists to challenge the result of Repair and Optimize.
+
+Adversarial may translate routed attention into the smallest falsification target still worth challenging.
 
 Adversarial does not perform initial discovery.
 
@@ -166,6 +182,8 @@ Adversarial attempts to expose weak assumptions, missed cases, and residual risk
 Validation is bounded verdict.
 
 Validation complements Adversarial and provides the final judgment on the resulting state.
+
+Validation may converge routed attention toward closure and should leave no residual attention unless additional judgment is still required.
 
 Validation does not rediscover the same problems.
 Validation does not mutate.
@@ -184,10 +202,22 @@ Validation answers whether the end state is acceptable within the expected const
 - Adversarial is a falsification topology.
 - Validation is a verdict topology.
 - An artifact is a promoted fact.
-- An epistemic handover is a promoted incomplete observation.
+- An epistemic handover is a runtime-owned transient artifact containing `artifact_snapshot` and `epistemic_state`.
 - A capability payload is runtime-owned evidence.
 - Git is persistence.
 - `target_system_profile.yml` is a runtime-exposed target-system specification.
+
+### Investigation Input
+
+Prompts and issues are operator inputs that define an investigation.
+
+The runtime consumes one `investigation_input`.
+
+The runtime does not distinguish between informal and formal human wording.
+
+`investigation_input` may be carried as transient runtime-owned metadata inside `artifact_snapshot`, but it does not create a fourth operational memory surface.
+
+The runtime must not materialize an intermediate demand file as a separate continuity surface.
 
 ---
 
@@ -204,14 +234,41 @@ They are evidence.
 
 ### 2. Epistemic Handover
 
-Epistemic handover preserves only unresolved observational attention, such as:
+Epistemic handover is a single runtime-owned transient artifact with exactly two sections:
 
-- incomplete observations
-- uninspected areas
-- insufficient evidence
-- observed limitations
+- `artifact_snapshot`
+- `epistemic_state`
 
-Epistemic handover must not contain:
+`artifact_snapshot` stores only the last transient artifact snapshot promoted by the runtime.
+
+`artifact_snapshot`:
+
+- is runtime-written
+- is single-snapshot only
+- is not a history log
+- is not evidence
+- is not truth
+- is not persistent memory
+
+`epistemic_state` preserves only the minimum routed attention required for the next stage of the current investigation.
+
+`epistemic_state` must use exactly these fields:
+
+- `next_attention_targets`
+- `attention_scope`
+- `attention_reason`
+
+`epistemic_state`:
+
+- is runtime-written
+- is replacement state, not accumulation
+- is not historical context
+- is not evidence
+- is not truth
+- is not backlog
+- is not interpretation
+
+`epistemic_state` must not contain:
 
 - hypotheses
 - conclusions
@@ -219,16 +276,32 @@ Epistemic handover must not contain:
 - recommendations
 - redesign proposals
 - severity judgments
+- historical logs
+- backlog items
 - hidden reasoning chains
 
-Epistemic handover is incomplete epistemic attention.
+Epistemic handover remains an incomplete epistemic attention surface.
 
-It is a promoted incomplete observation.
+`artifact_snapshot` is a transient promoted runtime snapshot.
+
+`epistemic_state` is promoted incomplete observation.
+
+The runtime is the sole writer of the epistemic handover file.
+
+Modes may suggest routed attention in their artifacts, but they do not write the handover directly.
+
+The runtime alone decides the final `epistemic_state`, replaces the prior state, and drops routed attention that is no longer needed.
 
 It is not truth.
 It is not evidence.
 It is not interpretation.
 It is not memory.
+
+Epistemic handover is investigation-scoped continuity only.
+
+It must not transport transient continuity from one investigation into the next.
+
+Cross-investigation continuity may derive only from persistent repository state and other explicit runtime-exposed artifacts, such as target-system profiles and produced files.
 
 ### 3. Git
 
@@ -244,13 +317,23 @@ Git is the repository’s long-term memory.
 
 If the system needs to preserve unresolved attention between modes, it must do so explicitly through an epistemic handover artifact, not through hidden cognitive state.
 
+That continuity is valid only within the current investigation lifecycle.
+
+Discovery begins a new investigation lifecycle.
+
+That lifecycle is defined by one runtime-consumed `investigation_input`.
+
 Capability payloads transport runtime-owned evidence.
 
-Epistemic handovers transport incomplete epistemic attention only.
+Epistemic handovers transport one transient `artifact_snapshot` plus one `epistemic_state`.
 
 Git transports accepted persistent state.
 
-Epistemic handovers may only be consumed as investigation guidance.
+Only `epistemic_state` may be consumed as investigation guidance.
+
+`artifact_snapshot` may be inspected as transient runtime context only.
+
+`epistemic_state` must be replaced, reduced, or cleared on each runtime write.
 
 Epistemic handovers never constitute evidence, truth, findings, conclusions, validation, or authority.
 

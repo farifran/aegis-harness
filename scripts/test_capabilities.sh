@@ -37,10 +37,12 @@ EOF
 
 jq -n \
   '{
-    incomplete_observations: [],
-    uninspected_areas: [],
-    insufficient_evidence: [],
-    observed_limitations: []
+    artifact_snapshot: null,
+    epistemic_state: {
+      next_attention_targets: [],
+      attention_scope: "none",
+      attention_reason: "no active attention"
+    }
   }' > "${AEGIS_EPISTEMIC_HANDOVER_FILE}"
 
 assert_capability_success() {
@@ -96,7 +98,7 @@ handover_output="$(bash scripts/capabilities/runtime/read_epistemic_handover.sh)
 
 printf '%s\n' "${handover_output}" | jq -e \
   --arg path "${AEGIS_EPISTEMIC_HANDOVER_FILE}" \
-  '.success == true and .capability == "runtime.read_epistemic_handover" and .payload.path == $path' \
+  '.success == true and .capability == "runtime.read_epistemic_handover" and .payload.path == $path and .payload.handover.epistemic_state.next_attention_targets == [] and .payload.handover.epistemic_state.attention_scope == "none" and .payload.handover.epistemic_state.attention_reason == "no active attention" and .payload.handover.artifact_snapshot == null' \
   >/dev/null || fail "unexpected_capability_output: runtime.read_epistemic_handover"
 
 echo "[AEGIS][TEST] capability harness passed"

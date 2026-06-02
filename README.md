@@ -90,6 +90,8 @@ The runtime:
 9. updates epistemic handover guidance when unresolved attention must persist,
 10. cleans up transient state.
 
+Each investigation is also defined by one runtime-consumed `AEGIS_INVESTIGATION_INPUT`, regardless of whether the operator first wrote that demand as an issue or as an informal prompt.
+
 The execution model is intentionally deterministic and protocol-oriented.
 
 ## Capability Topology
@@ -177,13 +179,13 @@ The current runtime has been validated with NVIDIAâs OpenAI-compatible endp
 Run the full runtime:
 
 ```bash
-bash runtime_aegis.sh
+AEGIS_INVESTIGATION_INPUT="inspect runtime handover boundary" bash runtime_aegis.sh
 ```
 
 Run a specific mode directly:
 
 ```bash
-bash scripts/execute_mode.sh   ".skills/discovery.md"   "discovery"   ".harness/runtime/epistemic_handover.json"
+AEGIS_INVESTIGATION_INPUT="inspect runtime handover boundary" bash scripts/execute_mode.sh   ".skills/discovery.md"   "discovery"   ".harness/runtime/epistemic_handover.json"
 ```
 
 Execute a capability handler directly:

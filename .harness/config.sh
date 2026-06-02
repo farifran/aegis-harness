@@ -58,6 +58,12 @@ export AEGIS_EPISTEMIC_HANDOVER_FILE=".harness/runtime/epistemic_handover.json"
 export AEGIS_LAST_GOOD_EPISTEMIC_HANDOVER_FILE=".harness/runtime/last_good_epistemic_handover.json"
 export AEGIS_TARGET_SYSTEM_PROFILE_FILE="target_system_profile.yml"
 
+: "${AEGIS_DEFAULT_INVESTIGATION_INPUT:=Enumerate runtime-exposed evidence and observable system structure.}"
+: "${AEGIS_INVESTIGATION_INPUT:=}"
+
+export AEGIS_DEFAULT_INVESTIGATION_INPUT
+export AEGIS_INVESTIGATION_INPUT
+
 # =========================================================
 # ARTIFACT PROTOCOL
 # =========================================================
@@ -124,7 +130,7 @@ export AEGIS_RUNTIME_REMOVE_CAPABILITY_PAYLOADS
 : "${AEGIS_EVIDENCE_MAX_TOTAL_BYTES:=1500000}"
 : "${AEGIS_SEARCH_SYMBOL_MAX_MATCH_LINES:=100}"
 : "${AEGIS_FILE_CONTENT_MAX_BYTES:=50000}"
-: "${AEGIS_EPISTEMIC_HANDOVER_MAX_BYTES:=25000}"
+: "${AEGIS_EPISTEMIC_HANDOVER_MAX_BYTES:=100000}"
 : "${AEGIS_TARGET_SYSTEM_PROFILE_MAX_BYTES:=25000}"
 : "${AEGIS_CAPABILITY_MANIFEST_MAX_BYTES:=75000}"
 
@@ -344,6 +350,7 @@ declare -a AEGIS_PROVEN_SURFACES=(
   "capability_environment_materialization"
   "capability_payload_evidence_materialization"
   "payload_provenance_tracking"
+  "runtime_owned_artifact_snapshot_handover"
   "readonly_cognition_topology"
   "protocol_oriented_execution"
   "epistemic_handover_explicit_continuity"

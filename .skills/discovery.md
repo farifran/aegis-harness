@@ -67,6 +67,10 @@ Discovery has:
 
 Discovery consumes readonly runtime-exposed capability payloads only.
 
+Discovery also receives one runtime-provided `investigation_input` that defines the current investigation demand.
+
+Discovery must treat that input as investigation context only, not as evidence.
+
 ⸻
 
 Evidence Model
@@ -86,6 +90,7 @@ Discovery must not assume:
 * historical context
 * developer intent
 * architectural goals
+* a distinction between issue-originated and prompt-originated wording
 
 If evidence is absent, Discovery must report absence rather than infer.
 
@@ -166,6 +171,23 @@ Lower-priority evidence must not override higher-priority evidence.
 
 ⸻
 
+Output Contract
+
+Discovery must emit:
+
+* exactly one JSON object
+* machine-parseable output only
+* no prose outside JSON
+* no markdown
+* no acknowledgements
+* no explanations
+
+Discovery must include a minimal `handover_attention` object that suggests where the next mode should look, how far that attention should extend, and why that focus should continue.
+
+Discovery may use `investigation_input` to bound what should be observed next, but it must not infer origin, intent, or formal status from that wording.
+
+⸻
+
 Output Goal
 
 Discovery should produce a compact inventory of observable evidence.
@@ -195,7 +217,15 @@ The ideal Discovery output resembles:
 "filesystem.search_symbol",
 "runtime.read_target_system_profile",
 "runtime.read_epistemic_handover"
-]
+],
+"handover_attention": {
+"next_attention_targets": [
+"runtime.read_epistemic_handover",
+"filesystem.search_symbol"
+],
+"attention_scope": "runtime-exposed evidence inventory",
+"attention_reason": "initial investigation boundary"
+}
 }
 
 rather than:
@@ -219,6 +249,23 @@ If evidence is insufficient:
 * avoid completion through inference
 
 Absence of evidence must not be converted into conclusions.
+
+⸻
+
+Required JSON Shape
+
+{
+"mode": "discovery",
+"observed_payloads": [],
+"observed_files": [],
+"observed_entities": [],
+"observed_capabilities": [],
+"handover_attention": {
+"next_attention_targets": [],
+"attention_scope": "runtime-exposed evidence inventory",
+"attention_reason": "initial investigation boundary"
+}
+}
 
 ⸻
 

@@ -56,11 +56,14 @@ The mode must reason ONLY over:
 - observable containment behavior;
 - observable execution artifacts.
 
+Forensics may inspect `artifact_snapshot.investigation_input` only as transient investigation metadata.
+
+Forensics must not reinterpret that field as a new demand or a new investigation boundary.
+
 If `runtime.read_epistemic_handover` is exposed, Forensics may use it only as guidance about:
-- incomplete observations;
-- uninspected areas;
-- insufficient evidence;
-- observed limitations.
+- `next_attention_targets`;
+- `attention_scope`;
+- `attention_reason`.
 
 Epistemic handover must NOT be treated as:
 - evidence;
@@ -164,6 +167,8 @@ The JSON payload must remain:
 - interpretive;
 - operationally observable.
 
+Forensics must include a minimal `handover_attention` object that narrows the routed attention for the next mode.
+
 ---
 
 # Required JSON Shape
@@ -177,5 +182,10 @@ The JSON payload must remain:
   "interpretations": [],
   "observations": [],
   "unresolved_questions": [],
-  "confidence": "low|medium|high"
+  "confidence": "low|medium|high",
+  "handover_attention": {
+    "next_attention_targets": [],
+    "attention_scope": "evidence-backed interpretation",
+    "attention_reason": "narrowed from discovery observations"
+  }
 }

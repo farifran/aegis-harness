@@ -13,6 +13,9 @@ fail() {
   exit 1
 }
 
+readonly TEST_INVESTIGATION_INPUT="readonly smoke investigation"
+readonly DEFAULT_INVESTIGATION_INPUT="Enumerate runtime-exposed evidence and observable system structure."
+
 assert_manifest_contract() {
   local manifest
 
@@ -150,6 +153,40 @@ cleanup() {
 
 trap cleanup EXIT
 
+assert_discovery_uses_default_investigation_input() {
+  local runtime_log_file
+  local status
+
+  runtime_log_file="$(mktemp)"
+
+  set +e
+  env -u AEGIS_INVESTIGATION_INPUT \
+    bash runtime_aegis.sh discovery >/dev/null 2>"${runtime_log_file}"
+  status=$?
+  set -e
+
+  [[ "${status}" -eq 0 ]] \
+    || fail "discovery_failed_missing_investigation_input"
+
+  grep -q "^\[AEGIS\]\[RUNTIME\]$" "${runtime_log_file}" \
+    || fail "missing_runtime_default_investigation_prefix"
+
+  grep -q "No investigation input provided\." "${runtime_log_file}" \
+    || fail "missing_runtime_default_investigation_notice"
+
+  grep -q "Using default exploratory investigation\." "${runtime_log_file}" \
+    || fail "missing_runtime_default_investigation_log"
+
+  jq -e \
+    --arg investigation_input "${DEFAULT_INVESTIGATION_INPUT}" \
+    '
+      .artifact_snapshot.investigation_input == $investigation_input
+    ' .harness/runtime/epistemic_handover.json >/dev/null \
+    || fail "missing_default_investigation_input_persistence"
+
+  rm -f "${runtime_log_file}"
+}
+
 list_directory_files_json() {
   local directory_path="$1"
 
@@ -174,6 +211,7 @@ assert_no_execution_surface_for_mode() {
 
   rm -rf "${execution_surface_path}"
 
+  AEGIS_INVESTIGATION_INPUT="${TEST_INVESTIGATION_INPUT}" \
   AEGIS_RUNTIME_REMOVE_EXECUTION_SURFACE=false \
   bash runtime_aegis.sh "${mode}" >/dev/null 2>"${runtime_log_file}"
 
@@ -196,7 +234,8 @@ assert_mode_output() {
   local artifact
 
   output="$(
-    bash runtime_aegis.sh "${mode}"
+    AEGIS_INVESTIGATION_INPUT="${TEST_INVESTIGATION_INPUT}" \
+      bash runtime_aegis.sh "${mode}"
   )"
 
   artifact="$(
@@ -239,6 +278,7 @@ assert_materialized_runtime_state() {
 
   rm -rf .harness/runtime/capability_env .harness/runtime/capability_payloads
 
+  AEGIS_INVESTIGATION_INPUT="${TEST_INVESTIGATION_INPUT}" \
   AEGIS_RUNTIME_REMOVE_CAPABILITY_PAYLOADS=false \
   bash runtime_aegis.sh "${mode}" >/dev/null
 
@@ -259,6 +299,7 @@ assert_materialized_runtime_state() {
 main() {
   assert_manifest_contract
   start_mock_provider
+  assert_discovery_uses_default_investigation_input
 
   assert_mode_output "discovery" '["filesystem_list_tree.json", "filesystem_search_symbol.json", "runtime_read_target_system_profile.json", "runtime_read_epistemic_handover.json"]'
   assert_mode_output "forensics" '["filesystem_search_symbol.json", "git_status.json", "runtime_read_target_system_profile.json", "runtime_read_epistemic_handover.json"]'

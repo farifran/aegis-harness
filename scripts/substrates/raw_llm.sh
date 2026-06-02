@@ -192,6 +192,9 @@ validate_raw_substrate_inputs() {
   [[ -n "${AEGIS_MODE:-}" ]] \
     || raw_fatal "missing_execution_mode"
 
+  [[ -n "${AEGIS_INVESTIGATION_INPUT:-}" ]] \
+    || raw_fatal "missing_investigation_input"
+
   [[ -n "${AEGIS_EVIDENCE_MAX_TOTAL_BYTES:-}" ]] \
     || raw_fatal "missing_evidence_budget"
 
@@ -365,6 +368,10 @@ Execution model:
 - evidence bounded
 - selective capability payload exposure only
 
+The runtime provides one operator-defined investigation input.
+
+You must treat that investigation input as the current investigation demand without distinguishing whether it originated from an issue or an informal prompt.
+
 You must:
 - consume only runtime-selected evidence
 - avoid assumptions
@@ -391,6 +398,9 @@ ${AEGIS_EXECUTION_ID}
 
 Execution timestamp:
 ${AEGIS_EXECUTION_TIMESTAMP}
+
+Investigation input:
+${AEGIS_INVESTIGATION_INPUT}
 EOF
 }
 
@@ -436,6 +446,11 @@ assemble_bounded_manifest() {
 assemble_bounded_capability_context() {
 
   {
+    echo "=== INVESTIGATION INPUT ==="
+    echo
+    printf '%s\n' "${AEGIS_INVESTIGATION_INPUT}"
+
+    echo
     echo "=== SKILL CONTRACT ==="
     echo
     cat "${SKILL_FILE}"

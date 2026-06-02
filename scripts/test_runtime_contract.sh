@@ -13,6 +13,26 @@ fail() {
   exit 1
 }
 
+assert_invalid_handover_schema() {
+  local output
+  local status
+
+  set +e
+  output="$({
+    bash scripts/capabilities/runtime/read_epistemic_handover.sh
+  } 2>/dev/null)"
+  status=$?
+  set -e
+
+  [[ "${status}" -ne 0 ]] || fail "legacy_handover_schema_still_accepted"
+
+  printf '%s\n' "${output}" | jq -e '
+    .success == false
+    and .capability == "runtime.read_epistemic_handover"
+    and .error.type == "invalid_epistemic_handover_schema"
+  ' >/dev/null || fail "unexpected_invalid_handover_error"
+}
+
 assert_runtime_context_error() {
   local capability="$1"
   local required_var="$2"
@@ -91,10 +111,12 @@ EOF
 
 jq -n \
   '{
-    incomplete_observations: [],
-    uninspected_areas: [],
-    insufficient_evidence: [],
-    observed_limitations: []
+    artifact_snapshot: null,
+    epistemic_state: {
+      next_attention_targets: [],
+      attention_scope: "none",
+      attention_reason: "no active attention"
+    }
   }' > "${AEGIS_EPISTEMIC_HANDOVER_FILE}"
 
 printf '%s\n' "$(bash scripts/capabilities/runtime/read_target_system_profile.sh)" \
@@ -102,7 +124,20 @@ printf '%s\n' "$(bash scripts/capabilities/runtime/read_target_system_profile.sh
   || fail "runtime_bound_profile_failed_with_context"
 
 printf '%s\n' "$(bash scripts/capabilities/runtime/read_epistemic_handover.sh)" \
-  | jq -e '.success == true and .error == null' >/dev/null \
+  | jq -e '.success == true and .error == null and .payload.handover.epistemic_state.next_attention_targets == [] and .payload.handover.epistemic_state.attention_scope == "none" and .payload.handover.epistemic_state.attention_reason == "no active attention" and .payload.handover.artifact_snapshot == null' >/dev/null \
   || fail "runtime_bound_handover_failed_with_context"
+
+jq -n \
+  '{
+    artifact_snapshot: null,
+    epistemic_state: {
+      incomplete_observations: [],
+      uninspected_areas: [],
+      insufficient_evidence: [],
+      observed_limitations: []
+    }
+  }' > "${AEGIS_EPISTEMIC_HANDOVER_FILE}"
+
+assert_invalid_handover_schema
 
 echo "[AEGIS][TEST] runtime contract harness passed"
